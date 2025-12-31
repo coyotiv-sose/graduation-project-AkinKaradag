@@ -1,5 +1,11 @@
 console.log('KaraLog is an application which helps you to manage your daily planning in logistics.')
 
+class User {
+  constructor(name) {
+    this.name = name
+  }
+}
+
 class Vehicle {
   isAvailable = true
 
@@ -12,7 +18,7 @@ class Vehicle {
     this.cargos = []
   }
 
-  loadCargo(cargo) {
+  loadedCargo(cargo) {
     this.cargos.push(cargo)
   }
 }
@@ -56,7 +62,7 @@ const dimension = new Dimension(200, 400, 250)
 const newCargo = new Cargo('Euro-Pallet', dimension, 300, 2)
 const newOrder = new Order(1234, 'Basel', 'Zurich', 'Google', '2026-04-12', 'Ready to pick-up')
 newOrder.addCargo(newCargo)
-newVehicle.loadCargo(newCargo)
+newVehicle.loadedCargo(newCargo)
 
 console.log(
   `A new truck is created with followding properites: ${newVehicle.name}, ${newVehicle.brand}, ${newVehicle.model}, ${newVehicle.year}, ${newVehicle.payload}`
