@@ -1,9 +1,42 @@
 console.log('KaraLog is an application which helps you to manage your daily planning in logistics.')
 
-class User {
-  constructor(name) {
+class LogisticCompany{
+  constructor(companyName, address, postalCode, city) {
+    this.companyName = companyName
+    this.address = address
+    this.postalCode = postalCode
+    this.city = city
+    this.vehicle = []
+    this.customer = []
+    this.takenOrder = []
+  }
+
+  takeOrder(order) {
+    this.takenOrder.push(order)
+  }
+}
+
+class Dispatcher{
+  constructor(name){
     this.name = name
   }
+  
+}
+
+class Customer{
+  constructor(customerName, address, postalCode, city, VATnr) {
+    this.customerName = customerName
+    this.address = address
+    this.postalCode = postalCode
+    this.city = city
+    this.VATnr = VATnr
+    this.orders = []
+  }
+
+  makeOrder(order){
+    this.orders.push(order)
+  } 
+
 }
 
 class Vehicle {
