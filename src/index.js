@@ -17,24 +17,29 @@ class LogisticCompany{
     this.vehicle.push(vehicle)
   }
 
-  hireDispatcher(dispatcher){
-    this.employees.push(dispatcher)
+  addDispatcher(employee){
+    this.employees.push(employee)
+  }
+
+  getDispatchers(){
+    return this.employees.filter(emp => emp.role === 'Dispatcher')
   }
 
   createOrder({orderId, origin, destination, customer, deliveryDate, state}){ {
     const order = new Order(orderId, origin, destination, customer, deliveryDate, state)
     this.orders.push(order)
   }
+}
 
   addCustomer(customer){
     this.customers.push(customer)
   }
 }
-}
 
-class Dispatcher{
-  constructor(name){
+class Employee{
+  constructor(name, role){
     this.name = name
+    this.role = role
   }
 
 }
