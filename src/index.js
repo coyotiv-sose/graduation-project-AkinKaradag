@@ -7,17 +7,17 @@ class LogisticCompany{
     this.postalCode = postalCode
     this.city = city
 
-    this.vehicle = []
+    this.vehicles = []
     this.customers = []
     this.orders = []
     this.employees = []
   }
 
   addVehicle(vehicle){
-    this.vehicle.push(vehicle)
+    this.vehicles.push(vehicle)
   }
 
-  addDispatcher(employee){
+  addEmployee(employee){
     this.employees.push(employee)
   }
 
@@ -25,10 +25,10 @@ class LogisticCompany{
     return this.employees.filter(emp => emp.role === 'Dispatcher')
   }
 
-  createOrder({orderId, origin, destination, customer, deliveryDate, state}){ {
+  createOrder({orderId, origin, destination, customer, deliveryDate, state}) {
     const order = new Order(orderId, origin, destination, customer, deliveryDate, state)
     this.orders.push(order)
-  }
+    return order
 }
 
   addCustomer(customer){
@@ -51,11 +51,10 @@ class Customer{
     this.postalCode = postalCode
     this.city = city
     this.VATnr = VATnr
-    this.orders = []
   }
 
-  makeOrder(order){
-    this.orders.push(order)
+  placeOrder(company, orderData){
+    return company.createOrder({...orderData, customer: this})
   } 
 
 }
@@ -72,7 +71,7 @@ class Vehicle {
     this.cargos = []
   }
 
-  loadedCargo(cargo) {
+  loadCargo(cargo) {
     this.cargos.push(cargo)
   }
 }
@@ -116,37 +115,35 @@ const anotherVehicle = new Vehicle('truck-2', 'Volvo', 'anotherModel', '2020', '
 const newAnotherVehicle = new Vehicle('truck-3', 'Scania', 'differentModel', '2021', '25t')
 const dimension = new Dimension(200, 400, 250)
 const newCargo = new Cargo('Euro-Pallet', dimension, 300, 2)
-const newOrder = new Order(1234, 'Basel', 'Zurich', 'Google', '2026-04-12', 'Ready to pick-up')
-const newOrder1 = new Order(5678, 'Zurich', 'Bern', 'Microsoft', '2026-05-21', 'On Wrapping')
-const newOrder2 = new Order(9101, 'Bern', 'Basel', 'Adobe', '2026-07-30', 'Ready to pick-up')
 const newCompany = new LogisticCompany("Alpha Logistic", "Main Street 1", 1234, "SomeWhere")
 const customer1 = new Customer('German dream', 'Main Street 3', 12345, 'Stuttgart', 9191919)
 const customer2 = new Customer('Swiss dream', 'Main Street 5', 4000, 'Basel', 878288)
 const customer3 = new Customer('Turkish dream', 'Main Street 7', 4055, 'Basel', 8293081)
+const newOrder = newCompany.createOrder({orderId: 1234, origin: 'Basel', destination: 'Zurich', customer: customer1, deliveryDate: '2026-04-12', state: 'Ready to pick-up'})
+const newOrder1 = newCompany.createOrder({orderId: 5678, origin: 'Zurich', destination: 'Bern', customer: customer2, deliveryDate: '2026-05-21', state: 'On Wrapping'})
+const newOrder2 = newCompany.createOrder({orderId: 9101, origin: 'Bern', destination: 'Basel', customer: customer3, deliveryDate: '2026-07-30', state: 'Ready to pick-up'})
+const orderFromCustomer2 = customer2.placeOrder(newCompany, {orderId: 1122,  origin: 'Geneva', destination: 'Lausanne', deliveryDate: '2026-08-15', state: 'Pending'})
 newOrder.addCargo(newCargo)
-newVehicle.loadedCargo(newCargo)
-customer2.makeOrder(newOrder1)
-customer2.makeOrder(newOrder2)
-newCompany.employee('James')
-newCompany.employee('Jack')
-newCompany.employee('John')
-newCompany.takeOrder(newOrder)
-newCompany.takeOrder(newOrder1)
-newCompany.takeOrder(newOrder2)
-newCompany.buyVehicle(anotherVehicle)
-newCompany.buyVehicle(newAnotherVehicle)
+newVehicle.loadCargo(newCargo)
+newCompany.addEmployee(new Employee('James', 'Dispatcher'))
+newCompany.addEmployee(new Employee('Jack', 'Driver'))
+newCompany.addEmployee(new Employee('John', 'Manager'))
+newCompany.addVehicle(anotherVehicle)
+newCompany.addVehicle(newAnotherVehicle)
 
 
 console.log(`The Company ${newCompany.companyName} from ${newCompany.city} starts the tour always from the ${newCompany.address}. 
 This company has the following employees: ${newCompany.employees.map(employee => `${employee.name}`).join('; ')}
-They have already follwogin order to work on it: ${newCompany.takenOrder.map(order => `${order.orderId} from ${order.origin} to ${order.destination} for ${order.customer}`).join('; ')}
-The company owns the following vehicles: ${newCompany.vehicle.map(vehicle => `${vehicle.name} - ${vehicle.brand} ${vehicle.model} (${vehicle.year}) with payload of ${vehicle.payload}`).join('; ')}
+They have already follwogin order to work on it: ${newCompany.orders.map(order => `${order.orderId} from ${order.origin} to ${order.destination} for ${order.customer}`).join('; ')}
+The company owns the following vehicles: ${newCompany.vehicles.map(vehicle => `${vehicle.name} - ${vehicle.brand} ${vehicle.model} (${vehicle.year}) with payload of ${vehicle.payload}`).join('; ')}
 `)
 
-console.log(`The Customer ${customer2.customerName} has made following orders: ${customer2.orders
+console.log(`The Customer ${customer2.customerName} has made following orders: ${newCompany.orders.filter(order => order.customer === customer2)  
   .map(order => `${order.orderId} from ${order.origin} to ${order.destination}`)
   .join('; ')
 }`)
+
+console.log('Customer placed order:', orderFromCustomer2.orderId, orderFromCustomer2.customer.customerName)
 
 console.log(
   `A new truck is created with followding properites: ${newVehicle.name}, ${newVehicle.brand}, ${newVehicle.model}, ${newVehicle.year}, ${newVehicle.payload}`
