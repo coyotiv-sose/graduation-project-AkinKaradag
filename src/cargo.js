@@ -6,3 +6,5 @@ class Cargo {
     this.quantity = quantity
   }
 }
+
+module.exports = Cargo

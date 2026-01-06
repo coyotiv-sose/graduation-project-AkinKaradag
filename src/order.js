@@ -13,3 +13,5 @@ class Order {
     this.cargos.push(cargo)
   }
 }
+
+module.exports = Order

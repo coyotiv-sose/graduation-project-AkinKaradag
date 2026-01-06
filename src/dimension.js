@@ -6,3 +6,5 @@ class Dimension {
     this.depth = depth
   }
 }
+
+module.exports = Dimension

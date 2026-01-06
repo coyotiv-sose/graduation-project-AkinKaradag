@@ -1,3 +1,10 @@
+const Vehicle = require('./vehicle')
+const Dimension = require('./dimension')
+const Cargo = require('./cargo')
+const LogisticCompany = require('./logisticCompany')
+const Customer = require('./customer')
+const Employee = require('./employee')
+
 console.log('KaraLog is an application which helps you to manage your daily planning in logistics.')
 
 const newVehicle = new Vehicle('truck-1', 'Mercedes', 'someModel', '2019', '17t')

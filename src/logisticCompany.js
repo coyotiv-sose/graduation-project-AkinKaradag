@@ -1,3 +1,5 @@
+const Order = require('./order')
+
 class LogisticCompany{
   constructor(companyName, address, postalCode, city) {
     this.companyName = companyName
@@ -33,3 +35,5 @@ class LogisticCompany{
     this.customers.push(customer)
   }
 }
+
+module.exports = LogisticCompany

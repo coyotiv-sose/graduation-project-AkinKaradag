@@ -14,3 +14,5 @@ class Vehicle {
     this.cargos.push(cargo)
   }
 }
+
+module.exports = Vehicle
