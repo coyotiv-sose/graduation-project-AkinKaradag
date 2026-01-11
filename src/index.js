@@ -1,132 +1,46 @@
+const Vehicle = require('./vehicle')
+const Dimension = require('./dimension')
+const Cargo = require('./cargo')
+const LogisticCompany = require('./logisticCompany')
+const Customer = require('./customer')
+const Employee = require('./employee')
+
 console.log('KaraLog is an application which helps you to manage your daily planning in logistics.')
 
-class LogisticCompany{
-  constructor(companyName, address, postalCode, city) {
-    this.companyName = companyName
-    this.address = address
-    this.postalCode = postalCode
-    this.city = city
-    this.vehicle = []
-    this.customer = []
-    this.takenOrder = []
-    this.employees = []
-  }
-
-  employee(dispatcher){
-    let employer = new Dispatcher(dispatcher)
-    this.employees.push(employer)
-  }
-
-  takeOrder(order) {
-    this.takenOrder.push(order)
-  }
-}
-
-class Dispatcher{
-  constructor(name){
-    this.name = name
-  }
-
-}
-
-class Customer{
-  constructor(customerName, address, postalCode, city, VATnr) {
-    this.customerName = customerName
-    this.address = address
-    this.postalCode = postalCode
-    this.city = city
-    this.VATnr = VATnr
-    this.orders = []
-  }
-
-  makeOrder(order){
-    this.orders.push(order)
-  } 
-
-}
-
-class Vehicle {
-  isAvailable = true
-
-  constructor(name, brand, model, year, payload) {
-    this.name = name
-    this.brand = brand
-    this.model = model
-    this.year = year
-    this.payload = payload
-    this.cargos = []
-  }
-
-  loadedCargo(cargo) {
-    this.cargos.push(cargo)
-  }
-}
-
-class Order {
-  constructor(orderId, origin, destination, customer, deliveryDate, state) {
-    this.orderId = orderId
-    this.origin = origin
-    this.destination = destination
-    this.customer = customer
-    this.deliveryDate = deliveryDate
-    this.state = state
-    this.cargos = []
-  }
-
-  addCargo(cargo) {
-    this.cargos.push(cargo)
-  }
-}
-
-// helper class
-class Dimension {
-  constructor(width, height, depth) {
-    this.width = width
-    this.height = height
-    this.depth = depth
-  }
-}
-
-class Cargo {
-  constructor(loadCarrierType, dimensions, weight, quantity) {
-    this.loadCarrierType = loadCarrierType
-    this.dimensions = dimensions
-    this.weight = weight
-    this.quantity = quantity
-  }
-}
-
 const newVehicle = new Vehicle('truck-1', 'Mercedes', 'someModel', '2019', '17t')
+const anotherVehicle = new Vehicle('truck-2', 'Volvo', 'anotherModel', '2020', '20t')
+const newAnotherVehicle = new Vehicle('truck-3', 'Scania', 'differentModel', '2021', '25t')
 const dimension = new Dimension(200, 400, 250)
 const newCargo = new Cargo('Euro-Pallet', dimension, 300, 2)
-const newOrder = new Order(1234, 'Basel', 'Zurich', 'Google', '2026-04-12', 'Ready to pick-up')
-const newOrder1 = new Order(5678, 'Zurich', 'Bern', 'Microsoft', '2026-05-21', 'On Wrapping')
-const newOrder2 = new Order(9101, 'Bern', 'Basel', 'Adobe', '2026-07-30', 'Ready to pick-up')
 const newCompany = new LogisticCompany("Alpha Logistic", "Main Street 1", 1234, "SomeWhere")
 const customer1 = new Customer('German dream', 'Main Street 3', 12345, 'Stuttgart', 9191919)
 const customer2 = new Customer('Swiss dream', 'Main Street 5', 4000, 'Basel', 878288)
 const customer3 = new Customer('Turkish dream', 'Main Street 7', 4055, 'Basel', 8293081)
+const newOrder = newCompany.createOrder({orderId: 1234, origin: 'Basel', destination: 'Zurich', customer: customer1, deliveryDate: '2026-04-12', state: 'Ready to pick-up'})
+const newOrder1 = newCompany.createOrder({orderId: 5678, origin: 'Zurich', destination: 'Bern', customer: customer2, deliveryDate: '2026-05-21', state: 'On Wrapping'})
+const newOrder2 = newCompany.createOrder({orderId: 9101, origin: 'Bern', destination: 'Basel', customer: customer3, deliveryDate: '2026-07-30', state: 'Ready to pick-up'})
+const orderFromCustomer2 = customer2.placeOrder(newCompany, {orderId: 1122,  origin: 'Geneva', destination: 'Lausanne', deliveryDate: '2026-08-15', state: 'Pending'})
 newOrder.addCargo(newCargo)
-newVehicle.loadedCargo(newCargo)
-customer2.makeOrder(newOrder1)
-customer2.makeOrder(newOrder2)
-newCompany.employee('James')
-newCompany.employee('Jack')
-newCompany.employee('John')
-newCompany.takeOrder(newOrder)
-newCompany.takeOrder(newOrder1)
-newCompany.takeOrder(newOrder2)
+newVehicle.loadCargo(newCargo)
+newCompany.addEmployee(new Employee('James', 'Dispatcher'))
+newCompany.addEmployee(new Employee('Jack', 'Driver'))
+newCompany.addEmployee(new Employee('John', 'Manager'))
+newCompany.addVehicle(anotherVehicle)
+newCompany.addVehicle(newAnotherVehicle)
 
 
 console.log(`The Company ${newCompany.companyName} from ${newCompany.city} starts the tour always from the ${newCompany.address}. 
 This company has the following employees: ${newCompany.employees.map(employee => `${employee.name}`).join('; ')}
-They have already follwogin order to work on it: ${newCompany.takenOrder.map(order => `${order.orderId} from ${order.origin} to ${order.destination} for ${order.customer}`).join('; ')}
-  `)
+They have already follwogin order to work on it: ${newCompany.orders.map(order => `${order.orderId} from ${order.origin} to ${order.destination} for ${order.customer}`).join('; ')}
+The company owns the following vehicles: ${newCompany.vehicles.map(vehicle => `${vehicle.name} - ${vehicle.brand} ${vehicle.model} (${vehicle.year}) with payload of ${vehicle.payload}`).join('; ')}
+`)
 
-console.log(`The Customer ${customer2.customerName} has made following orders: ${customer2.orders
+console.log(`The Customer ${customer2.customerName} has made following orders: ${newCompany.orders.filter(order => order.customer === customer2)  
   .map(order => `${order.orderId} from ${order.origin} to ${order.destination}`)
   .join('; ')
 }`)
+
+console.log('Customer placed order:', orderFromCustomer2.orderId, orderFromCustomer2.customer.customerName)
 
 console.log(
   `A new truck is created with followding properites: ${newVehicle.name}, ${newVehicle.brand}, ${newVehicle.model}, ${newVehicle.year}, ${newVehicle.payload}`
