@@ -1,4 +1,5 @@
 const Order = require('./order')
+const Tour = require('./tour')
 
 class LogisticCompany{
   constructor(companyName, address, postalCode, city) {
@@ -11,6 +12,7 @@ class LogisticCompany{
     this.customers = []
     this.orders = []
     this.employees = []
+    this.tours = []
   }
 
   addVehicle(vehicle){
@@ -30,6 +32,12 @@ class LogisticCompany{
     this.orders.push(order)
     return order
 }
+
+createTour(tourId, vehicle, date, startLocation, endLocation) {
+    const tour = new Tour(tourId, vehicle, date, startLocation, endLocation)
+    this.tours.push(tour)
+    return tour
+  }
 
   addCustomer(customer){
     this.customers.push(customer)
