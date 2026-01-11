@@ -4,6 +4,11 @@ class Employee{
     this.role = role
   }
 
+  createTour() {
+    orders = []
+    this.vehicleId = vehicleId
+  }
+
 }
 
 module.exports = Employee
