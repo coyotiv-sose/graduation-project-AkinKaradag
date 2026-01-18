@@ -1,6 +1,33 @@
-@startuml Person 
-class Person {
-  name: string
-  age: number
+@startuml
+
+class Account {
+  id: number
+  email: String
+  password: String
 }
+
+class CustomerProfile {
+  id: number
+  accountId: number
+}
+
+class BillingInfo {
+  id: number
+  address: String
+  taxNo: number
+}
+
+class EmployeeProfile {
+  id: number
+  accountId: number
+  companyId: number
+  role: String
+}
+
+Account "1" -- "1" CustomerProfile : has a
+Account "1" -- "1" EmployeeProfile : has a
+CustomerProfile "1" o-- "1" BillingInfo : Aggregate
+
+
+
 @enduml
