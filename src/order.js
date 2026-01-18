@@ -12,6 +12,11 @@ class Order {
   addCargo(cargo) {
     this.cargos.push(cargo)
   }
+
+  getCargos() {
+    return this.cargos
+  }
+
 }
 
 module.exports = Order

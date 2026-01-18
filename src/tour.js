@@ -1,4 +1,4 @@
-class tour {
+class Tour {
     constructor(tourId, vehicle, date, startLocation, endLocation) {
         this.tourId = tourId;
         this.vehicle = vehicle;
