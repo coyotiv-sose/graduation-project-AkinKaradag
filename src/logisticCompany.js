@@ -10,15 +10,10 @@ class LogisticCompany{
     this.city = city
     this.vehicles = []
     this.customers = []
-    this.employees = []
   }
 
   addVehicle(vehicle){
     this.vehicles.push(vehicle)
-  }
-
-  addEmployee(employee){
-    this.employees.push(employee)
   }
 
   getDispatchers(){
