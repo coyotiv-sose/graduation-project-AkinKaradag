@@ -4,11 +4,6 @@ class Employee{
     this.role = role
   }
 
-  planTour(company, vehicle, ...data) {
-    if (this.role === 'Dispatcher') {
-      return company.createTour(vehicle, ...data)
-  }
+}
 
-}
-}
 module.exports = Employee
