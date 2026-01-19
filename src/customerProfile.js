@@ -1,7 +1,6 @@
 class CustomerProfile{
-    constructor({id, accountId, billingInfo}) {
+    constructor({id, accountId}) {
         this.id = id
         this.accountId = accountId
-        this.billingInfo = billingInfo
     }
 }

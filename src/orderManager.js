@@ -4,7 +4,7 @@ const orders = []
 
 function createOrder({orderId, origin, destination, customer, deliveryDate, state}){
     const newOrder = new Order(orderId, origin, destination, customer, deliveryDate, state)
-    newOrder.push(orders)
+    orders.push(newOrder)
     return orders
 }
 
