@@ -1,14 +1,12 @@
 class Customer{
-  constructor(customerName, address, postalCode, city, VATnr) {
+  constructor(customerProfile, customerName, billingInfo) {
+    this.id = customerProfile.id
     this.customerName = customerName
-    this.address = address
-    this.postalCode = postalCode
-    this.city = city
-    this.VATnr = VATnr
+    this.billingInfo = billingInfo
   }
 
   placeOrder(company, orderData){
-    return company.createOrder({...orderData, customer: this})
+    return orderManager.createOrder({...orderData, customer: this})
   } 
 
 }
