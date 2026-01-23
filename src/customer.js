@@ -1,12 +1,13 @@
 class Customer{
-  constructor(customerProfile, customerName, billingInfo) {
-    this.id = customerProfile.id
+  constructor({profile, account, customerName, billingInfo}) {
+    this.id = profile.id
+    this.accountId = account.id
     this.customerName = customerName
     this.billingInfo = billingInfo
   }
 
   placeOrder(company, orderData){
-    return orderManager.createOrder({...orderData, customer: this})
+    return orderManager.createOrder({company, ...orderData, customerId: this.id})
   } 
 
 }

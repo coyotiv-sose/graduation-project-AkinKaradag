@@ -4,3 +4,5 @@ class CustomerProfile{
         this.accountId = accountId
     }
 }
+
+module.exports = CustomerProfile
