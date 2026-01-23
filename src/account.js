@@ -5,3 +5,5 @@ class Account{
         this.password = password
     }
 }
+
+module.exports = Account

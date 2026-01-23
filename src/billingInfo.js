@@ -1,5 +1,5 @@
 class BillingInfo{
-    constructor(customerName, address, postalCode, city, VATnr) {
+    constructor({customerName, address, postalCode, city, VATnr}) {
         this.customerName = customerName
         this.address = address
         this.postalCode = postalCode
