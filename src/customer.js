@@ -1,3 +1,5 @@
+const orderManager = require('./orderManager')
+
 class Customer{
   constructor({profile, account, customerName, billingInfo}) {
     this.id = profile.id
