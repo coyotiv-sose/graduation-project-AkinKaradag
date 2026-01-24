@@ -26,9 +26,8 @@ const customer1 = new Customer({profile, account, customerName: billingInfo.cust
 
 const newOrder = newCompany.createOrder({orderId: 1234, origin: 'Basel', destination: 'Zurich', customerId: customer1.id, deliveryDate: '2026-04-12', state: 'Ready to pick-up', billingInfo})
 
-const orderFromCustomer1 = customer1.placeOrder(newCompany, {orderId: 1122,  origin: 'Geneva', destination: 'Lausanne', deliveryDate: '2026-08-15', state: 'Pending', billingInfo})
+const orderFromCustomer1 = customer1.placeOrder(newCompany, {orderId: 1122,  origin: 'Geneva', destination: 'Lausanne', deliveryDate: '2026-08-15', state: 'Pending', billingInfo: billingInfo})
 
-newOrder.addCargo(newCargo)
 newVehicle.loadCargo(newCargo)
 
 newCompany.addVehicle(anotherVehicle)
@@ -36,12 +35,7 @@ newCompany.addVehicle(newAnotherVehicle)
 
 
 
-console.log(`The Customer ${customer1.customerName} has made following orders: ${newCompany.orders.filter(order => order.customer === customer1)  
-  .map(order => `${order.orderId} from ${order.origin} to ${order.destination}`)
-  .join('; ')
-}`)
-
-console.log('Customer placed order:', orderFromCustomer1.orderId, orderFromCustomer1.billingInfo.customerName)
+console.log('Customer placed order:', orderFromCustomer1.orderId, orderFromCustomer1.customerName)
 
 console.log(
   `A new truck is created with followding properites: ${newVehicle.name}, ${newVehicle.brand}, ${newVehicle.model}, ${newVehicle.year}, ${newVehicle.payload}`
@@ -58,14 +52,4 @@ console.log(
 
 console.log(
   `The Cargo is loaded by ${newCargo.loadCarrierType} and has a width of ${newCargo.dimensions.width} a height of ${newCargo.dimensions.height} and depth of ${newCargo.dimensions.depth}. The weight of the Cargo is ${newCargo.weight} kg and total pieces of ${newCargo.quantity}`
-)
-
-console.log(
-  `You've recorded a new Order with Id: ${newOrder.orderId}, which will picked up from ${newOrder.origin} and delivered to ${newOrder.destination} on ${newOrder.deliveryDate}. The current state is ${newOrder.state}`
-)
-
-console.log(
-  `The order ${newOrder.orderId} has the following cargo: ${newOrder.cargos
-    .map(cargo => `${cargo.loadCarrierType} x ${cargo.quantity} from ${newOrder.origin} to ${newOrder.destination}`)
-    .join('; ')}`
 )
