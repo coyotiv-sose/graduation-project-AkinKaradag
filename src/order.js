@@ -1,7 +1,7 @@
 const BillingInfo = require("./billingInfo")
 
 class Order {
-  constructor(orderId, origin, destination, customerId, deliveryDate, state, billingInfo) {
+  constructor({orderId, origin, destination, customerId, deliveryDate, state, billingInfo}) {
     this.orderId = orderId
     this.origin = origin
     this.destination = destination
