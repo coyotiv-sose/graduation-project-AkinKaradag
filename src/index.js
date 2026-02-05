@@ -37,8 +37,6 @@ console.log('KaraLog is an application which helps you to manage your daily plan
 // newCompany.addVehicle(anotherVehicle)
 // newCompany.addVehicle(newAnotherVehicle)
 
-
-
 // console.log('Customer placed order:', orderFromCustomer1.orderId, orderFromCustomer1.billingInfo.customerName)
 
 // console.log(
@@ -58,21 +56,29 @@ console.log('KaraLog is an application which helps you to manage your daily plan
 //   `The Cargo is loaded by ${newCargo.loadCarrierType} and has a width of ${newCargo.dimensions.width} a height of ${newCargo.dimensions.height} and depth of ${newCargo.dimensions.depth}. The weight of the Cargo is ${newCargo.weight} kg and total pieces of ${newCargo.quantity}`
 // )
 
-
 //////////////////////////////////
 
 // fetch users with axios
 
 axios.get('http://localhost:3000/users').then(response => {
-  console.log(response.data)
+    console.log(response.data)
 })
 
 // create a user with axios
 
 axios
-  .post('http://localhost:3000/users', {
-    name: 'Armagan'
-  })
-  .then(response => {
-    console.log(response.data)
-  })
+    .post('http://localhost:3000/users', {
+        name: 'Armagan',
+    })
+    .then(response => {
+        console.log(response.data)
+    })
+
+axios
+    .post('http://localhost:3000/accounts', {
+        id: 4,
+        email: 'someEmail4@mail.com',
+    })
+    .then(response => {
+        console.log(response.data)
+    })
