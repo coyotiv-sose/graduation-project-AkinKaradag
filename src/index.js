@@ -61,22 +61,6 @@ console.log('KaraLog is an application which helps you to manage your daily plan
 // fetch users with axios
 
 async function main() {
-    
-    await axios
-    .post('http://localhost:3000/customers', {
-        customerName: 'customer4',
-    })
-    
-    
-    await axios
-    .post('http://localhost:3000/customers', {
-        customerName: 'customer5'
-    })
-    
-    const allCustomers = await axios.get('http://localhost:3000/customers')
-
-    console.log('List of all customers', allCustomers.data)
-
     await axios
     .post('http://localhost:3000/companies', {
         companyName: 'company3'
@@ -88,6 +72,27 @@ async function main() {
     })
 
     const allCompanies = await axios.get('http://localhost:3000/companies')
+    
+    await axios
+    .post('http://localhost:3000/customers', {
+        customerName: 'customer4',
+    })
+    
+    
+    await axios
+    .post('http://localhost:3000/customers', {
+        customerName: 'customer5'
+    })
+
+    await axios
+    .post('http://localhost:3000/customers', {
+        customerName: 'customer6'
+    })
+    
+    const allCustomers = await axios.get('http://localhost:3000/customers')
+
+    console.log('List of all customers', allCustomers.data)
+
 
     console.log('List of all companies (only visible for Admins): ', allCompanies.data)
 
