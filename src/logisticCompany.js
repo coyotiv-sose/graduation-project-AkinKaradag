@@ -3,8 +3,8 @@ const tourManager = require('./tourManager')
 
 
 class LogisticCompany{
-  constructor({profile, companyName, address, postalCode, city}) {
-    this.id = profile.id
+  constructor({id, companyName, address, postalCode, city}) {
+    this.id = id
     this.companyName = companyName
     this.address = address
     this.postalCode = postalCode
@@ -32,6 +32,28 @@ class LogisticCompany{
   addCustomer(customer){
     this.customers.push(customer)
   }
+
+  static create(companyObj) {
+    console.log(`Creating a new Company with name ${companyObj.companyName}`)
+
+    const newCompany = new LogisticCompany({
+      id: 12345321,
+      companyName: companyObj.companyName,
+      address: 'Industry Street 1',
+      postalCode: '43234',
+      city: 'Industry'
+    })
+
+    console.log('Company created: ', newCompany)
+    LogisticCompany.list.push(newCompany)
+
+    return newCompany
+
+
+  }
+
+  static list = []
+
 }
 
 module.exports = LogisticCompany

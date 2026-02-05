@@ -77,6 +77,20 @@ async function main() {
 
     console.log('List of all customers', allCustomers.data)
 
+    await axios
+    .post('http://localhost:3000/companies', {
+        companyName: 'company3'
+    })
+
+    await axios
+    .post('http://localhost:3000/companies', {
+        companyName: 'company4'
+    })
+
+    const allCompanies = await axios.get('http://localhost:3000/companies')
+
+    console.log('List of all companies (only visible for Admins): ', allCompanies.data)
+
 }
 
 main()
