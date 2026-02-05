@@ -3,7 +3,8 @@ const tourManager = require('./tourManager')
 
 
 class LogisticCompany{
-  constructor(companyName, address, postalCode, city) {
+  constructor({profile, companyName, address, postalCode, city}) {
+    this.id = profile.id
     this.companyName = companyName
     this.address = address
     this.postalCode = postalCode

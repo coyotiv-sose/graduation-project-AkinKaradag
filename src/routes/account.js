@@ -1,6 +1,6 @@
 var express = require('express')
 var router = express.Router()
-var Account = require('account')
+var Account = require('./account')
 
 /* GET account list */
 router.get('/', function(req, res, next) {
