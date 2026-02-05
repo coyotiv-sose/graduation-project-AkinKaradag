@@ -1,0 +1,10 @@
+extend layout 
+
+block content 
+    h1 Registered Companies 
+    p Test 
+
+    h2 Companies 
+    ul
+        each company in companies 
+            li= company.companyName
