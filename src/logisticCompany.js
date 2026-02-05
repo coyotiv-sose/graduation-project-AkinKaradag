@@ -41,7 +41,7 @@ class LogisticCompany{
       companyName: companyObj.companyName,
       address: 'Industry Street 1',
       postalCode: '43234',
-      city: 'Industry'
+      city: 'Industry',
     })
 
     console.log('Company created: ', newCompany)
