@@ -24,9 +24,35 @@ class EmployeeProfile {
   role: String
 }
 
+class Customer {
+  profile.id: number
+  accountId: number
+  customerName: String
+  billingInfo: BillingInfo
+}
+
+class LogisticCompany {
+  profile.id: number
+  accountId: number
+  companyName: String
+  address: String
+
+  addVehicle(vehicle): void
+  getDispatcher(): void
+  createOrder(orderData): void
+  createTour(tourData): void
+  addCustomer(customer): void
+}
+
 Account "1" -- "1" CustomerProfile : has a
 Account "1" -- "1" EmployeeProfile : has a
 CustomerProfile "1" o-- "1" BillingInfo : Aggregate
+Customer "1" -- Account : has a
+Customer "1" -- "1" CustomerProfile : has a
+Customer "1" -- "1" BillingInfo
+LogisticCompany "0..*" --> Account
+LogisticCompany "0..*" --> Customer
+LogisticCompany "1" -- EmployeeProfile
 
 
 
