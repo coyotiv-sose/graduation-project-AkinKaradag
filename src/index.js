@@ -60,25 +60,23 @@ console.log('KaraLog is an application which helps you to manage your daily plan
 
 // fetch users with axios
 
-axios.get('http://localhost:3000/users').then(response => {
-    console.log(response.data)
-})
+async function main() {
+    
+    await axios
+    .post('http://localhost:3000/customers', {
+        customerName: 'customer4',
+    })
+    
+    
+    await axios
+    .post('http://localhost:3000/customers', {
+        customerName: 'customer5'
+    })
+    
+    const allCustomers = await axios.get('http://localhost:3000/customers')
 
-// create a user with axios
+    console.log('List of all customers', allCustomers.data)
 
-axios
-    .post('http://localhost:3000/users', {
-        name: 'Armagan',
-    })
-    .then(response => {
-        console.log(response.data)
-    })
+}
 
-axios
-    .post('http://localhost:3000/accounts', {
-        id: 4,
-        email: 'someEmail4@mail.com',
-    })
-    .then(response => {
-        console.log(response.data)
-    })
+main()
