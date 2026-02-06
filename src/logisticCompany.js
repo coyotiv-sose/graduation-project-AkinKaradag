@@ -1,59 +1,59 @@
 const orderManager = require('./orderManager')
 const tourManager = require('./tourManager')
 
+class LogisticCompany {
+    constructor({ id, companyName, address, postalCode, city }) {
+        this.id = id
+        this.companyName = companyName
+        this.address = address
+        this.postalCode = postalCode
+        this.city = city
+        this.vehicles = []
+        this.customers = []
+    }
 
-class LogisticCompany{
-  constructor({id, companyName, address, postalCode, city}) {
-    this.id = id
-    this.companyName = companyName
-    this.address = address
-    this.postalCode = postalCode
-    this.city = city
-    this.vehicles = []
-    this.customers = []
-  }
+    addVehicle(vehicle) {
+        this.vehicles.push(vehicle)
+    }
 
-  addVehicle(vehicle){
-    this.vehicles.push(vehicle)
-  }
+    getDispatchers() {
+        return this.employees.filter(emp => emp.role === 'Dispatcher')
+    }
 
-  getDispatchers(){
-    return this.employees.filter(emp => emp.role === 'Dispatcher')
-  }
+    createOrder(orderData) {
+        return orderManager.createOrder(orderData)
+    }
 
-  createOrder(orderData) {
-    return orderManager.createOrder(orderData)
-}
+    createTour(tourData) {
+        return tourManager.createTour(tourData)
+    }
 
-  createTour(tourData) {
-    return tourManager.createTour(tourData)
-  }
+    createCustomer(customer) {
+        this.customers.push(customer)
+    }
 
-  addCustomer(customer){
-    this.customers.push(customer)
-  }
+    static findById(id) {
+        return LogisticCompany.list.find(company => company.id === id)
+    }
 
-  static create(companyObj) {
-    console.log(`Creating a new Company with name ${companyObj.companyName}`)
+    static create(companyObj) {
+        console.log(`Creating a new Company with name ${companyObj.companyName}`)
 
-    const newCompany = new LogisticCompany({
-      id: 12345321,
-      companyName: companyObj.companyName,
-      address: 'Industry Street 1',
-      postalCode: '43234',
-      city: 'Industry',
-    })
+        const newCompany = new LogisticCompany({
+            id: 12345321,
+            companyName: companyObj.companyName,
+            address: 'Industry Street 1',
+            postalCode: '43234',
+            city: 'Industry',
+        })
 
-    console.log('Company created: ', newCompany)
-    LogisticCompany.list.push(newCompany)
+        console.log('Company created: ', newCompany)
+        LogisticCompany.list.push(newCompany)
 
-    return newCompany
+        return newCompany
+    }
 
-
-  }
-
-  static list = []
-
+    static list = []
 }
 
 module.exports = LogisticCompany
