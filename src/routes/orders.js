@@ -1,7 +1,6 @@
 var express = require('express')
 var router = express.Router()
 var orderManager = require('../orderManager')
-const { rawListeners } = require('../app')
 
 router.get('/', function(req, res, next) {
     res.render('orders', { orders: orderManager.getOrders() })

@@ -4,9 +4,10 @@ const Profile = require('./customerProfile')
 const BillingInfo = require('./billingInfo')
 
 class Customer {
-    constructor({ profile, account, customerName, billingInfo }) {
+    constructor({ profile, account, customerName, billingInfo, companyId }) {
         this.id = profile.id
         this.accountId = account.id
+        this.companyId = companyId
         this.customerName = customerName
         this.billingInfo = billingInfo
     }
@@ -36,6 +37,7 @@ class Customer {
             account: account,
             customerName: customerObj.customerName,
             billingInfo: billingInfo,
+            companyId: customerObj.companyId
         })
         console.log('Customer created: ', newCustomer)
         Customer.list.push(newCustomer)

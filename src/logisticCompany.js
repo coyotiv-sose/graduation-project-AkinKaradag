@@ -1,5 +1,6 @@
 const orderManager = require('./orderManager')
 const tourManager = require('./tourManager')
+const Customer = require('./customer')
 
 class LogisticCompany {
     constructor({ id, companyName, address, postalCode, city }) {
@@ -28,8 +29,17 @@ class LogisticCompany {
         return tourManager.createTour(tourData)
     }
 
-    createCustomer(customer) {
+    createCustomer(customerData) {
+        const customer = Customer.create({
+            ...customerData,
+            companyId: this.id
+        })
         this.customers.push(customer)
+        return customer
+    }
+
+    getCustomers(){
+        return this.customers
     }
 
     static findById(id) {
@@ -37,14 +47,12 @@ class LogisticCompany {
     }
 
     static create(companyObj) {
-        console.log(`Creating a new Company with name ${companyObj.companyName}`)
-
         const newCompany = new LogisticCompany({
-            id: 12345321,
+            id: Date.now(),
             companyName: companyObj.companyName,
-            address: 'Industry Street 1',
-            postalCode: '43234',
-            city: 'Industry',
+            address: companyObj.address,
+            postalCode: companyObj.postalCode,
+            city: companyObj.city
         })
 
         console.log('Company created: ', newCompany)
