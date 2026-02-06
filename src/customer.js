@@ -12,8 +12,12 @@ class Customer {
         this.billingInfo = billingInfo
     }
 
-    placeOrder(company, orderData) {
-        return orderManager.createOrder({ company, ...orderData, customerId: this.id })
+    placeOrder(orderData) {
+        return orderManager.createOrder({
+          ...orderData, 
+          customerId: this.id,
+          companyId: this.companyId
+        })
     }
 
     static create(customerObj) {

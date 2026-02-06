@@ -1,15 +1,42 @@
 var express = require('express')
 var router = express.Router()
 var Customer = require('../customer')
-const LogisticCompany = require('../logisticCompany')
+var orderManager = require('../orderManager')
 
 /* GET account list */
 router.get('/', function(req, res, next) {
-    const customers = [{ customerName: 'customer1' }, { customerName: 'customer2' }, { customerName: 'customer3' }]
 
-    const allCustomer = [...customers, ...Customer.list]
+    res.render('customers', { customers: Customer.list })
+})
 
-    res.render('customers', { customers: allCustomer })
+router.post('/:customerId/orders', function(req, res, next){
+    try{
+    const customer = Customer.list.find(c => c.id === Number(req.params.customerId))
+
+    if(!customer) {
+        return res.status(404).send('Customer not found')
+    }
+
+    const order = customer.placeOrder(req.body)
+    res.send(order)
+    } catch(error){
+        console.error('Error: ', error.message)
+        console.error('Stack:', error.stack)
+        res.status(500).send(error.message)
+    }
+})
+
+router.get('/:customerId/orders', function(req,res,next){
+    const customer = Customer.list.find(c => c.id === Number(req.params.customerId))
+
+    if(!customer){
+        return res.status(404).send('Customer not found')
+    }
+
+    const customerOrders = orderManager.getOrders().filter(orders => orders.customerId === customer.id)
+
+    res.render('customer-orders', { orders: customerOrders})
+
 })
 
 module.exports = router

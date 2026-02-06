@@ -1,0 +1,10 @@
+extend layout 
+
+block content 
+    h1 Customers Orders 
+    p= `Orders from ${customerName}`
+
+    h2 Orders 
+    ul 
+        each order in orders
+            li #{order.origin} -> #{order.destination}

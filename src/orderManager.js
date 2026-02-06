@@ -2,8 +2,8 @@ const Order = require('./order')
 
 const orders = []
 
-function createOrder({ orderId, origin, destination, customerId, deliveryDate, state, billingInfo }) {
-    const newOrder = new Order({ orderId, origin, destination, customerId, deliveryDate, state, billingInfo })
+function createOrder({ orderId, origin, destination, customerId, deliveryDate, state, billingInfo, companyId }) {
+    const newOrder = new Order({ orderId, origin, destination, customerId, deliveryDate, state, billingInfo, companyId })
     orders.push(newOrder)
     return newOrder
 }
