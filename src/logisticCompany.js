@@ -1,6 +1,7 @@
 const orderManager = require('./orderManager')
 const tourManager = require('./tourManager')
 const Customer = require('./customer')
+const Vehicle = require('./vehicle')
 
 class LogisticCompany {
     constructor({ id, companyName, address, postalCode, city }) {
@@ -13,8 +14,17 @@ class LogisticCompany {
         this.customers = []
     }
 
-    addVehicle(vehicle) {
+    addVehicle(vehicleData) {
+        const vehicle = Vehicle.create({
+            ...vehicleData,
+            companyId: this.id
+        })
         this.vehicles.push(vehicle)
+        return vehicle
+    }
+
+    getVehicles(){
+        return this.vehicles
     }
 
     getDispatchers() {

@@ -46,6 +46,14 @@ async function main() {
         deliveryDate: '2026-05-02'
     })
 
+    await axios.post(`http://localhost:3000/companies/${company2Id}/vehicles`, {
+        name: 'Truck1',
+        brand: 'Mercedes',
+        model: 'Sprinter',
+        year: '2005',
+        payload: '800 Kg'
+    })
+
 
     console.log('List of all companies (only visible for Admins): ', allCompanies.data)
 

@@ -1,0 +1,9 @@
+extend layout 
+
+block content 
+    h1 Company Cars 
+
+    h2 List of Vehicles
+    ul 
+        each vehicle in vehicles 
+            li #{vehicle.brand} - #{vehicle.model}

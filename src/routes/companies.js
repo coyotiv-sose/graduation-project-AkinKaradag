@@ -32,4 +32,27 @@ router.get('/:companyId/customers', function(req, res, next) {
     res.json(company.getCustomers())
 })
 
+router.post('/:companyId/vehicles', function(req, res, next) {
+    const company = LogisticCompany.findById(Number(req.params.companyId))
+
+    if(!company){
+        return res.status(404).send('Company not found')
+    }
+
+    const newVehicle = company.addVehicle(req.body)
+    res.send(newVehicle)
+})
+
+router.get('/:companyId/vehicles', function(req, res, next) {
+        const company = LogisticCompany.findById(Number(req.params.companyId))
+
+    if(!company){
+        return res.status(404).send('Company not found')
+    }
+
+    const vehicleOfCompany = company.getVehicles()
+
+    res.render('company-cars', {vehicles: vehicleOfCompany})
+})
+
 module.exports = router

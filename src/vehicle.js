@@ -1,18 +1,35 @@
 class Vehicle {
-  isAvailable = true
-
-  constructor(name, brand, model, year, payload) {
+  
+  constructor({id, name, brand, model, year, payload, companyId}) {
+    this.id = id
+    this.companyId = companyId
     this.name = name
     this.brand = brand
     this.model = model
     this.year = year
     this.payload = payload
+    this.isAvailable = true
     this.cargos = []
   }
 
   loadCargo(cargo) {
     this.cargos.push(cargo)
   }
+
+  static create(vehicleData){
+    const newVehicle = new Vehicle({
+      id: Date.now(),
+      ...vehicleData
+    }) 
+    Vehicle.list.push(newVehicle)
+
+    return newVehicle
+
+  }
+
+  static list = []
+
+
 }
 
 module.exports = Vehicle
