@@ -61,41 +61,51 @@ console.log('KaraLog is an application which helps you to manage your daily plan
 // fetch users with axios
 
 async function main() {
-    await axios
-    .post('http://localhost:3000/companies', {
-        companyName: 'company3'
+    await axios.post('http://localhost:3000/companies', {
+        companyName: 'company3',
     })
 
-    await axios
-    .post('http://localhost:3000/companies', {
-        companyName: 'company4'
+    await axios.post('http://localhost:3000/companies', {
+        companyName: 'company4',
     })
 
     const allCompanies = await axios.get('http://localhost:3000/companies')
-    
-    await axios
-    .post('http://localhost:3000/customers', {
+
+    await axios.post('http://localhost:3000/customers', {
         customerName: 'customer4',
     })
-    
-    
-    await axios
-    .post('http://localhost:3000/customers', {
-        customerName: 'customer5'
+
+    await axios.post('http://localhost:3000/customers', {
+        customerName: 'customer5',
     })
 
-    await axios
-    .post('http://localhost:3000/customers', {
-        customerName: 'customer6'
+    await axios.post('http://localhost:3000/customers', {
+        customerName: 'customer6',
     })
-    
+
     const allCustomers = await axios.get('http://localhost:3000/customers')
 
     console.log('List of all customers', allCustomers.data)
 
-
     console.log('List of all companies (only visible for Admins): ', allCompanies.data)
 
+    await axios.get('http://localhost:3000/orders')
+
+    await axios.post('http://localhost:3000/orders', {
+        orderId: Date.now(),
+        origin: 'Zurich',
+        destination: 'Basel',
+        customerId: Date.now(),
+        deliveryDate: '2026-03-16',
+        state: 'pending',
+        billingInfo: {
+            customerName: 'customer1',
+            address: 'Patternstreet 1',
+            postalCode: 1234,
+            city: 'Pattern',
+            VATnr: 'VAT-007',
+        },
+    })
 }
 
 main()

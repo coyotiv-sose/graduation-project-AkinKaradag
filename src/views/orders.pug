@@ -1,0 +1,10 @@
+extend layout
+
+block content
+  h1 Registered Orders
+  p All Orders
+
+  h2 Orders
+  ul
+    each order in orders
+      li= order.orderId

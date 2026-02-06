@@ -1,24 +1,24 @@
 const BillingInfo = require("./billingInfo")
 
 class Order {
-  constructor({orderId, origin, destination, customerId, deliveryDate, state, billingInfo}) {
-    this.orderId = orderId
-    this.origin = origin
-    this.destination = destination
-    this.customerId = customerId
-    this.deliveryDate = deliveryDate
-    this.state = state
-    this.cargos = []
-    this.billingInfo = billingInfo
-  }
+    constructor({ orderId, origin, destination, customerId, deliveryDate, state, billingInfo }) {
+        this.orderId = orderId
+        this.origin = origin
+        this.destination = destination
+        this.customerId = customerId
+        this.deliveryDate = deliveryDate
+        this.state = state
+        this.cargos = []
+        this.billingInfo = billingInfo
+    }
 
-  addCargo(cargo) {
-    this.cargos.push(cargo)
-  }
+    addCargo(cargo) {
+        this.cargos.push(cargo)
+    }
 
-  getCargos() {
-    return this.cargos
-  }
+    getCargos() {
+        return this.cargos
+    }
 
 }
 

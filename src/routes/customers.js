@@ -5,15 +5,11 @@ const LogisticCompany = require('../logisticCompany')
 
 /* GET account list */
 router.get('/', function(req, res, next) {
-    const customers = [
-        { customerName: 'customer1' },
-        { customerName: 'customer2' },
-        { customerName: 'customer3' },
-    ]
+    const customers = [{ customerName: 'customer1' }, { customerName: 'customer2' }, { customerName: 'customer3' }]
 
     const allCustomer = [...customers, ...Customer.list]
 
-    res.render('customers', {customers: allCustomer})
+    res.render('customers', { customers: allCustomer })
 })
 
 /* Add a new Customer */
@@ -22,9 +18,9 @@ router.post('/', function(req, res, next) {
 
     const company = LogisticCompany.list.find(c => c.companyName === 'company4')
 
-    if(!company) {
-        console.log('company1 doesn\'t exist', LogisticCompany.list)
-        return res.status(404).send('company1 not found')
+    if (!company) {
+        console.log("company1 doesn't exist", LogisticCompany.list)
+        return res.status(404).send('company4 not found')
     }
 
     company.addCustomer(customer)
@@ -32,8 +28,6 @@ router.post('/', function(req, res, next) {
     console.log(`Customer ${customer.customerName} added to ${company.companyName}`)
 
     res.send(customer.customerName)
-
 })
-
 
 module.exports = router
