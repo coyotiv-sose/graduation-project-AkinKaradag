@@ -23,24 +23,20 @@ class Customer {
     static create(customerObj) {
         console.log(`Creating a new Customer with name ${customerObj.customerName}`)
 
-        const account = new Account({
-            id: Date.now(),
+        const account = Account.create({
             email: customerObj.email,
             password: customerObj.password,
         })
 
-        const profile = new Profile({
-            id: Date.now() + 1,
-            accountId: account.id,
-        })
+        const profile = Profile.create({ accountId: account.id })
 
-        const billingInfo = new BillingInfo(customerObj.billingInfo)
+        const billingInfo = BillingInfo.create(customerObj.billingInfo)
 
         const newCustomer = new Customer({
-            profile: profile,
-            account: account,
+            profile,
+            account,
             customerName: customerObj.customerName,
-            billingInfo: billingInfo,
+            billingInfo,
             companyId: customerObj.companyId
         })
         console.log('Customer created: ', newCustomer)

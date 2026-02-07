@@ -6,6 +6,12 @@ class BillingInfo{
         this.city = city
         this.VATnr = VATnr
   }
+
+
+  static create(billingData){
+    return new BillingInfo(billingData)
+  }
+
 }
 
 module.exports = BillingInfo
