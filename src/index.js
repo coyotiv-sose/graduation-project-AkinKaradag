@@ -38,13 +38,28 @@ async function main() {
         }
     })
 
-    const customer1Id = customer1.data.id
-
-    await axios.post(`http://localhost:3000/customers/${customer1Id}/orders`, {
-        origin: 'Geneva',
-        destination: 'Bern',
-        deliveryDate: '2026-05-02'
+    const customer2 = await axios.post(`http://localhost:3000/companies/${company2Id}/customers`, {
+        customerName: 'customer2',
+        email: 'customer2@mail.com',
+        password: 'shouldNotBeHere',
+        billingInfo: {
+            customerName: 'customer2',
+            address: 'Main Street 2',
+            postalCode: '2234',
+            city: 'Main City',
+            VATnr: 'VAT-002'
+        }
     })
+
+    const customer1Id = customer1.data.id
+    const customer2Id = customer2.data.id
+
+    // await axios.post(`http://localhost:3000/customers/${customer1Id}/orders`, {
+    //     origin: 'Geneva',
+    //     destination: 'Bern',
+    //     deliveryDate: '2026-05-02'
+    // })
+
 
     await axios.post(`http://localhost:3000/companies/${company2Id}/vehicles`, {
         name: 'Truck1',

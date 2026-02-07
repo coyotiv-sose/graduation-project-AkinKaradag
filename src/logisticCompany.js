@@ -1,7 +1,7 @@
 const orderManager = require('./orderManager')
 const tourManager = require('./tourManager')
-const Customer = require('./customer')
 const Vehicle = require('./vehicle')
+const accountManager = require('./accountManager')
 
 class LogisticCompany {
     constructor({ id, companyName, address, postalCode, city }) {
@@ -23,34 +23,23 @@ class LogisticCompany {
         return vehicle
     }
 
-    getVehicles(){
-        return this.vehicles
-    }
+    getVehicles(){ return this.vehicles }
 
     getDispatchers() {
         return this.employees.filter(emp => emp.role === 'Dispatcher')
     }
 
-    createOrder(orderData) {
-        return orderManager.createOrder(orderData)
+    createOrder(orderData) { return orderManager.createOrder(orderData) }
+
+    createTour(tourData) { return tourManager.createTour(tourData) }
+
+    createCustomer(customerData) { 
+        const newCustomer = accountManager.createCustomer({...customerData, companyId: this.id}) 
+        this.customers.push(newCustomer)
+        return newCustomer
     }
 
-    createTour(tourData) {
-        return tourManager.createTour(tourData)
-    }
-
-    createCustomer(customerData) {
-        const customer = Customer.create({
-            ...customerData,
-            companyId: this.id
-        })
-        this.customers.push(customer)
-        return customer
-    }
-
-    getCustomers(){
-        return this.customers
-    }
+    getCustomers(){ return this.customers }
 
     static findById(id) {
         return LogisticCompany.list.find(company => company.id === id)

@@ -14,18 +14,22 @@ function createCustomer(customerData) {
 
     const customerProfile = new CustomerProfile({
         id: Date.now() + 1,
-        accoundId: account.id,
+        accountId: account.id,
 
     })
 
-    const billingInfo = BillingInfo.create(customerData)
+    const billingInfo = BillingInfo.create(customerData.billingInfo)
 
     const customer = new Customer({
-        profile,
+        profile: customerProfile,
         account,
         billingInfo,
         customerName: customerData.customerName,
         companyId: customerData.companyId
     })
 
+    return customer
+
 }
+
+module.exports = { createCustomer }

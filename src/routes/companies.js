@@ -18,8 +18,8 @@ router.post('/:companyId/customers', function(req, res, next) {
         return res.status(404).send('Company not found')
     }
 
-    const newCustomer = company.createCustomer(req.body)
-    res.send(newCustomer)
+        const newCustomer = company.createCustomer(req.body)
+        res.send(newCustomer)
 })
 
 router.get('/:companyId/customers', function(req, res, next) {
