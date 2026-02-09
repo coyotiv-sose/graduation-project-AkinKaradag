@@ -1,5 +1,3 @@
-const BillingInfo = require("./billingInfo")
-
 class Order {
     constructor({ orderId, origin, destination, customerId, deliveryDate, state, billingInfo, companyId }) {
         this.orderId = orderId
@@ -20,7 +18,6 @@ class Order {
     getCargos() {
         return this.cargos
     }
-
 }
 
 module.exports = Order

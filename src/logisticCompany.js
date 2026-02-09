@@ -1,7 +1,8 @@
 const orderManager = require('./orderManager')
 const tourManager = require('./tourManager')
 const Vehicle = require('./vehicle')
-const accountManager = require('./accountManager')
+const { createCustomer } = require('./customerManager')
+const { createEmployee } = require('./employeeManager')
 
 class LogisticCompany {
     constructor({ id, companyName, address, postalCode, city }) {
@@ -12,34 +13,49 @@ class LogisticCompany {
         this.city = city
         this.vehicles = []
         this.customers = []
+        this.employees = []
     }
 
     addVehicle(vehicleData) {
         const vehicle = Vehicle.create({
             ...vehicleData,
-            companyId: this.id
+            companyId: this.id,
         })
         this.vehicles.push(vehicle)
         return vehicle
     }
 
-    getVehicles(){ return this.vehicles }
+    getVehicles() {
+        return this.vehicles
+    }
+
+    addEmployee(employeeData) {
+        const newEmployee = createEmployee({...employeeData, companyId: this.id })
+        this.employees.push(newEmployee)
+        return newEmployee
+    }
 
     getDispatchers() {
         return this.employees.filter(emp => emp.role === 'Dispatcher')
     }
 
-    createOrder(orderData) { return orderManager.createOrder(orderData) }
+    createOrder(orderData) {
+        return orderManager.createOrder(orderData)
+    }
 
-    createTour(tourData) { return tourManager.createTour(tourData) }
+    createTour(tourData) {
+        return tourManager.createTour(tourData)
+    }
 
-    createCustomer(customerData) { 
-        const newCustomer = accountManager.createCustomer({...customerData, companyId: this.id}) 
+    addCustomer(customerData) {
+        const newCustomer = createCustomer({...customerData, companyId: this.id })
         this.customers.push(newCustomer)
         return newCustomer
     }
 
-    getCustomers(){ return this.customers }
+    getCustomers() {
+        return this.customers
+    }
 
     static findById(id) {
         return LogisticCompany.list.find(company => company.id === id)
@@ -51,7 +67,7 @@ class LogisticCompany {
             companyName: companyObj.companyName,
             address: companyObj.address,
             postalCode: companyObj.postalCode,
-            city: companyObj.city
+            city: companyObj.city,
         })
 
         console.log('Company created: ', newCompany)
