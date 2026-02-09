@@ -1,25 +1,29 @@
 class Tour {
-    constructor(tourId, vehicle, date, startLocation, endLocation) {
-        this.tourId = tourId;
-        this.vehicle = vehicle;
-        this.date = date;
-        this.startLocation = startLocation;
-        this.endLocation = endLocation;
-        this.orders = [];
-        this.status = 'PLANNED';
+    constructor({ tourId, date, startLocation, endLocation }) {
+        this.tourId = tourId
+        this.vehicle = null
+        this.date = date
+        this.startLocation = startLocation
+        this.endLocation = endLocation
+        this.orders = []
+        this.status = 'PLANNED'
     }
 
     addOrder(order) {
-        this.orders.push(order);
+        this.orders.push(order)
+    }
+
+    assignVehicle(vehicle) {
+        this.vehicle = vehicle
     }
 
     startTour() {
-        this.status = 'STARTED';
+        this.status = 'STARTED'
     }
 
     endTour() {
-        this.status = 'FINISHED';
+        this.status = 'FINISHED'
     }
 }
 
-module.exports = Tour;
+module.exports = Tour

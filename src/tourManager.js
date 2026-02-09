@@ -1,15 +1,12 @@
-const Tour = require('./tour');
+const { findOrderById } = require('./orderManager')
+const Tour = require('./tour')
 
-const tours = [];
+const tours = []
 
-function createTour({tourId, vehicle, date, startLocation, endLocation}) {
-    const tour = new Tour(tourId, vehicle, date, startLocation, endLocation);
-    tours.push(tour);
-    return tour;
-}
-
-function addOrderToTour(tour, order){
-    tour.addOrder(order)
+function createTour({ tourId, vehicle, date, startLocation, endLocation }) {
+    const tour = new Tour(tourId, vehicle, date, startLocation, endLocation)
+    tours.push(tour)
+    return tour
 }
 
 function loadOrderToVehicle(vehicle, order) {
@@ -17,7 +14,22 @@ function loadOrderToVehicle(vehicle, order) {
 }
 
 function getTours() {
-    return tours;
+    return tours
 }
 
-module.exports = {createTour, getTours}
+function findTourById(tourId) {
+    return tours.find(tour => (tour.tourId = tourId))
+}
+
+function addOrderToTour(tourId, orderId) {
+    const tour = findTourById(tourId)
+    if (!tour) throw new Error('Tour not found')
+
+    const order = findOrderById(orderId)
+    if (!order) throw new Error('Order not found')
+
+    tour.addOrder(order)
+    return tour
+}
+
+module.exports = { createTour, getTours, findTourById, addOrderToTour }

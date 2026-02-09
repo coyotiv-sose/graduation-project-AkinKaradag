@@ -1,10 +1,9 @@
-// helper class
-class Dimension {
-  constructor(width, height, depth) {
-    this.width = width
-    this.height = height
-    this.depth = depth
-  }
+function createDimension({ width, length, height }) {
+    return { width, length, height }
 }
 
-module.exports = Dimension
+function volume(dimensions) {
+    return dimensions.width * dimensions.length * dimensions.height
+}
+
+module.exports = { createDimension, volume }
