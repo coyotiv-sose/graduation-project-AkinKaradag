@@ -1,4 +1,4 @@
-const orderManager = require('./orderManager')
+const orderManager = require('../orderManager')
 
 class Customer {
     constructor({ id, account, customerName, billingInfo, companyId }) {

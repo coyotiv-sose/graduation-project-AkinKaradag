@@ -1,4 +1,4 @@
-const { createDimension, volume } = require('./dimension')
+const { createDimension, volume } = require('../dimension')
 class Cargo {
     constructor(loadCarrierType, dimensions, weight, quantity) {
         this.loadCarrierType = loadCarrierType
