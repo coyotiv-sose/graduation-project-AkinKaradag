@@ -1,4 +1,4 @@
-const Order = require('./order')
+const Order = require('../order')
 const Cargo = require('./cargo')
 
 const orders = []
