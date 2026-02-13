@@ -1,12 +1,10 @@
-class Employee {
-    constructor({ id, account, name, companyId, role, profile }) {
-        this.id = id
-        this.accoundId = account.id
-        this.name = name
-        this.companyId = companyId
-        this.role = role
-        this.profile = profile
-    }
-}
+const mongoose = require('mongoose')
 
-module.exports = Employee
+const employeeSchema = new mongoose.Schema({
+    account: { type: mongoose.Schema.Types.ObjectId, ref: 'Account', required: true },
+    name: { type: String, required: true },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: 'LogisticCompany' },
+    profile: { type: String, default: 'DISPATCHER' },
+})
+
+module.exports = mongoose.model('Employee', employeeSchema)

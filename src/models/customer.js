@@ -1,22 +1,21 @@
-const orderManager = require('../order-manager')
+const orderManager = require('../managers/order-manager')
+const mongoose = require('mongoose')
+const billingInfoSchema = require('./billing-info')
 
-class Customer {
-    constructor({ id, account, customerName, billingInfo, companyId }) {
-        this.id = id
-        this.accountId = account.id
-        this.companyId = companyId
-        this.customerName = customerName
-        this.billingInfo = billingInfo
-        this.profile = 'CUSTOMER_DEFAULT'
-    }
+const customerSchema = new mongoose.Schema({
+    account: { type: mongoose.Schema.Types.ObjectId, ref: 'Account', required: true },
+    customerName: { type: String, required: true },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: 'LogisticCompany' },
+    billingInfo: [billingInfoSchema],
+    profile: { type: String, default: 'CUSTOMER_DEFAULT' },
+})
 
-    placeOrder(orderData) {
-        return orderManager.createOrder({
-            ...orderData,
-            customerId: this.id,
-            companyId: this.companyId,
-        })
-    }
+customerSchema.methods.placeOrder = function(orderData) {
+    return orderManager.createOrder({
+        ...orderData,
+        customerId: this._id,
+        companyId: this.company,
+    })
 }
 
-module.exports = Customer
+module.exports = mongoose.model('Customer', customerSchema)

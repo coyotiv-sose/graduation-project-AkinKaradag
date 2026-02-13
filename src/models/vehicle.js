@@ -1,19 +1,13 @@
-class Vehicle {
-    constructor({ id, name, brand, model, year, payload, companyId }) {
-        this.id = id
-        this.companyId = companyId
-        this.name = name
-        this.brand = brand
-        this.model = model
-        this.year = year
-        this.payload = payload
-        this.isAvailable = true
-        this.cargos = []
-    }
+const mongoose = require('mongoose')
 
-    loadCargo(cargo) {
-        this.cargos.push(cargo)
-    }
-}
+const vehicleSchema = new mongoose.Schema({
+    company: { type: mongoose.Schema.Types.ObjectId, ref: 'LogisticCompany', required: true },
+    name: { type: String },
+    brand: { type: String, required: true },
+    model: { type: String, required: true },
+    year: { type: Number, required: true },
+    payLoad: { type: Number, required: true },
+    isAvailable: { type: Boolean, default: true },
+})
 
-module.exports = Vehicle
+module.exports = mongoose.model('Vehicle', vehicleSchema)

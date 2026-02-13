@@ -1,23 +1,24 @@
-class Order {
-    constructor({ orderId, origin, destination, customerId, deliveryDate, state, billingInfo, companyId }) {
-        this.orderId = orderId
-        this.origin = origin
-        this.destination = destination
-        this.customerId = customerId
-        this.companyId = companyId
-        this.deliveryDate = deliveryDate
-        this.state = state
-        this.cargos = []
-        this.billingInfo = billingInfo
-    }
+const mongoose = require('mongoose')
+const billingInfoSchema = require('./billing-info')
+const cargoSchema = require('./cargo')
 
-    addCargo(cargo) {
-        this.cargos.push(cargo)
-    }
+const orderSchema = new mongoose.Schema({
+    origin: { type: String, required: true },
+    destination: { type: String, required: true },
+    customer: { type: mongoose.Types.Schema.ObjectId, ref: 'Customer', required: true },
+    deliveryDate: { type: Date, required: true },
+    state: { type: String, enum: ['PENDING', 'IN PROCESS', 'DELIVERED'], default: 'PENDING' },
+    cargos: [cargoSchema],
+    billingInfo: { type: billingInfoSchema, required: true },
+})
 
-    getCargos() {
-        return this.cargos
-    }
+orderSchema.methods.addCargo = function(cargo) {
+    this.cargos.push(cargo)
+    return this.save()
 }
 
-module.exports = Order
+orderSchema.methods.getCargos = function() {
+    return this.cargos
+}
+
+module.exports = mongoose.model('Order', orderSchema)
