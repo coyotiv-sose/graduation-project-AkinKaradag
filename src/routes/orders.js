@@ -1,6 +1,6 @@
 var express = require('express')
 var router = express.Router()
-var orderManager = require('../orderManager')
+var orderManager = require('../order-manager')
 
 router.get('/', function(req, res, next) {
     res.render('orders', { orders: orderManager.getOrders() })

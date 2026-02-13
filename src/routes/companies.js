@@ -1,6 +1,6 @@
 var express = require('express')
 var router = express.Router()
-var LogisticCompany = require('../logisticCompany')
+var LogisticCompany = require('../logistic-company')
 
 router.get('/', function(req, res, next) {
     res.render('companies', { companies: LogisticCompany.list })

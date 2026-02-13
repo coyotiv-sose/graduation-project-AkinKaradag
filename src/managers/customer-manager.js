@@ -1,5 +1,5 @@
 const Account = require('./account')
-const BillingInfo = require('../models/billingInfo')
+const BillingInfo = require('../models/billing-info')
 const Customer = require('./customer')
 
 function createCustomer(customerData) {

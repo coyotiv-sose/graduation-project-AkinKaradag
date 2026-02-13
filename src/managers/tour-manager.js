@@ -1,4 +1,4 @@
-const { findOrderById } = require('./orderManager')
+const { findOrderById } = require('./order-manager')
 const Tour = require('./tour')
 
 const tours = []

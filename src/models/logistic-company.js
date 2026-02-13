@@ -1,8 +1,8 @@
-const orderManager = require('../orderManager')
-const tourManager = require('../tourManager')
+const orderManager = require('../order-manager')
+const tourManager = require('../tour-manager')
 const Vehicle = require('./vehicle')
-const { createCustomer } = require('../customerManager')
-const { createEmployee } = require('../employeeManager')
+const { createCustomer } = require('../customer-manager')
+const { createEmployee } = require('../employee-manager')
 
 class LogisticCompany {
     constructor({ id, companyName, address, postalCode, city }) {
