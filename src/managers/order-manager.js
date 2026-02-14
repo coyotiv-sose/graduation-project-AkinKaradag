@@ -1,28 +1,24 @@
-const Order = require('../order')
-const Cargo = require('./cargo')
+const Order = require('../models/order')
 
-const orders = []
-
-function createOrder(orderData) {
-    if (!orderData.cargos || orderData.cargo.length === 0) {
+const createOrder = async orderData => {
+    if (!orderData.cargos || orderData.cargos.length === 0) {
         throw new Error('Order must contain at least one cargo')
     }
 
-    const newOrder = new Order(orderData)
-    for (let i = 0; i < orderData.cargos.length; i++) {
-        const cargo = Cargo.create(orderData.cargos[i])
-        newOrder.addCargo(cargo)
-    }
-    orders.push(newOrder)
+    const newOrder = await Order.create(orderData)
     return newOrder
 }
 
-function findOrderById(orderId) {
-    return orders.find(order => order.orderId === orderId)
+const findOrderById = async orderId => {
+    const order = await Order.findById(orderId)
+    if (!order) throw new Error('Order not found')
+    return order
 }
 
-function getOrders() {
-    return orders
-}
+const getOrders = () => Order.find()
 
-module.exports = { createOrder, getOrders, findOrderById }
+const getOrdersByCustomer = customerId => Order.find({ customer: customerId })
+
+const getOrdersByCompany = companyId => Order.find({ company: companyId })
+
+module.exports = { createOrder, getOrders, findOrderById, getOrdersByCustomer, getOrdersByCompany }

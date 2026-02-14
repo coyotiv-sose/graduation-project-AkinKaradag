@@ -2,6 +2,8 @@ var express = require('express')
 var router = express.Router()
 var LogisticCompany = require('../logistic-company')
 var customerManager = require('../managers/customer-manager')
+var employeeManager = require('../managers/employee-manager')
+var orderManager = require('../managers/order-manager')
 
 router.get('/', function(req, res, next) {
     res.render('companies', { companies: LogisticCompany.list })
@@ -42,27 +44,74 @@ router.get('/:companyId/customers', async(req, res, next) => {
     }
 })
 
-router.post('/:companyId/vehicles', function(req, res, next) {
-    const company = LogisticCompany.findById(Number(req.params.companyId))
-
-    if (!company) {
-        return res.status(404).send('Company not found')
+router.post('/:companyId/employees', async(req, res, next) => {
+    try {
+        const employee = await employeeManager.createEmployee({
+            ...req.body,
+            company: req.params.companyId,
+        })
+        res.status(201).json(customer)
+    } catch (error) {
+        res.status(400).json({ error: error.message })
     }
-
-    const newVehicle = company.addVehicle(req.body)
-    res.send(newVehicle)
 })
 
-router.get('/:companyId/vehicles', function(req, res, next) {
-    const company = LogisticCompany.findById(Number(req.params.companyId))
-
-    if (!company) {
-        return res.status(404).send('Company not found')
+router.get('/:companyId/employees/:employeeId', async(req, res, next) => {
+    try {
+        const employee = await employeeManager.getEmployeeById(req.params.employeeId)
+        res.status(200).json(employee)
+    } catch (error) {
+        res.status(404).json({ error: error.message })
     }
+})
 
-    const vehicleOfCompany = company.getVehicles()
+router.get('/:companyId/employees', async(req, res, next) => {
+    try {
+        const employees = await employeeManager.getEmployeeByCompany(req.params.companyId)
+        res.status(200).json(employees)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
 
-    res.render('company-cars', { vehicles: vehicleOfCompany })
+router.post('/:companyId/orders', async(req, res, next) => {
+    try {
+        const newOrder = await orderManager.createOrder({
+            ...req.body,
+            company: req.params.companyId,
+        })
+        res.status(201).json(newOrder)
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
+router.get('/:companyId/orders', async(req, res, next) => {
+    try {
+        const orders = await orderManager.getOrdersByCompany(req.params.companyId)
+        res.status(200).json(orders)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
+
+router.get('/:companyId/customers/:customerId/orders', async(req, res, next) => {
+    try {
+        const ordersFromCustomer = await orderManager.getOrdersByCustomer(req.params.customerId)
+        res.status(200).json(ordersFromCustomer)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
+
+router.get('/:companyId/orders/:orderId', async(req, res, next) => {
+    try {
+        const oneOrder = await orderManager.findOrderById(req.params.orderId)
+        if (!oneOrder) throw new Error('Order not found')
+        res.status(200).json(oneOrder)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
 })
 
 module.exports = router
