@@ -1,6 +1,7 @@
 const orderManager = require('../managers/order-manager')
 const mongoose = require('mongoose')
 const billingInfoSchema = require('./billing-info')
+const autopopulate = require('mongoose-autopopulate')
 
 const customerSchema = new mongoose.Schema({
     account: { type: mongoose.Schema.Types.ObjectId, ref: 'Account', required: true },
@@ -13,9 +14,11 @@ const customerSchema = new mongoose.Schema({
 customerSchema.methods.placeOrder = function(orderData) {
     return orderManager.createOrder({
         ...orderData,
-        customerId: this._id,
-        companyId: this.company,
+        customer: this._id,
+        company: this.company,
     })
 }
+
+customerSchema.plugin(autopopulate)
 
 module.exports = mongoose.model('Customer', customerSchema)

@@ -1,18 +1,31 @@
 var express = require('express')
 var router = express.Router()
-var LogisticCompany = require('../logistic-company')
+var LogisticCompany = require('../models/logistic-company')
 var customerManager = require('../managers/customer-manager')
 var employeeManager = require('../managers/employee-manager')
 var orderManager = require('../managers/order-manager')
+var vehicleManager = require('../managers/vehicle-manager')
+var tourManager = require('../managers/tour-manager')
 
-router.get('/', function(req, res, next) {
-    res.render('companies', { companies: LogisticCompany.list })
+
+router.post('/', async(req, res, next) => {
+    try{
+        const company = await LogisticCompany.create(req.body)
+        res.status(201).json(company)
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
 })
 
-router.post('/', function(req, res, next) {
-    const company = LogisticCompany.create(req.body)
-    res.send(company)
+router.get('/', async(req, res, next) => {
+    try{
+        const companies = await LogisticCompany.find()
+        res.status(200).json(companies)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
 })
+
 
 router.post('/:companyId/customers', async(req, res, next) => {
     try {
@@ -26,14 +39,6 @@ router.post('/:companyId/customers', async(req, res, next) => {
     }
 })
 
-router.get('/:companyId/customers/:customerId', async(req, res, next) => {
-    try {
-        const customer = await customerManager.getCustomerById(req.params.customerId)
-        res.status(200).json(customer)
-    } catch (error) {
-        res.status(404).json({ error: error.message })
-    }
-})
 
 router.get('/:companyId/customers', async(req, res, next) => {
     try {
@@ -50,18 +55,9 @@ router.post('/:companyId/employees', async(req, res, next) => {
             ...req.body,
             company: req.params.companyId,
         })
-        res.status(201).json(customer)
+        res.status(201).json(employee)
     } catch (error) {
         res.status(400).json({ error: error.message })
-    }
-})
-
-router.get('/:companyId/employees/:employeeId', async(req, res, next) => {
-    try {
-        const employee = await employeeManager.getEmployeeById(req.params.employeeId)
-        res.status(200).json(employee)
-    } catch (error) {
-        res.status(404).json({ error: error.message })
     }
 })
 
@@ -104,11 +100,43 @@ router.get('/:companyId/customers/:customerId/orders', async(req, res, next) => 
     }
 })
 
-router.get('/:companyId/orders/:orderId', async(req, res, next) => {
+router.post('/:companyId/vehicles', async(req, res, next) => {
+    try{
+        const newVehicle = await vehicleManager.createVehicle({
+            ...req.body,
+            company: req.params.companyId
+        })
+        res.status(201).json(newVehicle)
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
+router.get('/:companyId/vehicles', async(req, res, next) => {
     try {
-        const oneOrder = await orderManager.findOrderById(req.params.orderId)
-        if (!oneOrder) throw new Error('Order not found')
-        res.status(200).json(oneOrder)
+        const vehicles = await vehicleManager.getAllVehiclesOfCompany(req.params.companyId)
+        res.status(200).json(vehicles)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
+
+router.post('/:companyId/tours', async(req, res, next) => {
+    try{
+        const newTour = await tourManager.createTour({
+            ...req.body,
+            company: req.params.companyId
+        })
+        res.status(201).json(newTour)
+    } catch(error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
+router.get('/:companyId/tours', async(req, res, next) => {
+    try {
+        const tours = await tourManager.getAllToursByCompany(req.params.companyId)
+        res.status(200).json(tours)
     } catch (error) {
         res.status(500).json({ error: error.message })
     }

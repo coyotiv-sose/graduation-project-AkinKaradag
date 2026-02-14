@@ -1,5 +1,5 @@
-const Account = require('./account')
-const Employee = require('./employee')
+const Account = require('../models/account')
+const Employee = require('../models/employee')
 
 const createEmployee = async employeeData => {
     const exist = await Account.findOne({ email: employeeData.email })

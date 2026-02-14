@@ -1,35 +1,23 @@
 const { findOrderById } = require('./order-manager')
-const Tour = require('./tour')
+const Tour = require('../models/tour')
 
-const tours = []
 
-function createTour({ tourId, vehicle, date, startLocation, endLocation }) {
-    const tour = new Tour(tourId, vehicle, date, startLocation, endLocation)
-    tours.push(tour)
+const createTour = async tourData => {
+    return Tour.create(tourData)
+}
+
+const findTourById = async tourId => {
+    const tour = await Tour.findById(tourId)
+    if(!tour) throw new Error('Tour not found')
     return tour
 }
 
-function loadOrderToVehicle(vehicle, order) {
-    order.getCargos().forEach(cargo => vehicle.loadCargo(cargo))
+const getAllToursByCompany = async companyId => Tour.find({ company: companyId })
+
+const getCargosByTour = async tourId => {
+    const tour = await Tour.findById(tourId)
+    if(!tour) throw new Error('Tour not found')
+    return tour.orders.flatMap(order => order.cargos)
 }
 
-function getTours() {
-    return tours
-}
-
-function findTourById(tourId) {
-    return tours.find(tour => (tour.tourId = tourId))
-}
-
-function addOrderToTour(tourId, orderId) {
-    const tour = findTourById(tourId)
-    if (!tour) throw new Error('Tour not found')
-
-    const order = findOrderById(orderId)
-    if (!order) throw new Error('Order not found')
-
-    tour.addOrder(order)
-    return tour
-}
-
-module.exports = { createTour, getTours, findTourById, addOrderToTour }
+module.exports = { createTour, findTourById, getAllToursByCompany, getCargosByTour }

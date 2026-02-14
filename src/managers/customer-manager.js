@@ -1,5 +1,5 @@
-const Account = require('./account')
-const Customer = require('./customer')
+const Account = require('../models/account')
+const Customer = require('../models/customer')
 
 const createCustomer = async customerData => {
     const exist = await Account.findOne({ email: customerData.email })

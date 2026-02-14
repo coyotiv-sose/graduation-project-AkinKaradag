@@ -1,8 +1,7 @@
-const { createDimension, volume } = require('../dimension')
 const mongoose = require('mongoose')
 
 const cargoSchema = new mongoose.Schema({
-    loadCarrierType: { type: String, required: ture },
+    loadCarrierType: { type: String, required: true },
     dimensions: {
         width: { type: Number, required: true },
         length: { type: Number, required: true },

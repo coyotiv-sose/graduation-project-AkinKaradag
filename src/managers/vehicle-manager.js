@@ -1,22 +1,16 @@
 const Vehicle = require('../models/vehicle')
 
-const vehicles = []
-
-function createVehicle(vehicleData) {
-    const newVehicle = new Vehicle({
-        id: Date.now() + 9,
-        ...vehicleData,
-    })
-    vehicles.push(newVehicle)
+const createVehicle = async vehicleData => {
+    const newVehicle = await Vehicle.create(vehicleData)
     return newVehicle
 }
 
-function findVehicleById(vehicleId) {
-    return vehicles.find(vehicle => vehicle.id === vehicleId)
+const findVehicleById = async vehicleId => {
+    const vehicle = await Vehicle.findById(vehicleId)
+    if(!vehicle) throw new Error('Vehicle not found')
+    return vehicle
 }
 
-function getVehicles() {
-    return vehicles
-}
+const getAllVehiclesOfCompany = companyId => Vehicle.find({ company: companyId})
 
-module.exports = { createVehicle, findVehicleById, getVehicles }
+module.exports = { createVehicle, findVehicleById, getAllVehiclesOfCompany }
