@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
+const autopopulate = require('mongoose-autopopulate')
 
-const billingInfoSchema = mongoose.Schema({
+const billingInfoSchema = new mongoose.Schema({
     label: { type: String, default: 'default' },
     customerName: { type: String, required: true },
     address: { type: String, required: true },
@@ -9,5 +10,7 @@ const billingInfoSchema = mongoose.Schema({
     VATnr: { type: String },
     isDefault: { type: Boolean, default: false },
 })
+
+billingInfoSchema.plugin(autopopulate)
 
 module.exports = billingInfoSchema

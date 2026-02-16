@@ -1,7 +1,7 @@
-var express = require('express')
-var router = express.Router()
-var customerManager = require('../managers/customer-manager')
-var orderManager = require('../managers/order-manager')
+const express = require('express')
+const router = express.Router()
+const customerManager = require('../managers/customer-manager')
+const orderManager = require('../managers/order-manager')
 
 router.get('/:customerId', async(req, res, next) => {
     try {
@@ -16,7 +16,11 @@ router.post('/:customerId/orders', async(req, res, next) => {
     try {
         const customer = await customerManager.getCustomerById(req.params.customerId)
 
-        const newOrder = await customer.placeOrder(req.body)
+        const newOrder = await orderManager.createOrder({
+            ...req.body,
+            customer: customer._id,
+            company: customer.company,
+        })
         res.status(201).json(newOrder)
     } catch (error) {
         res.status(400).json({ error: error.message })
