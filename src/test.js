@@ -41,7 +41,7 @@ async function main() {
         payLoad: 800,
     })
 
-    await api.post(`/customers/${customer1Id}/orders`, {
+    const order1 = await api.post(`/customers/${customer1Id}/orders`, {
         origin: 'Zurich',
         destination: 'Basel',
         deliveryDate: '2026-03-16',
@@ -58,6 +58,12 @@ async function main() {
             weight: 500,
             quantity: 2,
         }, ],
+    })
+
+    const order1Id = order1.data._id
+
+    const updatedOrder = await api.put(`/orders/${order1Id}`, {
+        origin: 'Lugano',
     })
 
     const tour = await api.post(`/companies/${company1Id}/tours`, {
@@ -87,6 +93,9 @@ async function main() {
 
     const tours = await api.get(`/companies/${company1Id}/tours`)
     console.log('Company1 tours: ', tours.data)
+
+    const changedOriginOrder = await api.get(`/orders/${order1Id}`)
+    console.log('Origin of Order1 has been changed: ', changedOriginOrder.data)
 }
 
 main()
