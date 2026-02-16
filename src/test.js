@@ -60,11 +60,34 @@ async function main() {
         }, ],
     })
 
+        const order2 = await api.post(`/customers/${customer1Id}/orders`, {
+        origin: 'Bern',
+        destination: 'Basel',
+        deliveryDate: '2026-03-20',
+        billingInfo: {
+            customerName: 'customer1',
+            address: 'Patternstreet 100',
+            postalCode: '1234',
+            city: 'Nowhere',
+            VATnr: 'VAT-010',
+        },
+        cargos: [{
+            loadCarrierType: 'Industrial Palette',
+            dimensions: { width: 1.2, length: 0.8, height: 1.5 },
+            weight: 500,
+            quantity: 2,
+        }, ],
+    })
+
     const order1Id = order1.data._id
+    const order2Id = order2.data._id
 
     const updatedOrder = await api.put(`/orders/${order1Id}`, {
         origin: 'Lugano',
     })
+
+    const deleteOrder = await api.delete(`/customers/${customer1Id}/orders/${order2Id}`)
+    console.log('Delete Status: ', deleteOrder.status)
 
     const tour = await api.post(`/companies/${company1Id}/tours`, {
         date: '2026-09-23',

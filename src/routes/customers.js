@@ -45,4 +45,13 @@ router.get('/:customerId/orders/:orderId', async(req, res, next) => {
     }
 })
 
+router.delete('/:customerId/orders/:orderId', async(req, res, next) => {
+    try{
+        const order = await orderManager.deleteOrderByCustomer(req.params.orderId)
+        res.status(204).send()
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
 module.exports = router

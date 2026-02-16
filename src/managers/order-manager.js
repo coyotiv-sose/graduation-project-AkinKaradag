@@ -32,4 +32,31 @@ const updateOrder = async(orderId, updateData) => {
     return order.save()
 }
 
-module.exports = { createOrder, getOrders, findOrderById, getOrdersByCustomer, getOrdersByCompany, updateOrder }
+const deleteOrderByCustomer = async(orderId) => {
+    const order = await Order.findById(orderId)
+    if (!order) throw new Error('Order not found')
+    if (order.state !== 'PENDING') {
+        throw new Error('Customer can only delete orders in Pending')
+    }
+    return Order.findByIdAndDelete(orderId)
+}
+
+const deleteOrderByCompany = async(orderId) => {
+    const order = await Order.findById(orderId)
+    if (!order) throw new Error('Order not found')
+    if (order.state === 'DELIVERED') {
+        throw new Error('Delivered orders cannot be deleted')
+    }
+    return Order.findByIdAndDelete(orderId)
+}
+
+module.exports = { 
+    createOrder, 
+    getOrders, 
+    findOrderById, 
+    getOrdersByCustomer, 
+    getOrdersByCompany, 
+    updateOrder,
+    deleteOrderByCustomer,
+    deleteOrderByCompany
+ }
