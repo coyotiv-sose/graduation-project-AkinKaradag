@@ -1,6 +1,6 @@
-var express = require('express')
-var router = express.Router()
-var orderManager = require('../managers/order-manager')
+const express = require('express')
+const router = express.Router()
+const orderManager = require('../managers/order-manager')
 
 router.get('/:orderId', async(req, res, next) => {
     try {

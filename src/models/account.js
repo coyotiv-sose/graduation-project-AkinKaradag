@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
 
 const accountSchema = new mongoose.Schema({
-    email: { type: String, require: true, lowercase: true },
-    password: { type: String, require: true, minLength: 8 },
+    email: { type: String, required: true, lowercase: true },
+    password: { type: String, required: true, minLength: 8 },
     role: { type: String, enum: ['customer', 'employee'], required: true },
 })
 

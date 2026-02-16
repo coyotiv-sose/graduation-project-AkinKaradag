@@ -1,9 +1,9 @@
-var express = require('express')
-var router = express.Router()
-var tourManager = require('../managers/tour-manager')
+const express = require('express')
+const router = express.Router()
+const tourManager = require('../managers/tour-manager')
 
 router.get('/:tourId', async(req, res, next) => {
-    try{
+    try {
         const tour = await tourManager.findTourById(req.params.tourId)
         res.status(200).json(tour)
     } catch (error) {

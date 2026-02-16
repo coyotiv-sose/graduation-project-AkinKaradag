@@ -1,15 +1,14 @@
-var express = require('express')
-var router = express.Router()
-var LogisticCompany = require('../models/logistic-company')
-var customerManager = require('../managers/customer-manager')
-var employeeManager = require('../managers/employee-manager')
-var orderManager = require('../managers/order-manager')
-var vehicleManager = require('../managers/vehicle-manager')
-var tourManager = require('../managers/tour-manager')
-
+const express = require('express')
+const router = express.Router()
+const LogisticCompany = require('../models/logistic-company')
+const customerManager = require('../managers/customer-manager')
+const employeeManager = require('../managers/employee-manager')
+const orderManager = require('../managers/order-manager')
+const vehicleManager = require('../managers/vehicle-manager')
+const tourManager = require('../managers/tour-manager')
 
 router.post('/', async(req, res, next) => {
-    try{
+    try {
         const company = await LogisticCompany.create(req.body)
         res.status(201).json(company)
     } catch (error) {
@@ -18,14 +17,13 @@ router.post('/', async(req, res, next) => {
 })
 
 router.get('/', async(req, res, next) => {
-    try{
+    try {
         const companies = await LogisticCompany.find()
         res.status(200).json(companies)
     } catch (error) {
         res.status(500).json({ error: error.message })
     }
 })
-
 
 router.post('/:companyId/customers', async(req, res, next) => {
     try {
@@ -38,7 +36,6 @@ router.post('/:companyId/customers', async(req, res, next) => {
         res.status(400).json({ error: error.message })
     }
 })
-
 
 router.get('/:companyId/customers', async(req, res, next) => {
     try {
@@ -101,10 +98,10 @@ router.get('/:companyId/customers/:customerId/orders', async(req, res, next) => 
 })
 
 router.post('/:companyId/vehicles', async(req, res, next) => {
-    try{
+    try {
         const newVehicle = await vehicleManager.createVehicle({
             ...req.body,
-            company: req.params.companyId
+            company: req.params.companyId,
         })
         res.status(201).json(newVehicle)
     } catch (error) {
@@ -122,13 +119,13 @@ router.get('/:companyId/vehicles', async(req, res, next) => {
 })
 
 router.post('/:companyId/tours', async(req, res, next) => {
-    try{
+    try {
         const newTour = await tourManager.createTour({
             ...req.body,
-            company: req.params.companyId
+            company: req.params.companyId,
         })
         res.status(201).json(newTour)
-    } catch(error) {
+    } catch (error) {
         res.status(400).json({ error: error.message })
     }
 })
