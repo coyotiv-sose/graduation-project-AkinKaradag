@@ -21,4 +21,15 @@ const getOrdersByCustomer = customerId => Order.find({ customer: customerId })
 
 const getOrdersByCompany = companyId => Order.find({ company: companyId })
 
-module.exports = { createOrder, getOrders, findOrderById, getOrdersByCustomer, getOrdersByCompany }
+const updateOrder = async(orderId, updateData) => {
+    const order = await Order.findById(orderId)
+    if (!order) throw new Error('Order not found')
+    if (order.state !== 'PENDING') {
+        throw new Error('Order can only be updated while pending')
+    }
+
+    Object.assign(order, updateData)
+    return order.save()
+}
+
+module.exports = { createOrder, getOrders, findOrderById, getOrdersByCustomer, getOrdersByCompany, updateOrder }
