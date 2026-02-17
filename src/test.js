@@ -101,6 +101,12 @@ async function main() {
         vehicleId: truck1.data._id,
     })
 
+    await api.post(`/companies/${company1Id}/employees`, {
+        email: 'someEmailAdress@some.com',
+        password: 'someHashedPW',
+        name: 'John Wayne',
+    })
+
     console.log('Tour: ', tour.data)
     console.log(`Vehicle ${truck1.data.name} is assigned to tour ${tour.data._id}`)
 
