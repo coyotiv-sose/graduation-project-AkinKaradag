@@ -7,7 +7,11 @@ const vehicleSchema = new mongoose.Schema({
     model: { type: String, required: true },
     year: { type: Number, required: true },
     payLoad: { type: Number, required: true },
-    isAvailable: { type: Boolean, default: true },
+    status: {
+        type: String,
+        enum: ['AVAILABLE', 'ON_TOUR', 'IN_GARAGE', 'DAMMAGED', 'PARKED', 'SOLD', 'OTHER_REASON'],
+        default: 'AVAILABLE',
+    },
 })
 
 module.exports = mongoose.model('Vehicle', vehicleSchema)

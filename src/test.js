@@ -33,13 +33,15 @@ async function main() {
 
     const customer1Id = customer1.data._id
 
-    await api.post(`/companies/${company2Id}/vehicles`, {
+    const truck1 = await api.post(`/companies/${company2Id}/vehicles`, {
         name: 'Truck1',
         brand: 'Mercedes',
         model: 'Sprinter',
         year: 2005,
         payLoad: 800,
     })
+
+    console.log('Truck1 ID: ', truck1.data._id)
 
     const order1 = await api.post(`/customers/${customer1Id}/orders`, {
         origin: 'Zurich',
@@ -60,7 +62,7 @@ async function main() {
         }, ],
     })
 
-        const order2 = await api.post(`/customers/${customer1Id}/orders`, {
+    const order2 = await api.post(`/customers/${customer1Id}/orders`, {
         origin: 'Bern',
         destination: 'Basel',
         deliveryDate: '2026-03-20',
@@ -94,7 +96,13 @@ async function main() {
         startLocation: 'Zurich',
         endLocation: 'Basel',
     })
+
+    const assignedVehicle = await api.put(`/tours/${tour.data._id}/assign-vehicles`, {
+        vehicleId: truck1.data._id,
+    })
+
     console.log('Tour: ', tour.data)
+    console.log(`Vehicle ${truck1.data.name} is assigned to tour ${tour.data._id}`)
 
     const allCompanies = await api.get('/companies')
     console.log('All companies:', allCompanies.data)

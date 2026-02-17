@@ -88,6 +88,15 @@ router.get('/:companyId/orders', async(req, res, next) => {
     }
 })
 
+router.delete('/:companyId/orders/:orderId', async(req, res, next) => {
+    try {
+        const order = await orderManager.deleteOrderByCompany(req.params.orderId)
+        res.status(204).send()
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
 router.get('/:companyId/customers/:customerId/orders', async(req, res, next) => {
     try {
         const ordersFromCustomer = await orderManager.getOrdersByCustomer(req.params.customerId)
