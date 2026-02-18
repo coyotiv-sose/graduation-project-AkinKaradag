@@ -23,6 +23,7 @@ module.exports = {
     'class-methods-use-this': ['warn', { exceptMethods: ['profile'], enforceForClassFields: true }],
     'func-names': ['warn', 'as-needed'],
     'prefer-const': ['warn'],
+    'no-underscore-dangle': 'off',
     'prettier/prettier': [
       'error',
       {
