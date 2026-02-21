@@ -1,7 +1,9 @@
 services:
   api:
     image: karalog-api
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - mongodb
     ports:
@@ -11,7 +13,13 @@ services:
     # env_file:
     #  - .env
     environment:
-      - MONGODB_CONNECTION_STRING=mongodb://mongodb:27017
+      - MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/karalog
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 60s
+      timeout: 3s
+      retries: 10
+      start_period: 2s
 
   mongodb:
     image: mongo
@@ -19,3 +27,14 @@ services:
       - '27017:27017'
     volumes:
       - ./data:/data/db
+
+  test:
+    image: karalog-api
+    command: ["node", "src/test.js"]
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+    environment:
+      - BASE_URL=http://api:3000
