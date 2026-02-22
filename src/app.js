@@ -6,8 +6,6 @@ const logger = require('morgan')
 require('dotenv').config()
 require('./database-connection')
 
-console.log(process.env.MONGODB_CONNECTION_STRING)
-
 const indexRouter = require('./routes/index')
 const customersRouter = require('./routes/customers')
 const companyRouter = require('./routes/companies')
