@@ -101,7 +101,7 @@ async function main() {
     endLocation: 'Basel',
   })
 
-  const assignedVehicle = await api.put(`/tours/${tour.data._id}/assign-vehicles`, {
+  const assignedVehicle = await api.put(`/tours/${tour.data._id}/vehicles`, {
     vehicleId: truck1.data._id,
   })
 

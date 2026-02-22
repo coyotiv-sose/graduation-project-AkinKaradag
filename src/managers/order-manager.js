@@ -32,9 +32,12 @@ const updateOrder = async (orderId, updateData) => {
   return order.save()
 }
 
-const deleteOrderByCustomer = async orderId => {
+const deleteOrderByCustomer = async (orderId, customerId) => {
   const order = await Order.findById(orderId)
   if (!order) throw new Error('Order not found')
+  if (order.customer.toString() !== customerId) {
+    throw new Error('Not authorized to delete this order')
+  }
   if (order.state !== 'PENDING') {
     throw new Error('Customer can only delete orders in Pending')
   }
