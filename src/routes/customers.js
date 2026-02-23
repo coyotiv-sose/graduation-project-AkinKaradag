@@ -48,10 +48,11 @@ router.get('/:customerId/orders/:orderId', async (req, res, next) => {
 
 router.delete('/:customerId/orders/:orderId', async (req, res, next) => {
   try {
-    const order = await orderManager.deleteOrderByCustomer(req.params.orderId)
+    const order = await orderManager.deleteOrderByCustomer(req.params.orderId, req.params.customerId)
     res.status(204).send()
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    const status = error.message === 'Order not found' ? 404 : 400
+    res.status(status).json({ error: error.message })
   }
 })
 

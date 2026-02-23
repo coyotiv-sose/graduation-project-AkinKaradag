@@ -17,7 +17,8 @@ router.put('/:orderId', async (req, res, next) => {
     const order = await orderManager.updateOrder(req.params.orderId, req.body)
     res.status(200).json(order)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    const status = error.message === 'Order not found' ? 404 : 400
+    res.status(status).json({ error: error.message })
   }
 })
 
