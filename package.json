@@ -9,7 +9,8 @@
         "dev": "nodemon ./bin/www",
         "eslint:check": "npx eslint .",
         "eslint:fix": "npx eslint --fix .",
-        "test": "jest"
+        "test": "jest",
+        "test:watch": "jest --watch"
     },
     "devDependencies": {
         "eslint": "^8.19.0",
