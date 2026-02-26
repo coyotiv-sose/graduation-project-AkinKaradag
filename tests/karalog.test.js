@@ -54,6 +54,7 @@ describe('Karalog', () => {
         origin: 'Zurich',
         destination: 'Basel',
         deliveryDate: '2026-05-16T00:00:00.000Z',
+        company: company._id,
         billingInfo: customer.billingInfo[0],
         cargos: [
           {
@@ -126,10 +127,42 @@ describe('Karalog', () => {
     expect(response.body.destination).toBe('Basel')
   })
 
+  it('should not update a non-existing order', async () => {
+    const fakeId = new mongoose.Types.ObjectId()
+    
+    const updatedData = {
+        origin: 'Bern'
+    }
+
+    const response = await request(app).put(`/orders/${fakeId}`).send(updatedData)
+
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('Order not found')
+  })
+
+  it('should not update a non-pending order', async() => {
+    await mongoose.model('Order').findByIdAndUpdate(order._id, { state: 'IN_PROGRESS'} )
+
+    const updatedData = {
+        origin: 'Lugano'
+    }
+
+    const response = await request(app).put(`/orders/${order._id}`).send(updatedData)
+
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('Order status is not pending')
+  })
+
   it('should be find order by id', async () => {
     const response = await request(app).get(`/orders/${order._id}`)
     expect(response.status).toBe(200)
     expect(response.body.origin).toBe('Zurich')
+  })
+
+  it('should not be founded by id', async() => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).get(`/orders/${fakeId}`)
+    expect(response.body.error).toBe('Order not found')
   })
 
   it('should be get orders by customer', async () => {
@@ -154,4 +187,83 @@ describe('Karalog', () => {
     const response = await request(app).delete(`/customers/${customer._id}/orders/${order._id}`)
     expect(response.status).toBe(204)
   })
+
+  it('should not be deleted by an other customer', async () => {
+    const otherCustomer = await request(app).post(`/companies/${company._id}/customers`).send({
+        customerName: 'customer2',
+        email: 'customer2@mail.co.uk',
+        password: 'someStringOrHash',
+        billingInfo: [
+            {
+                customerName: 'customer2',
+                address: 'Hauptstrasse 2',
+                postalCode: '5555',
+                city: 'Nowhere',
+                VATnr: 'VAT-007'
+            }
+        ]
+    })
+
+
+    const otherCustomerId = otherCustomer.body._id
+
+    const response = await request(app).delete(`/customers/${otherCustomerId}/orders/${order._id}`)
+
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('Not authorized to delete this order')
+
+  })
+
+  it('should not delete a non-pending order', async() => {
+    await mongoose.model('Order').findByIdAndUpdate(order._id, { state: 'IN_PROGRESS'} )
+
+    const response = await request(app).delete(`/customers/${customer._id}/orders/${order._id}`)
+
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('Order status is not pending')
+  })
+
+  it('should not be found when try to delete order by a customer', async() => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).delete(`/customers/${customer._id}/orders/${fakeId}`)
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('Order not found')
+  })
+
+    it('should be deleted by a company', async() => {
+    const response = await request(app).delete(`/companies/${company._id}/orders/${order._id}`)
+    expect(response.status).toBe(204)
+  })
+
+  it('should not be deleted by an other company', async() => {
+    const otherCompany = await request(app).post('/companies').send({
+        companyName: 'company2',
+        address: 'Where is this Street 1',
+        postalCode: '9999',
+        city: 'CouldBeEverywhere'
+    })
+
+    const otherCompanyId = otherCompany.body._id
+
+    const response = await request(app).delete(`/companies/${otherCompanyId}/orders/${order._id}`)
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('Not authorized to delete this order')
+  })
+
+  it('should not delete a delivered order', async() => {
+    await mongoose.model('Order').findByIdAndUpdate(order._id, { state: 'DELIVERED'} )
+    
+    const response = await request(app).delete(`/companies/${company._id}/orders/${order._id}`)
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('Delivered orders cannot be deleted')
+  })
+
+  it('should not be found when try to delete order by a company', async() => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).delete(`/companies/${company._id}/orders/${fakeId}`)
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('Order not found')
+  })
+
+
 })
