@@ -9,9 +9,9 @@
         "dev": "nodemon ./bin/www",
         "eslint:check": "npx eslint .",
         "eslint:fix": "npx eslint --fix .",
-        "test": "NODE_OPTIONS='--no-experimental-webstorage' DOTENV_CONFIG_PATH=./.env.test.local jest",
-        "test:watch": "NODE_OPTIONS='--no-experimental-webstorage' DOTENV_CONFIG_PATH=./.env.test.local jest --watch --coverage",
-        "test:coverage": "NODE_OPTIONS='--no-experimental-webstorage' DOTENV_CONFIG_PATH=./.env.test.local jest --coverage"
+        "test": "NODE_OPTIONS='--no-experimental-webstorage' DOTENV_CONFIG_PATH=./.env.test.local jest --detectOpenHandles --forceExit",
+        "test:watch": "NODE_OPTIONS='--no-experimental-webstorage' DOTENV_CONFIG_PATH=./.env.test.local jest --watch --coverage --detectOpenHandles --forceExit",
+        "test:coverage": "NODE_OPTIONS='--no-experimental-webstorage' DOTENV_CONFIG_PATH=./.env.test.local jest --coverage --detectOpenHandles --forceExit"
     },
     "devDependencies": {
         "eslint": "^8.19.0",
