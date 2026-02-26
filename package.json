@@ -40,6 +40,15 @@
     "jest": {
         "setupFiles": [
             "dotenv/config"
+        ],
+        "setupFilesAfterEnv": [
+            "./tests/setup.js"
+        ],
+        "collectCoverageFrom": [
+            "src/**/*.js",
+            "!src/bin/**",
+            "!src/views/**",
+            "!src/public/**"
         ]
     }
 }
