@@ -26,7 +26,7 @@ describe('Vehicle', () => {
         company = response.body
     })
 
-    it('should be create a vehicle', async() => {
+    it('should create a vehicle', async() => {
         const vehicleData = {
             name: 'Truck1',
             brand: 'Mercedes',
@@ -41,7 +41,7 @@ describe('Vehicle', () => {
         expect(response.body).toMatchObject(vehicleData)
     })
 
-    it('should be found by Id', async() => {
+    it('should find a vehicle by Id', async() => {
         const vehicle = await request(app).post(`/companies/${company._id}/vehicles`).send({
             name: 'Truck2',
             brand: 'Mercedes',
