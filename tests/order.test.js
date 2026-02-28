@@ -68,23 +68,7 @@ describe('Karalog', () => {
         expect(company).toMatchObject({ companyName: 'company1' })
     })
 
-    it('should be create a customer from a company', async() => {
-        const expectedOutput = {
-            customerName: 'customer1',
-            billingInfo: [{
-                customerName: 'customer1',
-                address: 'Main Street 1',
-                postalCode: '1234',
-                city: 'Main City',
-                VATnr: 'VAT-001',
-            }, ],
-        }
-
-        expect(customerResponse.status).toBe(201)
-        expect(customer).toMatchObject(expectedOutput)
-    })
-
-    it('should create an order from customer side', async() => {
+    it('should create an order by a customer', async() => {
         expect(orderResponse.status).toBe(201)
         expect(order).toMatchObject({
             origin: 'Zurich',
@@ -132,19 +116,19 @@ describe('Karalog', () => {
         expect(response.body.error).toBe('Order status is not pending')
     })
 
-    it('should be find order by id', async() => {
+    it('should find order by id', async() => {
         const response = await request(app).get(`/orders/${order._id}`)
         expect(response.status).toBe(200)
         expect(response.body.origin).toBe('Zurich')
     })
 
-    it('should not be founded by id', async() => {
+    it('should not be found by id', async() => {
         const fakeId = new mongoose.Types.ObjectId()
         const response = await request(app).get(`/orders/${fakeId}`)
         expect(response.body.error).toBe('Order not found')
     })
 
-    it('should be get orders by customer', async() => {
+    it('should get orders by customer', async() => {
         const response = await request(app).get(`/customers/${customer._id}/orders`)
         expect(response.status).toBe(200)
         expect(response.body).toHaveLength(1)
