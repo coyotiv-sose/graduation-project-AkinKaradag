@@ -57,9 +57,11 @@ describe('Tour', () => {
         ],
       })
 
-      const response = await request(app).post(`/companies/${company.body._id}/tours/${tour.body._id}`).send({ orderId: newOrder.body._id })
-      expect(response.status).toBe(200)
-      expect(response.body.orders).toHaveLength(2)
+    const response = await request(app)
+      .post(`/companies/${company.body._id}/tours/${tour.body._id}`)
+      .send({ orderId: newOrder.body._id })
+    expect(response.status).toBe(200)
+    expect(response.body.orders).toHaveLength(2)
   })
 
   it('should find a tour by its ID', async () => {
@@ -68,7 +70,7 @@ describe('Tour', () => {
     expect(response.body.startLocation).toBe('Basel')
   })
 
-  it('should not find a tour by its ID if tour does not exist', async() => {
+  it('should not find a tour by its ID if tour does not exist', async () => {
     const fakeId = new mongoose.Types.ObjectId()
     const response = await request(app).get(`/tours/${fakeId}`)
     expect(response.status).toBe(500)
@@ -81,24 +83,28 @@ describe('Tour', () => {
     expect(response.body.vehicleId.name).toBe('Truck1')
   })
 
-  it('should get the cargos on a tour', async() => {
+  it('should get the cargos on a tour', async () => {
     const response = await request(app).get(`/tours/${tour.body._id}/cargos`)
     expect(response.status).toBe(200)
     expect(response.body).toHaveLength(1)
   })
 
   it('should not assign a vehicle which is not available', async () => {
-    const vehicleNotAvailable = await request(app).put(`/companies/${company.body._id}/vehicles/${vehicle.body._id}`).send({
-        state: 'IN_GARAGE'
-    })
-    const response = await request(app).put(`/tours/${tour.body._id}/vehicles`).send({ vehicleId: vehicleNotAvailable.body._id })
+    const vehicleNotAvailable = await request(app)
+      .put(`/companies/${company.body._id}/vehicles/${vehicle.body._id}`)
+      .send({
+        state: 'IN_GARAGE',
+      })
+    const response = await request(app)
+      .put(`/tours/${tour.body._id}/vehicles`)
+      .send({ vehicleId: vehicleNotAvailable.body._id })
     expect(response.status).toBe(400)
     expect(response.body.error).toBe('Vehicle is not available')
   })
 
   it('should not find a tour if it does not exist when trying to add a order to a tour', async () => {
     const fakeId = new mongoose.Types.ObjectId()
-     const newOrder = await request(app)
+    const newOrder = await request(app)
       .post(`/customers/${customer.body._id}/orders`)
       .send({
         origin: 'Lucerne',
@@ -115,30 +121,91 @@ describe('Tour', () => {
         ],
       })
 
-      const response = await request(app).post(`/companies/${company.body._id}/tours/${fakeId}`).send({ orderId: newOrder.body._id })
-      expect(response.status).toBe(400)
-      expect(response.body.error).toBe('Tour not found')
+    const response = await request(app)
+      .post(`/companies/${company.body._id}/tours/${fakeId}`)
+      .send({ orderId: newOrder.body._id })
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('Tour not found')
   })
 
-  it('should not find a fake tour when trying to get the cargos', async() => {
+  it('should not find a fake tour when trying to get the cargos', async () => {
     const fakeId = new mongoose.Types.ObjectId()
     const response = await request(app).get(`/tours/${fakeId}/cargos`)
     expect(response.status).toBe(500)
     expect(response.body.error).toBe('Tour not found')
   })
 
-  it('should not find a tour when it does not exist when assigning a vehicle to a tour', async() => {
+  it('should not find a tour when it does not exist when assigning a vehicle to a tour', async () => {
     const fakeId = new mongoose.Types.ObjectId()
     const response = await request(app).put(`/tours/${fakeId}/vehicles`).send({ vehicleId: vehicle.body._id })
     expect(response.status).toBe(400)
     expect(response.body.error).toBe('Tour not found')
   })
 
-  it('should not find a vehicle when it does not exist when assigning this vehicle to a tour', async() => {
+  it('should not find a vehicle when it does not exist when assigning this vehicle to a tour', async () => {
     const fakeId = new mongoose.Types.ObjectId()
     const response = await request(app).put(`/tours/${tour.body._id}/vehicles`).send({ fakeId })
     expect(response.status).toBe(400)
-    expect(response.body.error).toBe( 'Vehicle not found' )
+    expect(response.body.error).toBe('Vehicle not found')
   })
 
+  it('should not create a tour if required fields are empty', async () => {
+    const response = await request(app).post(`/companies/${company.body._id}/tours`).send({
+      date: '2026-03-16T00:00:00.000Z',
+      startLocation: 'Basel',
+      state: 'PLANNED',
+    })
+    expect(response.status).toBe(400)
+  })
+
+  it('should get all Tours of a company', async () => {
+    await request(app)
+      .post(`/companies/${company.body._id}/tours`)
+      .send({
+        date: '2026-03-16T00:00:00.000Z',
+        startLocation: 'Zurich',
+        endLocation: 'Chur',
+        orders: [order.body._id],
+        state: 'PLANNED',
+      })
+    const response = await request(app).get(`/companies/${company.body._id}/tours`)
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveLength(2)
+  })
+
+  it('should not get all tours for a company with an invalid id', async () => {
+    const response = await request(app).get('/companies/invalid-id/tours')
+    expect(response.status).toBe(500)
+  })
+
+  it('should start a tour', async () => {
+    const response = await request(app)
+      .put(`/companies/${company.body._id}/tours/${tour.body._id}`)
+      .send({ state: 'STARTED' })
+    expect(response.status).toBe(200)
+    expect(response.body.state).toBe('STARTED')
+  })
+
+  it('should end a tour', async () => {
+    const response = await request(app)
+      .put(`/companies/${company.body._id}/tours/${tour.body._id}`)
+      .send({ state: 'FINISHED' })
+    expect(response.status).toBe(200)
+    expect(response.body.state).toBe('FINISHED')
+  })
+
+  it('should not start or end a tour', async () => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).put(`/companies/${company.body._id}/tours/${fakeId}`).send({ state: 'STARTED' })
+    expect(response.status).toBe(400)
+  })
+
+  it('should update tour location', async () => {
+    const response = await request(app)
+      .put(`/companies/${company.body._id}/tours/${tour.body._id}`)
+      .send({ startLocation: 'Zürich' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.startLocation).toBe('Zürich')
+  })
 })
