@@ -192,11 +192,11 @@ describe('Order', () => {
           },
         ],
       })
-      expect(response.status).toBe(201)
-      expect(response.body).toMatchObject({ destination: 'Lugano' })
+    expect(response.status).toBe(201)
+    expect(response.body).toMatchObject({ destination: 'Lugano' })
   })
 
-  it('should not create an order without customer', async() => {
+  it('should not create an order without customer', async () => {
     const response = await request(app)
       .post(`/companies/${company.body._id}/orders`)
       .send({
@@ -213,18 +213,80 @@ describe('Order', () => {
           },
         ],
       })
-      expect(response.status).toBe(400)
+    expect(response.status).toBe(400)
   })
 
-  it('should get order by company', async() => {
+  it('should get order by company', async () => {
     const response = await request(app).get(`/companies/${company.body._id}/orders`)
     expect(response.status).toBe(200)
     expect(response.body).toHaveLength(1)
   })
 
-  it('should return 500 for invalid company id', async() => {
+  it('should return 500 for invalid company id', async () => {
     const response = await request(app).get('/companies/invalid-id/orders')
     expect(response.status).toBe(500)
   })
 
+  it('should find Order from customer which belongs to a company', async () => {
+    const response = await request(app).get(`/companies/${company.body._id}/customers/${customer.body._id}/orders`)
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveLength(1)
+  })
+
+  it('should not find an order from a customer which belong not to a company', async () => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).get(`/companies/${fakeId}/customers/${customer.body._id}/orders`)
+    expect(response.status).toBe(400)
+  })
+
+  it('should not get orders for customer with invalid ID', async () => {
+    const response = await request(app).get('/customers/invalid-id/orders')
+    expect(response.status).toBe(500)
+  })
+
+  it('should find an order belonging to an customer', async () => {
+    const response = await request(app).get(`/customers/${customer.body._id}/orders/${order.body._id}`)
+    expect(response.status).toBe(200)
+  })
+
+  it('should not find an order beloning to an customer with no ID', async () => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).get(`/customers/${customer.body._id}/orders/${fakeId}`)
+    expect(response.status).toBe(400)
+  })
+
+  it('should add cargos to the Order', async () => {
+    const response = await request(app)
+      .post(`/customers/${customer.body._id}/orders/${order.body._id}/cargos`)
+      .send({
+        loadCarrierType: 'Industiral Palett',
+        dimensions: { width: 152, length: 1.0, height: 1.5 },
+        weight: 700,
+        quantity: 2,
+      })
+    expect(response.status).toBe(201)
+    expect(response.body.cargos).toHaveLength(2)
+  })
+
+  it('should not add a cargo to a Order', async () => {
+    const response = await request(app).post(`/customers/${customer.body._id}/orders/${order.body._id}/cargos`).send({
+      loadCarrierType: 'Industiral Palett',
+      weight: 700,
+      quantity: 2,
+    })
+    expect(response.status).toBe(400)
+  })
+
+  it('should get all cargos from an order', async () => {
+    const response = await request(app).get(`/orders/${order.body._id}/cargos`)
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveLength(1)
+  })
+
+  it('should not get cargos back from a unknown order', async () => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).get(`/orders/${fakeId}/cargos`)
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('Order not found')
+  })
 })
