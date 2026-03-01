@@ -1,5 +1,6 @@
 const { findOrderById } = require('./order-manager')
 const Tour = require('../models/tour')
+const Vehicle = require('../models/vehicle')
 
 const createTour = async tourData => {
   return Tour.create(tourData)
@@ -19,4 +20,26 @@ const getCargosByTour = async tourId => {
   return tour.orders.flatMap(order => order.cargos)
 }
 
-module.exports = { createTour, findTourById, getAllToursByCompany, getCargosByTour }
+const addOrderToTour = async (tourId, orderId) => {
+  const tour = await Tour.findById(tourId)
+  if (!tour) throw new Error('Tour not found')
+  return tour.addOrder(orderId)
+}
+
+const assignVehicleToTour = async (tourId, vehicleId) => {
+  const tour = await Tour.findById(tourId)
+  if (!tour) throw new Error('Tour not found')
+  const vehicle = await Vehicle.findById(vehicleId)
+  if (!vehicle) throw new Error('Vehicle not found')
+  if (vehicle.state !== 'AVAILABLE') throw new Error('Vehicle is not available')
+  return tour.assignVehicle(vehicleId)
+}
+
+module.exports = {
+  createTour,
+  findTourById,
+  getAllToursByCompany,
+  getCargosByTour,
+  addOrderToTour,
+  assignVehicleToTour,
+}
