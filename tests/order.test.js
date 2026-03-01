@@ -1,83 +1,36 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-undef */
-const request = require('supertest')
-const mongoose = require('mongoose')
+const { createCompany, createCustomer, createOrder, clearDatabase, app, request, mongoose} = require('./helper')
 
-const app = require('../src/app')
-
-describe('Karalog', () => {
+describe('Order', () => {
     let company
     let customer
-    let customerResponse
     let order
-    let orderResponse
+
 
     beforeEach(async() => {
-        const { collections } = mongoose.connection
-            // eslint-disable-next-line guard-for-in
-        for (const key in collections) {
-            await collections[key].deleteMany()
-        }
-
-        const response = await request(app).post('/companies').send({
-            companyName: 'company1',
-            address: 'Some Street 1',
-            postalCode: '43121',
-            city: 'Somewhere',
-        })
-        company = response.body
-
-        customerResponse = await request(app)
-            .post(`/companies/${company._id}/customers`)
-            .send({
-                customerName: 'customer1',
-                email: 'customer1@mail.com',
-                password: 'shouldNotBeHere',
-                billingInfo: [{
-                    customerName: 'customer1',
-                    address: 'Main Street 1',
-                    postalCode: '1234',
-                    city: 'Main City',
-                    VATnr: 'VAT-001',
-                }, ],
-            })
-
-        customer = customerResponse.body
-
-        orderResponse = await request(app)
-            .post(`/customers/${customer._id}/orders`)
-            .send({
-                origin: 'Zurich',
-                destination: 'Basel',
-                deliveryDate: '2026-05-16T00:00:00.000Z',
-                company: company._id,
-                billingInfo: customer.billingInfo[0],
-                cargos: [{
-                    loadCarrierType: 'Palette',
-                    dimensions: { width: 1.2, length: 0.8, height: 1.5 },
-                    weight: 500,
-                    quantity: 2,
-                }, ],
-            })
-
-        order = orderResponse.body
+        await clearDatabase()
+        company = await createCompany()
+        customer = await createCustomer(company.body._id)
+        order = await createOrder(customer.body._id, customer.body.billingInfo[0])
     })
+
+
+      
     it('can be create a company', async() => {
-        expect(company).toMatchObject({ companyName: 'company1' })
+        expect(company.body).toMatchObject({ companyName: 'company1' })
     })
 
     it('should create an order by a customer', async() => {
-        expect(orderResponse.status).toBe(201)
-        expect(order).toMatchObject({
+        expect(order.status).toBe(201)
+        expect(order.body).toMatchObject({
             origin: 'Zurich',
             destination: 'Basel',
         })
     })
 
     it('should update an order', async() => {
-        const orderId = order._id
+        const orderId = order.body._id
 
         const updatedData = {
             origin: 'Lugano',
@@ -104,20 +57,20 @@ describe('Karalog', () => {
     })
 
     it('should not update a non-pending order', async() => {
-        await mongoose.model('Order').findByIdAndUpdate(order._id, { state: 'IN_PROGRESS' })
+        await mongoose.model('Order').findByIdAndUpdate(order.body._id, { state: 'IN_PROGRESS' })
 
         const updatedData = {
             origin: 'Lugano',
         }
 
-        const response = await request(app).put(`/orders/${order._id}`).send(updatedData)
+        const response = await request(app).put(`/orders/${order.body._id}`).send(updatedData)
 
         expect(response.status).toBe(400)
         expect(response.body.error).toBe('Order status is not pending')
     })
 
     it('should find order by id', async() => {
-        const response = await request(app).get(`/orders/${order._id}`)
+        const response = await request(app).get(`/orders/${order.body._id}`)
         expect(response.status).toBe(200)
         expect(response.body.origin).toBe('Zurich')
     })
@@ -129,13 +82,13 @@ describe('Karalog', () => {
     })
 
     it('should get orders by customer', async() => {
-        const response = await request(app).get(`/customers/${customer._id}/orders`)
+        const response = await request(app).get(`/customers/${customer.body._id}/orders`)
         expect(response.status).toBe(200)
         expect(response.body).toHaveLength(1)
     })
 
     it('should not create an order without cargos', async() => {
-        const response = await request(app).post(`/customers/${customer._id}/orders`).send({
+        const response = await request(app).post(`/customers/${customer.body._id}/orders`).send({
             origin: 'Bern',
             destination: 'Zurich',
             deliveryDate: '2026-03-16T00:00:00.000Z',
@@ -147,7 +100,7 @@ describe('Karalog', () => {
     })
 
     it('should delete order by customer', async() => {
-        const response = await request(app).delete(`/customers/${customer._id}/orders/${order._id}`)
+        const response = await request(app).delete(`/customers/${customer.body._id}/orders/${order.body._id}`)
         expect(response.status).toBe(204)
     })
 
@@ -169,16 +122,16 @@ describe('Karalog', () => {
 
         const otherCustomerId = otherCustomer.body._id
 
-        const response = await request(app).delete(`/customers/${otherCustomerId}/orders/${order._id}`)
+        const response = await request(app).delete(`/customers/${otherCustomerId}/orders/${order.body._id}`)
 
         expect(response.status).toBe(400)
         expect(response.body.error).toBe('Not authorized to delete this order')
     })
 
     it('should not delete a non-pending order', async() => {
-        await mongoose.model('Order').findByIdAndUpdate(order._id, { state: 'IN_PROGRESS' })
+        await mongoose.model('Order').findByIdAndUpdate(order.body._id, { state: 'IN_PROGRESS' })
 
-        const response = await request(app).delete(`/customers/${customer._id}/orders/${order._id}`)
+        const response = await request(app).delete(`/customers/${customer.body._id}/orders/${order.body._id}`)
 
         expect(response.status).toBe(400)
         expect(response.body.error).toBe('Order status is not pending')
@@ -186,13 +139,13 @@ describe('Karalog', () => {
 
     it('should not be found when try to delete order by a customer', async() => {
         const fakeId = new mongoose.Types.ObjectId()
-        const response = await request(app).delete(`/customers/${customer._id}/orders/${fakeId}`)
+        const response = await request(app).delete(`/customers/${customer.body._id}/orders/${fakeId}`)
         expect(response.status).toBe(404)
         expect(response.body.error).toBe('Order not found')
     })
 
     it('should be deleted by a company', async() => {
-        const response = await request(app).delete(`/companies/${company._id}/orders/${order._id}`)
+        const response = await request(app).delete(`/companies/${company.body._id}/orders/${order.body._id}`)
         expect(response.status).toBe(204)
     })
 
@@ -206,22 +159,22 @@ describe('Karalog', () => {
 
         const otherCompanyId = otherCompany.body._id
 
-        const response = await request(app).delete(`/companies/${otherCompanyId}/orders/${order._id}`)
+        const response = await request(app).delete(`/companies/${otherCompanyId}/orders/${order.body._id}`)
         expect(response.status).toBe(400)
         expect(response.body.error).toBe('Not authorized to delete this order')
     })
 
     it('should not delete a delivered order', async() => {
-        await mongoose.model('Order').findByIdAndUpdate(order._id, { state: 'DELIVERED' })
+        await mongoose.model('Order').findByIdAndUpdate(order.body._id, { state: 'DELIVERED' })
 
-        const response = await request(app).delete(`/companies/${company._id}/orders/${order._id}`)
+        const response = await request(app).delete(`/companies/${company.body._id}/orders/${order.body._id}`)
         expect(response.status).toBe(400)
         expect(response.body.error).toBe('Delivered orders cannot be deleted')
     })
 
     it('should not be found when try to delete order by a company', async() => {
         const fakeId = new mongoose.Types.ObjectId()
-        const response = await request(app).delete(`/companies/${company._id}/orders/${fakeId}`)
+        const response = await request(app).delete(`/companies/${company.body._id}/orders/${fakeId}`)
         expect(response.status).toBe(404)
         expect(response.body.error).toBe('Order not found')
     })
