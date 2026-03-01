@@ -8,7 +8,7 @@ router.get('/:employeeId', async (req, res, next) => {
     const employee = await employeeManager.getEmployeeById(req.params.employeeId)
     res.status(200).json(employee)
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    res.status(400).json({ error: error.message })
   }
 })
 
