@@ -149,4 +149,13 @@ router.get('/:companyId/tours', async (req, res, next) => {
   }
 })
 
+router.post('/:companyId/tours/:tourId', async (req, res, next) => {
+  try {
+    const newOrder = await tourManager.addOrderToTour(req.params.tourId, req.body.orderId)
+    res.status(200).json(newOrder)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
 module.exports = router
