@@ -24,12 +24,7 @@ router.get('/:tourId/cargos', async (req, res, next) => {
 
 router.put('/:tourId/vehicles', async (req, res, next) => {
   try {
-    const tour = await tourManager.findTourById(req.params.tourId)
-    const vehicle = await vehicleManager.findVehicleById(req.body.vehicleId)
-    if (vehicle.status !== 'AVAILABLE') {
-      throw new Error('Vehicle is not available')
-    }
-    await tour.assignVehicle(vehicle)
+    const tour = await tourManager.assignVehicleToTour(req.params.tourId, req.body.vehicleId)
     res.status(200).json(tour)
   } catch (error) {
     res.status(400).json({ error: error.message })
