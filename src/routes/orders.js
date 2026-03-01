@@ -22,4 +22,14 @@ router.put('/:orderId', async (req, res, next) => {
   }
 })
 
+router.get('/:orderId/cargos', async (req, res, next) => {
+  try {
+    const cargos = await orderManager.getCargosFromOrder(req.params.orderId)
+    res.status(200).json(cargos)
+  } catch (error) {
+    const status = error.message === 'Order not found' ? 404 : 400
+    res.status(status).json({ error: error.message })
+  }
+})
+
 module.exports = router
