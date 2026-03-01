@@ -7,7 +7,7 @@ const vehicleSchema = new mongoose.Schema({
   model: { type: String, required: true },
   year: { type: Number, required: true },
   payLoad: { type: Number, required: true },
-  status: {
+  state: {
     type: String,
     enum: ['AVAILABLE', 'ON_TOUR', 'IN_GARAGE', 'DAMAGED', 'PARKED', 'SOLD', 'OTHER_REASON'],
     default: 'AVAILABLE',
