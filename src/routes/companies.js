@@ -101,10 +101,14 @@ router.delete('/:companyId/orders/:orderId', async (req, res, next) => {
 
 router.get('/:companyId/customers/:customerId/orders', async (req, res, next) => {
   try {
-    const ordersFromCustomer = await orderManager.getOrdersByCustomer(req.params.customerId)
+    const ordersFromCustomer = await orderManager.getOrdersByCustomerFromCompany(
+      req.params.customerId,
+      req.params.companyId
+    )
     res.status(200).json(ordersFromCustomer)
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    const status = error.message === 'Customer not found' ? 404 : 400
+    res.status(status).json({ error: error.message })
   }
 })
 
@@ -164,6 +168,15 @@ router.post('/:companyId/tours/:tourId', async (req, res, next) => {
   try {
     const newOrder = await tourManager.addOrderToTour(req.params.tourId, req.body.orderId)
     res.status(200).json(newOrder)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.put('/:companyId/tours/:tourId', async (req, res, next) => {
+  try {
+    const start = await tourManager.updateTour(req.params.tourId, req.body)
+    res.status(200).json(start)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
