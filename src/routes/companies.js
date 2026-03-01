@@ -129,6 +129,16 @@ router.get('/:companyId/vehicles', async (req, res, next) => {
   }
 })
 
+router.put('/:companyId/vehicles/:vehicleId', async (req, res, next) => {
+  try {
+    const updatedVehicle = await vehicleManager.updateVehicle(req.params.vehicleId, req.body)
+    res.status(200).json(updatedVehicle)
+  } catch (error) {
+    const status = error.message === 'Vehicle not found' ? 404 : 400
+    res.status(status).json({ error: error.message })
+  }
+})
+
 router.post('/:companyId/tours', async (req, res, next) => {
   try {
     const newTour = await tourManager.createTour({
@@ -147,6 +157,15 @@ router.get('/:companyId/tours', async (req, res, next) => {
     res.status(200).json(tours)
   } catch (error) {
     res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/:companyId/tours/:tourId', async (req, res, next) => {
+  try {
+    const newOrder = await tourManager.addOrderToTour(req.params.tourId, req.body.orderId)
+    res.status(200).json(newOrder)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
   }
 })
 
