@@ -10,8 +10,7 @@ describe('Customer', () => {
     await clearDatabase()
     company = await createCompany()
     customer = await createCustomer(company.body._id)
-  
-  })
+    })
 
   it('should create a customer by a company', async () => {
     const expectedOutput = {
@@ -59,6 +58,7 @@ describe('Customer', () => {
   it(`should return 500 for invalid comapny id`, async() => {
     const response = await request(app).get('/companies/notValidId/customers')
     expect(response.status).toBe(500)
+
   })
 
 })
