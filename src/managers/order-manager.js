@@ -1,3 +1,4 @@
+const Customer = require('../models/customer')
 const Order = require('../models/order')
 
 const createOrder = async orderData => {
@@ -20,6 +21,15 @@ const getOrders = () => Order.find()
 const getOrdersByCustomer = customerId => Order.find({ customer: customerId })
 
 const getOrdersByCompany = companyId => Order.find({ company: companyId })
+
+const getOrdersByCustomerFromCompany = async (customerId, companyId) => {
+  const customer = await Customer.findById(customerId)
+  if (!customer) throw new Error('Customer not found')
+  if (customer.company.toString() !== companyId) {
+    throw new Error('Cusotmer does not belong to this company')
+  }
+  return Order.find({ customer: customerId })
+}
 
 const updateOrder = async (orderId, updateData) => {
   const order = await Order.findOneAndUpdate(
@@ -62,6 +72,18 @@ const deleteOrderByCompany = async (orderId, companyId) => {
   return order
 }
 
+const addCargoToOrder = async (orderId, cargo) => {
+  const order = await Order.findById(orderId)
+  if (!order) throw new Error('Order not found')
+  return order.addCargo(cargo)
+}
+
+const getCargosFromOrder = async orderId => {
+  const order = await Order.findById(orderId)
+  if (!order) throw new Error('Order not found')
+  return order.getCargos()
+}
+
 module.exports = {
   createOrder,
   getOrders,
@@ -71,4 +93,7 @@ module.exports = {
   updateOrder,
   deleteOrderByCustomer,
   deleteOrderByCompany,
+  getOrdersByCustomerFromCompany,
+  addCargoToOrder,
+  getCargosFromOrder,
 }
