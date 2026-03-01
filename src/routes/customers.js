@@ -56,4 +56,13 @@ router.delete('/:customerId/orders/:orderId', async (req, res, next) => {
   }
 })
 
+router.post('/:customerId/orders/:orderId/cargos', async (req, res, next) => {
+  try {
+    const addCargo = await orderManager.addCargoToOrder(req.params.orderId, req.body)
+    res.status(201).json(addCargo)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
 module.exports = router
