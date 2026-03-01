@@ -1,71 +1,64 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-undef */
-const request = require('supertest')
-const mongoose = require('mongoose')
-
-const app = require('../src/app')
+const { createCompany, createCustomer, clearDatabase, app, request, mongoose} = require('./helper')
 
 describe('Customer', () => {
-    let company
-    let customer
+  let company
+  let customer
 
-    beforeEach(async() => {
-        const { collections } = mongoose.connection
-        // eslint-disable-next-line guard-for-in
-        for(const key in collections) {
-            await collections[key].deleteMany()
-        }
+  beforeEach(async () => {
+    await clearDatabase()
+    company = await createCompany()
+    customer = await createCustomer(company.body._id)
+  
+  })
 
-        const response = await request(app).post('/companies').send({
-            companyName: 'company1',
-            address: 'Some Street 1',
-            postalCode: '43121',
-            city: 'Somewhere',
-        })
-        company = response.body
+  it('should create a customer by a company', async () => {
+    const expectedOutput = {
+      customerName: 'customer1',
+      billingInfo: [
+        {
+          customerName: 'customer1',
+          address: 'Main Street 1',
+          postalCode: '1234',
+          city: 'Main City',
+          VATnr: 'VAT-001',
+        },
+      ],
+    }
 
-                customerResponse = await request(app)
-            .post(`/companies/${company._id}/customers`)
-            .send({
-                customerName: 'customer1',
-                email: 'customer1@mail.com',
-                password: 'shouldNotBeHere',
-                billingInfo: [{
-                    customerName: 'customer1',
-                    address: 'Main Street 1',
-                    postalCode: '1234',
-                    city: 'Main City',
-                    VATnr: 'VAT-001',
-                }, ],
-            })
+    expect(customer.body).toMatchObject(expectedOutput)
+  })
 
-        customer = customerResponse.body
-    })
+  it('should find a customer by its id', async () => {
+    const response = await request(app).get(`/customers/${customer.body._id}`)
+    expect(response.status).toBe(200)
+    expect(response.body.customerName).toBe('customer1')
+  })
 
-    
+  it('should not find a customer by its id, if customer does not exist', async() => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).get(`/customers/${fakeId}`)
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('Customer not found')
+  })
 
-    it('should create a customer by a company', async() => {
-                const expectedOutput = {
-            customerName: 'customer1',
-            billingInfo: [{
-                customerName: 'customer1',
-                address: 'Main Street 1',
-                postalCode: '1234',
-                city: 'Main City',
-                VATnr: 'VAT-001',
-            }, ],
-        }
+  it('should find all customers belonging to a company', async() => {
+    const response = await request(app).get(`/companies/${company.body._id}/customers`)
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveLength(1)
+  })
 
-        expect(customerResponse.status).toBe(201)
-        expect(customer).toMatchObject(expectedOutput)
-    })
+  it('should return empty List for company with no customers', async() => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).get(`/companies/${fakeId}/customers`)
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveLength(0)
+  })
 
-    it('should find a customer by its id', async() => {
-        const response = await request(app).get(`/customers/${customer._id}`)
-        expect(response.status).toBe(200)
-        expect(response.body.customerName).toBe('customer1')
-    })
+  it(`should return 500 for invalid comapny id`, async() => {
+    const response = await request(app).get('/companies/notValidId/customers')
+    expect(response.status).toBe(500)
+  })
 
 })
