@@ -12,6 +12,7 @@ const companyRouter = require('./routes/companies')
 const ordersRouter = require('./routes/orders')
 const vehiclesRouter = require('./routes/vehicles')
 const toursRouter = require('./routes/tours')
+const employeesRouter = require('./routes/employees')
 
 const app = express()
 
@@ -31,6 +32,7 @@ app.use('/companies', companyRouter)
 app.use('/orders', ordersRouter)
 app.use('/vehicles', vehiclesRouter)
 app.use('/tours', toursRouter)
+app.use('/employees', employeesRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
