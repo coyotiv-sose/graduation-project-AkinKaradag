@@ -35,6 +35,17 @@ const assignVehicleToTour = async (tourId, vehicleId) => {
   return tour.assignVehicle(vehicleId)
 }
 
+const updateTour = async (tourId, updateData) => {
+  const tour = await Tour.findById(tourId)
+  if (!tour) throw new Error('Tour not found')
+
+  if (updateData.state === 'STARTED') return tour.startTour()
+  if (updateData.state === 'FINISHED') return tour.endTour()
+
+  Object.assign(tour, updateData)
+  return tour.save()
+}
+
 module.exports = {
   createTour,
   findTourById,
@@ -42,4 +53,5 @@ module.exports = {
   getCargosByTour,
   addOrderToTour,
   assignVehicleToTour,
+  updateTour,
 }
