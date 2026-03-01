@@ -51,4 +51,10 @@ describe('Employee', () => {
     const response = await request(app).get('/companies/invalid-id/employees')
     expect(response.status).toBe(500)
   })
+
+  it('should not find an employee', async () => {
+    const fakeId = new mongoose.Types.ObjectId()
+    const response = await request(app).get(`/employees/${fakeId}`)
+    expect(response.status).toBe(400)
+  })
 })
