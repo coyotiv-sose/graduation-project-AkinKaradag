@@ -12,13 +12,11 @@ export default {
   },
 
   computed: {
-    ...mapState(useCounterStore, ['count']),
-    ...mapState(useCounterStore, ['doubleCount']),
+    ...mapState(useCounterStore, ['count', 'doubleCount']),
   },
 
   methods: {
-    ...mapActions(useCounterStore, ['increment']),
-    ...mapActions(useCounterStore, ['decrement']),
+    ...mapActions(useCounterStore, ['increment', 'decrement']),
   },
 }
 </script>
