@@ -1,31 +1,23 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
-
+import { useCounterStore } from '@/stores/counter'
 import { ref } from 'vue'
 
 defineProps({
-    name: {
-        type: String,
-        required: true
-    }
+  name: {
+    type: String,
+    required: true,
+  },
 })
 
-const count = ref(0)
-
-const increment = () => {
-    count.value++
-}
-
-const decrement = () => {
-    count.value--
-}
-
+const store = useCounterStore()
 </script>
 
 <template lang="pug">
-    div
+div
     h1 {{ name }}
-    p Count: {{ count }}
-    button(@click='increment') Increment
-    button(@click='decrement') Decrement
+    p Count: {{ store.count }}
+    p Double count is {{ store.doubleCount }}
+    button(@click='store.increment()') Increment
+    button(@click='store.decrement()') Decrement
 </template>
