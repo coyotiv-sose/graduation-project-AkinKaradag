@@ -1,14 +1,14 @@
 <script>
-import CreateCompanyForm from '@/components/CreateCompanyForm.vue'
+import company from '@/components/company.vue'
 export default {
-  components: { CreateCompanyForm },
+  components: { company },
 }
 </script>
 
 <template>
   <main>
     <Suspense>
-      <CreateCompanyForm />
+      <company />
     </Suspense>
   </main>
 </template>
