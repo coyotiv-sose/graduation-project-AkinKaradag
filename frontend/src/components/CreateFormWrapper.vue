@@ -24,7 +24,7 @@ export default {
       try {
         await this.onSubmit()
       } catch (e) {
-        this.errorMessage = 'Something went wrong'
+        this.errorMessage = ('Something went wrong', e)
       } finally {
         this.isLoading = false
       }
