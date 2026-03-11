@@ -1,4 +1,3 @@
-
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
@@ -14,6 +13,7 @@ import HelloWorld from './components/HelloWorld.vue'
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/companies">Create Company</RouterLink>
       </nav>
     </div>
   </header>
@@ -84,4 +84,3 @@ nav a:first-of-type {
   }
 }
 </style>
-
