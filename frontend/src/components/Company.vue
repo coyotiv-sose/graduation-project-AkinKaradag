@@ -3,7 +3,7 @@ import { useCompanyStore } from '@/stores/companyStore';
 import CreateFormWrapper from './CreateFormWrapper.vue'
 
 export default {
-  name: 'CreateCompanyForm',
+  name: 'CompanyForm',
   components: { CreateFormWrapper },
   data() {
     return {
