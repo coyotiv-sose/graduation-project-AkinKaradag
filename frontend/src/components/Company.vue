@@ -1,5 +1,5 @@
 <script>
-import axios from 'axios'
+import { useCompanyStore } from '@/stores/companyStore';
 import CreateFormWrapper from './CreateFormWrapper.vue'
 
 export default {
@@ -7,7 +7,6 @@ export default {
   components: { CreateFormWrapper },
   data() {
     return {
-      companies: [],
       companyName: '',
       address: '',
       postalCode: '',
@@ -15,17 +14,19 @@ export default {
     }
   },
 
+  computed: {
+    companies() {
+      return useCompanyStore().companies
+    }
+  },
+
   async mounted() {
-    await this.getAllCompanies()
+    await useCompanyStore().getAllCompanies()
   },
 
   methods: {
-    async getAllCompanies() {
-      const { data } = await axios.get('/companies')
-      this.companies = data
-    },
     async submitCompany() {
-      await axios.post('/companies', {
+      await useCompanyStore().createCompany({
         companyName: this.companyName,
         address: this.address,
         postalCode: this.postalCode,
@@ -35,7 +36,6 @@ export default {
       this.address = ''
       this.postalCode = ''
       this.city = ''
-      await this.getAllCompanies()
     },
   },
 }
