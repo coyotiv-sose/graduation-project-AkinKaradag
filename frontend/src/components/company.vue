@@ -35,6 +35,7 @@ export default {
       this.address = ''
       this.postalCode = ''
       this.city = ''
+      await this.getAllCompanies()
     },
   },
 }
@@ -48,8 +49,8 @@ CreateFormWrapper(:onSubmit='submitCompany', submitLabel='Create company')
   input(v-model='city' placeholder='City')
 
 h2 Companies
-  ul
-    li(v-for='company in companies' :key='company._id')
-     | {{ company.companyName }} - {{ company.city }}
+ul
+   li(v-for='company in companies' :key='company._id')
+    | {{ company.companyName }} - {{ company.city }}
 
 </template>
