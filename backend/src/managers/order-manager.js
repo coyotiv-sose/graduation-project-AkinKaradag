@@ -1,5 +1,6 @@
 const Customer = require('../models/customer')
 const Order = require('../models/order')
+const { validateCustomerBelongsToCompany } = require('./customer-manager')
 
 const createOrder = async orderData => {
   if (!orderData.cargos || orderData.cargos.length === 0) {
@@ -23,11 +24,7 @@ const getOrdersByCustomer = customerId => Order.find({ customer: customerId })
 const getOrdersByCompany = companyId => Order.find({ company: companyId })
 
 const getOrdersByCustomerFromCompany = async (customerId, companyId) => {
-  const customer = await Customer.findById(customerId)
-  if (!customer) throw new Error('Customer not found')
-  if (customer.company.toString() !== companyId) {
-    throw new Error('Cusotmer does not belong to this company')
-  }
+  await validateCustomerBelongsToCompany(customerId, companyId)
   return Order.find({ customer: customerId })
 }
 
