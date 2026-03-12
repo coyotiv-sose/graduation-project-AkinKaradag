@@ -32,8 +32,8 @@ export default {
         }
     },
 
-    mounted() {
-        useCompanyStore().getAllCompanies()
+    async mounted() {
+       await useCompanyStore().getAllCompanies()
     },
 
     watch: {
@@ -55,8 +55,12 @@ export default {
                 customerName: this.customerName,
                 billingInfo: [this.billingInfo],
             })
-        }
-    }
+            this.email = ''
+            this.password = ''
+            this.customerName = ''
+            this.billingInfo = []
+        },
+    },
 }
 </script>
 
