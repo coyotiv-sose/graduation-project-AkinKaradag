@@ -80,7 +80,7 @@ describe('Tour', () => {
   it('should assign a vehicle to a tour', async () => {
     const response = await request(app).put(`/tours/${tour.body._id}/vehicles`).send({ vehicleId: vehicle.body._id })
     expect(response.status).toBe(200)
-    expect(response.body.vehicleId.name).toBe('Truck1')
+    expect(response.body.vehicle.name).toBe('Truck1')
   })
 
   it('should get the cargos on a tour', async () => {
