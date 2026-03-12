@@ -236,7 +236,7 @@ describe('Order', () => {
   it('should not find an order from a customer which belong not to a company', async () => {
     const fakeId = new mongoose.Types.ObjectId()
     const response = await request(app).get(`/companies/${fakeId}/customers/${customer.body._id}/orders`)
-    expect(response.status).toBe(400)
+    expect(response.status).toBe(404)
   })
 
   it('should not get orders for customer with invalid ID', async () => {
