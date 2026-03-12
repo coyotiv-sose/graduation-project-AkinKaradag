@@ -4,12 +4,12 @@ const orderSchema = require('./order')
 
 const tourSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'LogisticCompany', required: true },
-  vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', default: null, autopopulate: true },
+  vehicle: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', default: null, autopopulate: true },
   date: { type: Date, required: true },
   startLocation: { type: String, required: true },
   endLocation: { type: String, required: true },
   orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order', autopopulate: true }],
-  state: { type: String, enum: ['STARTED', 'PLANNED', 'CANCELLED', 'FINISHED'] },
+  state: { type: String, enum: ['STARTED', 'PLANNED', 'CANCELLED', 'FINISHED'], default: 'PLANNED' },
 })
 
 tourSchema.methods.addOrder = function (orderId) {
@@ -18,7 +18,7 @@ tourSchema.methods.addOrder = function (orderId) {
 }
 
 tourSchema.methods.assignVehicle = function (vehicleId) {
-  this.vehicleId = vehicleId
+  this.vehicle = vehicleId
   return this.save()
 }
 
