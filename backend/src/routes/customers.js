@@ -1,0 +1,68 @@
+const express = require('express')
+
+const router = express.Router()
+const customerManager = require('../managers/customer-manager')
+const orderManager = require('../managers/order-manager')
+
+router.get('/:customerId', async (req, res, next) => {
+  try {
+    const customer = await customerManager.getCustomerById(req.params.customerId)
+    res.json(customer)
+  } catch (error) {
+    res.status(404).json({ error: error.message })
+  }
+})
+
+router.post('/:customerId/orders', async (req, res, next) => {
+  try {
+    const customer = await customerManager.getCustomerById(req.params.customerId)
+
+    const newOrder = await orderManager.createOrder({
+      ...req.body,
+      customer: customer._id,
+      company: customer.company,
+    })
+    res.status(201).json(newOrder)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.get('/:customerId/orders', async (req, res, next) => {
+  try {
+    const orders = await orderManager.getOrdersByCustomer(req.params.customerId)
+    res.status(200).json(orders)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.get('/:customerId/orders/:orderId', async (req, res, next) => {
+  try {
+    const order = await orderManager.findOrderById(req.params.orderId)
+    res.status(200).json(order)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.delete('/:customerId/orders/:orderId', async (req, res, next) => {
+  try {
+    const order = await orderManager.deleteOrderByCustomer(req.params.orderId, req.params.customerId)
+    res.status(204).send()
+  } catch (error) {
+    const status = error.message === 'Order not found' ? 404 : 400
+    res.status(status).json({ error: error.message })
+  }
+})
+
+router.post('/:customerId/orders/:orderId/cargos', async (req, res, next) => {
+  try {
+    const addCargo = await orderManager.addCargoToOrder(req.params.orderId, req.body)
+    res.status(201).json(addCargo)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+module.exports = router
