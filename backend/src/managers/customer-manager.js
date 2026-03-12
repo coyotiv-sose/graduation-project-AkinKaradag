@@ -31,4 +31,16 @@ const getCustomerByCompany = companyId => Customer.find({ company: companyId })
 
 const getAllCustomers = () => Customer.find()
 
-module.exports = { createCustomer, getCustomerById, getCustomerByCompany, getAllCustomers }
+const validateCustomerBelongsToCompany = async (customerId, companyId) => {
+  const customer = await Customer.findOne({ _id: customerId, company: companyId })
+  if (!customer) throw new Error('Customer not found')
+  if (!customer) throw new Error('Customer does not belong to this company')
+}
+
+module.exports = {
+  createCustomer,
+  getCustomerById,
+  getCustomerByCompany,
+  getAllCustomers,
+  validateCustomerBelongsToCompany,
+}
