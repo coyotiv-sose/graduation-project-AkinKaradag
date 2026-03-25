@@ -5,9 +5,20 @@ const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 const cors = require('cors')
 const session = require('express-session')
+const passport = require('passport')
 
 require('dotenv').config()
 require('./database-connection')
+
+const Account = require('./models/account')
+const MongoStore = require('connect-mongo').default
+const mongoose = require('mongoose')
+
+const clientPromise = mongoose.connection.asPromise().then(connection => (connection = connection.getClient()))
+
+passport.use(Account.createStrategy())
+passport.serializeUser(Account.serializeUser())
+passport.deserializeUser(Account.deserializeUser())
 
 const indexRouter = require('./routes/index')
 const customersRouter = require('./routes/customers')
@@ -16,14 +27,7 @@ const ordersRouter = require('./routes/orders')
 const vehiclesRouter = require('./routes/vehicles')
 const toursRouter = require('./routes/tours')
 const employeesRouter = require('./routes/employees')
-
-const Account = require('./models/account')
-const passport = require('passport')
-
-const MongoStore = require('connect-mongo').default
-const mongoose = require('mongoose')
-
-const clientPromise = mongoose.connection.asPromise().then(connection => (connection = connection.getClient()))
+const accountsRouter = require('./routes/accounts')
 
 const app = express()
 
@@ -32,11 +36,6 @@ app.use(cors())
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
-
-passport.use(Account.createStrategy())
-
-passport.serializeUser(Account.serializeUser())
-passport.deserializeUser(Account.deserializeUser())
 
 app.use(logger('dev'))
 app.use(express.json())
@@ -50,11 +49,12 @@ app.use(
         saveUninitialized: true,
         cookie: {
             maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
-            secure: process.env.NODE_ENV === 'production', // Set to true in production
-        }, // Set to true if using HTTPS
+            secure: process.env.NODE_ENV === 'production',
+        },
         store: MongoStore.create({ clientPromise, stringify: false }),
     })
 )
+app.use(passport.initialize())
 app.use(passport.session())
 app.use((req, res, next) => {
     const numberOfVisits = req.session.numberOfVisits || 0
@@ -72,6 +72,7 @@ app.use('/orders', ordersRouter)
 app.use('/vehicles', vehiclesRouter)
 app.use('/tours', toursRouter)
 app.use('/employees', employeesRouter)
+app.use('/accounts', accountsRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
