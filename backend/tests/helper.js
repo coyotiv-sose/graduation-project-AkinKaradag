@@ -47,6 +47,17 @@ const createCustomer = async companyId => {
   return customerResponse
 }
 
+const createAccount = async(overrides = {}) => {
+    const accountData = {
+        email: 'test@example.com',
+        password: 'password123',
+        role: 'customer',
+        ...overrides,
+    }
+    const accountResponse = await request(app).post('/accounts').send(accountData)
+    return accountResponse
+}
+
 const createOrder = async (customerId, billingInfo) => {
   const orderResponse = await request(app)
     .post(`/customers/${customerId}/orders`)
@@ -70,6 +81,7 @@ const createOrder = async (customerId, billingInfo) => {
 module.exports = {
   createCompany,
   createCustomer,
+  createAccount,
   createOrder,
   clearDatabase,
   app,
