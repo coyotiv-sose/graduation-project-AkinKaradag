@@ -16,6 +16,10 @@ const ordersRouter = require('./routes/orders')
 const vehiclesRouter = require('./routes/vehicles')
 const toursRouter = require('./routes/tours')
 const employeesRouter = require('./routes/employees')
+
+const Account = require('./models/account')
+const passport = require('passport')
+
 const MongoStore = require('connect-mongo').default
 const mongoose = require('mongoose')
 
@@ -28,6 +32,11 @@ app.use(cors())
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
+
+passport.use(Account.createStrategy())
+
+passport.serializeUser(Account.serializeUser())
+passport.deserializeUser(Account.deserializeUser())
 
 app.use(logger('dev'))
 app.use(express.json())
@@ -46,6 +55,7 @@ app.use(
         store: MongoStore.create({ clientPromise, stringify: false }),
     })
 )
+app.use(passport.session())
 app.use((req, res, next) => {
     const numberOfVisits = req.session.numberOfVisits || 0
     req.session.numberOfVisits = numberOfVisits + 1
