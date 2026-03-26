@@ -2,17 +2,25 @@ const express = require('express')
 
 const passport = require('passport')
 const router = express.Router()
-const Account = require('../models/account')
+const customerManager = require('../managers/customer-manager')
+const employeeManager = require('../managers/employee-manager')
 
 router.get('/session', async(req, res, next) => {
-    res.send(req.session)
+    res.send(req.user)
 })
 
 router.post('/', async(req, res, next) => {
     try {
-        const { email, password, role } = req.body
-        const account = await Account.register(new Account({ email, role }), password)
-        res.json(account)
+        const { role } = req.body
+        let result
+        if (role === 'customer') {
+            result = await customerManager.createCustomer(req.body)
+        } else if (role === 'employee') {
+            result = await employeeManager.createEmployee(req.body)
+        } else {
+            return res.status(400).json({ error: 'Invalid role' })
+        }
+        res.json(result)
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
@@ -22,8 +30,18 @@ router.post('/session', (req, res, next) => {
     passport.authenticate('local', (err, user) => {
         if (err) return res.status(500).json({ error: err.message })
         if (!user) return res.status(401).json({ error: 'Invalid email or password' })
-        res.json(user)
+        req.login(user, (loginErr) => {
+            if (loginErr) return res.status(500).json({ error: loginErr.message })
+            res.json(user)
+        })
     })(req, res, next)
+})
+
+router.delete('/session', (req, res, next) => {
+    req.logout(err => {
+        if (err) return res.status(500).json({ error: err.message })
+        res.json({ message: 'Logged out' })
+    })
 })
 
 module.exports = router
