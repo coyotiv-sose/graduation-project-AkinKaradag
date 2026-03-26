@@ -1,11 +1,10 @@
 <script>
-import axios from 'axios'
+import { useAccountStore } from '../stores/accountStore'
 
 export default {
   name: 'LogoutView',
   async mounted() {
-    await axios.delete('/accounts/session')
-    this.$root.user = null
+    await useAccountStore().logout()
     this.$router.push('/')
   },
 }

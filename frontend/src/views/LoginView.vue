@@ -1,5 +1,5 @@
 <script>
-import axios from 'axios'
+import { useAccountStore } from '../stores/accountStore'
 
 export default {
   name: 'LoginView',
@@ -11,9 +11,8 @@ export default {
     },
     methods: {
         async login() {
-            await axios.post('/accounts/session', { email: this.email, password: this.password })
+            await useAccountStore().login(this.email, this.password)
             this.$router.push('/')
-            this.$root.fetchUser()
         }
     }
 }
