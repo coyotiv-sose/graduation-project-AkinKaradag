@@ -13,5 +13,6 @@ app.use(createPinia())
 app.use(router)
 
 axios.defaults.baseURL = 'http://localhost:3000'
+axios.defaults.withCredentials = true
 
 app.mount('#app')
