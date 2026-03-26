@@ -1,6 +1,39 @@
-<script setup>
+<script>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import axios from 'axios'
+
+export default {
+  name: 'App',
+  components: {
+    HelloWorld,
+    RouterLink,
+    RouterView,
+  },
+  data() {
+    return {
+      user: null,
+    }
+  },
+  mounted() {
+    this.fetchUser()
+  },
+  methods: {
+    async fetchUser() {
+      try {
+        const res = await axios.get('/accounts/session', { withCredentials: true })
+        this.user = res.data
+      } catch {
+        this.user = null
+      }
+    },
+    async logout() {
+      await axios.delete('/accounts/session')
+      this.user = null
+      this.$router.push('/')
+    },
+  },
+}
 </script>
 
 <template>
@@ -15,7 +48,9 @@ import HelloWorld from './components/HelloWorld.vue'
         <RouterLink to="/about">About</RouterLink>
         <RouterLink to="/companies">Create Company</RouterLink>
         <RouterLink to="/customers">Create Customer</RouterLink>
-        <RouterLink to="/login">Login</RouterLink>
+        <RouterLink v-if="!user" to="/login">Login</RouterLink>
+        <RouterLink v-if="!user" to="/register">Register</RouterLink>
+        <RouterLink v-if="user" to="/logout">Logout</RouterLink>
       </nav>
     </div>
   </header>

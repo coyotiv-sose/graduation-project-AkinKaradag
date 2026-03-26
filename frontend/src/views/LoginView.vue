@@ -12,6 +12,8 @@ export default {
     methods: {
         async login() {
             await axios.post('/accounts/session', { email: this.email, password: this.password })
+            this.$router.push('/')
+            this.$root.fetchUser()
         }
     }
 }
