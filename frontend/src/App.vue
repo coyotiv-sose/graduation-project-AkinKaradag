@@ -1,7 +1,7 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import axios from 'axios'
+import { useAccountStore } from './stores/accountStore'
 
 export default {
   name: 'App',
@@ -10,28 +10,13 @@ export default {
     RouterLink,
     RouterView,
   },
-  data() {
-    return {
-      user: null,
-    }
+  computed: {
+    user() {
+      return useAccountStore().user
+    },
   },
   mounted() {
-    this.fetchUser()
-  },
-  methods: {
-    async fetchUser() {
-      try {
-        const res = await axios.get('/accounts/session', { withCredentials: true })
-        this.user = res.data
-      } catch {
-        this.user = null
-      }
-    },
-    async logout() {
-      await axios.delete('/accounts/session')
-      this.user = null
-      this.$router.push('/')
-    },
+    useAccountStore().fetchUser()
   },
 }
 </script>

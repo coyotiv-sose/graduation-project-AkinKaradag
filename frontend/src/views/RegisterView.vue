@@ -1,5 +1,5 @@
 <script>
-import axios from 'axios'
+import { useAccountStore } from '../stores/accountStore'
 
 export default {
   name: 'RegisterView',
@@ -23,7 +23,7 @@ export default {
       } else {
         payload.name = this.name
       }
-      await axios.post('/accounts', payload)
+      await useAccountStore().register(payload)
       alert('Registration successful!')
       this.$router.push('/login')
     },
