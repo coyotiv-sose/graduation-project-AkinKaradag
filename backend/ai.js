@@ -18,8 +18,7 @@ Description:`,
         max_tokens: 1000,
     })
 
-    const text = response.choices ? .[0] ? .text || ''
-    return text
+    return response.choices?.[0]?.text || ''
 }
 
 main({

@@ -31,11 +31,7 @@
         "files.trimTrailingWhitespace": true,
         "editor.codeActionsOnSave": {
           // For ESLint
-          "source.fixAll.eslint": true,
-          // For TSLint
-          "source.fixAll.tslint": true,
-          // For Stylelint
-          "source.fixAll.stylelint": true
+          "source.fixAll.eslint": true
         },
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true,
@@ -52,6 +48,8 @@
         },
         "eslint.format.enable": true,
         "eslint.options": {},
+        "javascript.format.enable": false,
+        "typescript.format.enable": false,
         "plantuml.server": "http://localhost:8080",
         "plantuml.render": "PlantUMLServer",
         "terminal.integrated.tabs.enabled": true,
@@ -67,11 +65,21 @@
         "debug.onTaskErrors": "debugAnyway",
         "terminal.integrated.rightClickBehavior": "copyPaste",
         "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
         "security.workspace.trust.untrustedFiles": "newWindow",
         "workbench.editor.tabCloseButton": "left",
-        "javascript.format.semicolons": "remove",
         "prettier.semi": false,
-        "typescript.format.semicolons": "remove",
         "editor.inlineSuggest.enabled": true,
         "github.copilot.enable": {
           "*": true
