@@ -142,6 +142,7 @@ main.landing
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 1.5rem;
+  color: #222;
 }
 
 .card h3 {
