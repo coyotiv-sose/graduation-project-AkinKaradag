@@ -33,6 +33,7 @@ export default {
         <RouterLink to="/about">About</RouterLink>
         <RouterLink to="/companies">Create Company</RouterLink>
         <RouterLink to="/customers">Create Customer</RouterLink>
+        <RouterLink to="/orders">AI Orders</RouterLink>
         <RouterLink v-if="!user" to="/login">Login</RouterLink>
         <RouterLink v-if="!user" to="/register">Register</RouterLink>
         <RouterLink v-if="user" to="/logout">Logout</RouterLink>
