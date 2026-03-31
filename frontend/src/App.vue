@@ -1,12 +1,10 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
 import { useAccountStore } from './stores/accountStore'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
     RouterLink,
     RouterView,
   },
@@ -23,22 +21,20 @@ export default {
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-        <RouterLink to="/companies">Create Company</RouterLink>
-        <RouterLink to="/customers">Create Customer</RouterLink>
-        <RouterLink to="/orders">AI Orders</RouterLink>
-        <RouterLink v-if="!user" to="/login">Login</RouterLink>
-        <RouterLink v-if="!user" to="/register">Register</RouterLink>
-        <RouterLink v-if="user" to="/logout">Logout</RouterLink>
-      </nav>
-    </div>
+    <nav>
+      <RouterLink to="/" class="brand">KaraLog</RouterLink>
+      <div class="nav-links">
+        <RouterLink to="/#services">Services</RouterLink>
+        <RouterLink to="/#about">Who We Are</RouterLink>
+        <RouterLink to="/#contact">Contact</RouterLink>
+        <template v-if="user">
+          <RouterLink to="/companies">Companies</RouterLink>
+          <RouterLink to="/orders">AI Orders</RouterLink>
+          <RouterLink to="/logout">Logout</RouterLink>
+        </template>
+        <RouterLink v-else to="/login">Login</RouterLink>
+      </div>
+    </nav>
   </header>
 
   <RouterView />
@@ -46,64 +42,43 @@ export default {
 
 <style scoped>
 header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
 nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-nav a.router-link-exact-active {
+.brand {
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: #2c7a2c;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-links a {
+  text-decoration: none;
   color: var(--color-text);
+  font-size: 0.95rem;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.nav-links a:hover {
+  color: #2c7a2c;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.nav-links a.router-link-exact-active {
+  color: #2c7a2c;
+  font-weight: 600;
 }
 </style>
