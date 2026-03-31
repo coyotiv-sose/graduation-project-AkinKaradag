@@ -1,14 +1,18 @@
 <script>
-import { useCustomerStore } from '@/stores/customerStore';
-import CreateFormWrapper from './CreateFormWrapper.vue';
-import { useCompanyStore } from '@/stores/companyStore';
+import { useCustomerStore } from '@/stores/customerStore'
+import CreateFormWrapper from './CreateFormWrapper.vue'
 
 export default {
     name: 'CustomerForm',
     components: { CreateFormWrapper },
+    props: {
+        companyId: {
+            type: String,
+            required: true,
+        },
+    },
     data() {
         return {
-            selectedCompany: '',
             email: '',
             password: '',
             customerName: '',
@@ -24,24 +28,16 @@ export default {
         }
     },
     computed: {
-        companies() {
-            return useCompanyStore().companies
-        },
         customers() {
             return useCustomerStore().customers
         }
     },
 
     async mounted() {
-       await useCompanyStore().getAllCompanies()
+        await useCustomerStore().getAllCustomers(this.companyId)
     },
 
     watch: {
-        selectedCompany(companyId) {
-            if(companyId) {
-                useCustomerStore().getAllCustomers(companyId)
-            }
-        },
         customerName(newName) {
             this.billingInfo.customerName = newName
         }
@@ -49,7 +45,7 @@ export default {
 
     methods: {
         async submitCustomer() {
-            await useCustomerStore().createCustomer(this.selectedCompany, {
+            await useCustomerStore().createCustomer(this.companyId, {
                 email: this.email,
                 password: this.password,
                 customerName: this.customerName,
@@ -58,17 +54,21 @@ export default {
             this.email = ''
             this.password = ''
             this.customerName = ''
-            this.billingInfo = []
+            this.billingInfo = {
+                label: 'default',
+                customerName: '',
+                address: '',
+                postalCode: '',
+                city: '',
+                VATnr: '',
+                isDefault: true,
+            }
         },
     },
 }
 </script>
 
 <template lang="pug">
-select(v-model='selectedCompany')
-    option(disabled value='') Select a company
-    option(v-for='company in companies' :key='company._id' :value='company._id')
-        | {{ company.companyName }}
 CreateFormWrapper(:onSubmit='submitCustomer', submitLabel='Create customer')
     h3 Account Info
     input(v-model='email' placeholder='E-Mail')
