@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 const customerManager = require('../managers/customer-manager')
 const orderManager = require('../managers/order-manager')
+const generateOrder = require('../lib/order-generator')
 
 router.get('/:customerId', async (req, res, next) => {
   try {
@@ -22,6 +23,37 @@ router.post('/:customerId/orders', async (req, res, next) => {
       customer: customer._id,
       company: customer.company,
     })
+    res.status(201).json(newOrder)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
+  try {
+    const { prompt } = req.body
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' })
+    }
+
+    const customer = await customerManager.getCustomerById(req.params.customerId)
+
+    // Use AI to parse the prompt into structured order data
+    const orderData = await generateOrder(prompt)
+
+    // Get the customer's default billing info
+    const billingInfo = customer.billingInfo?.find(b => b.isDefault) || customer.billingInfo?.[0]
+    if (!billingInfo) {
+      return res.status(400).json({ error: 'Customer has no billing info' })
+    }
+
+    const newOrder = await orderManager.createOrder({
+      ...orderData,
+      customer: customer._id,
+      company: customer.company,
+      billingInfo,
+    })
+
     res.status(201).json(newOrder)
   } catch (error) {
     res.status(400).json({ error: error.message })
