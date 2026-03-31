@@ -22,24 +22,36 @@ main.landing
     p.subtitle Your trusted partner for logistics and transport management
     .hero-actions
       router-link(to='/login')
-        button.btn-primary Login
-      a.btn-secondary(href='mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.%20Please%20get%20in%20touch.') Request an Account
+        button.btn.btn-outline-success Login
+      a.btn.btn-outline-success(href='mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.%20Please%20get%20in%20touch.') Request an Account
 
   section#services.section
     h2 Services
     .cards
-      .card
-        h3 Transport Management
-        p End-to-end planning and execution of your logistics operations, from order creation to delivery.
-      .card
-        h3 Fleet Management
-        p Assign vehicles to tours, track capacity, and optimize your fleet utilization.
-      .card
-        h3 AI-Powered Orders
-        p Describe your shipment in plain language and let our AI create structured orders for you.
-      .card
-        h3 Customer & Billing
-        p Manage your customers, billing info, and order history all in one place.
+      .flip-card
+        .flip-card-inner
+          .flip-card-front
+            h3 Transport Management
+          .flip-card-back
+            p End-to-end planning and execution of your logistics operations, from order creation to delivery.
+      .flip-card
+        .flip-card-inner
+          .flip-card-front
+            h3 Fleet Management
+          .flip-card-back
+            p Assign vehicles to tours, track capacity, and optimize your fleet utilization.
+      .flip-card
+        .flip-card-inner
+          .flip-card-front
+            h3 AI-Powered Orders
+          .flip-card-back
+            p Describe your shipment in plain language and let our AI create structured orders for you.
+      .flip-card
+        .flip-card-inner
+          .flip-card-front
+            h3 Customer & Billing
+          .flip-card-back
+            p Manage your customers, billing info, and order history all in one place.
 
   section#about.section
     h2 Who We Are
@@ -56,7 +68,7 @@ main.landing
   section#contact.section
     h2 Contact
     p Interested in working with us? Send us a request and we'll set up your company account.
-    a.btn-primary(href='mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.%20Please%20get%20in%20touch.') Contact Us
+    a.btn.btn-success(href='mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.%20Please%20get%20in%20touch.') Contact Us
 </template>
 
 <style scoped>
@@ -88,37 +100,6 @@ main.landing
   justify-content: center;
 }
 
-.btn-primary {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: #2c7a2c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.btn-primary:hover {
-  background: #236b23;
-}
-
-.btn-secondary {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  color: #2c7a2c;
-  border: 2px solid #2c7a2c;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.btn-secondary:hover {
-  background: #f0f9f0;
-}
 
 .section {
   padding: 2.5rem 0;
@@ -137,16 +118,47 @@ main.landing
   margin-top: 1rem;
 }
 
-.card {
+.flip-card {
+  perspective: 1000px;
+  height: 180px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.flip-card-front {
   background: #f5f5f5;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1.5rem;
   color: #222;
 }
 
-.card h3 {
-  margin-bottom: 0.5rem;
+.flip-card-back {
+  background: #2c7a2c;
+  color: white;
+  transform: rotateY(180deg);
 }
 
 .references-list {
