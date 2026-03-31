@@ -19,12 +19,16 @@ export default {
 </script>
 
 <template lang="pug">
-h1 Login
-form(@submit.prevent='login')
-    div
-        input(v-model='email' placeholder='Email')
-    div
-        input(v-model='password' type='password' placeholder='Password')
-    div
-        button(type='submit') Login
-</template> 
+.container.mt-5
+  .row.justify-content-center
+    .col-md-6
+      h1.mb-4 Login
+      form(@submit.prevent='login')
+        .mb-3
+          label.form-label(for='email') Email address
+          input#email.form-control(v-model='email' type='email' placeholder='name@example.com')
+        .mb-3
+          label.form-label(for='password') Password
+          input#password.form-control(v-model='password' type='password' placeholder='Password')
+        button.btn.btn-success(type='submit') Login
+</template>
