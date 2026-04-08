@@ -46,10 +46,10 @@ const router = createRouter({
                 import ('../views/DispatcherView.vue'),
         },
         {
-            path: '/orders',
-            name: 'orders',
+            path: '/companies/:companyId/orders',
+            name: 'companyOrders',
             component: () =>
-                import ('../views/OrderView.vue'),
+                import ('../views/OrderListView.vue'),
         },
         {
             path: '/orders/new',
@@ -58,7 +58,7 @@ const router = createRouter({
                 import ('../views/OrderCreateView.vue'),
         },
         {
-            path: '/orders/list',
+            path: '/orders',
             name: 'orderList',
             component: () =>
                 import ('../views/OrderListView.vue'),
