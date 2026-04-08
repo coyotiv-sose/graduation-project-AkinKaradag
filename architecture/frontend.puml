@@ -1,0 +1,88 @@
+@startuml Frontend Architecture
+!pragma layout smetana
+skinparam componentStyle uml2
+skinparam linetype ortho
+
+title KaraLog – Frontend (Vue 3) Architecture
+
+package "Vue 3 Application" as app {
+
+  package "Views (Pages)" as views {
+    [HomeView] as v_home
+    [LoginView] as v_login
+    [LogoutView] as v_logout
+    [CompanyView] as v_company
+    [CompanyDetailView] as v_companyDetail
+    [CustomerView] as v_customer
+    [EmployeeView] as v_employee
+    [VehicleView] as v_vehicle
+    [DispatcherView] as v_dispatcher
+    [OrderCreateView] as v_orderCreate
+    [OrderListView] as v_orderList
+    [OrderDetailView] as v_orderDetail
+  }
+
+  package "Reusable Components" as components {
+    [Company.vue] as c_company
+    [Customer.vue] as c_customer
+    [Employee.vue] as c_employee
+    [VehicleManagement.vue] as c_vehicle
+    [DispatcherDashboard.vue] as c_dashboard
+    [CreateFormWrapper.vue] as c_formWrapper
+    [ThemeToggle.vue] as c_theme
+  }
+
+  package "Pinia Stores" as stores {
+    [accountStore] as s_account
+    [companyStore] as s_company
+    [customerStore] as s_customer
+    [employeeStore] as s_employee
+    [orderStore] as s_order
+    [vehicleStore] as s_vehicle
+    [tourStore] as s_tour
+  }
+
+  package "Composables" as composables {
+    [useTheme] as comp_theme
+  }
+
+  [Vue Router] as router
+}
+
+' ── Views use Components ──
+v_company --> c_company
+v_customer --> c_customer
+v_employee --> c_employee
+v_vehicle --> c_vehicle
+v_dispatcher --> c_dashboard
+v_orderCreate --> c_formWrapper
+
+' ── Views / Components use Stores ──
+v_login --> s_account
+v_logout --> s_account
+v_companyDetail --> s_company
+v_customer --> s_customer
+v_employee --> s_employee
+v_orderCreate --> s_order
+v_orderList --> s_order
+v_orderDetail --> s_order
+v_vehicle --> s_vehicle
+c_dashboard --> s_order
+c_dashboard --> s_vehicle
+c_dashboard --> s_tour
+
+' ── Theme ──
+c_theme --> comp_theme
+
+' ── Router ──
+router --> views
+
+' ── Stores call Backend REST API ──
+note right of stores
+  All stores use **axios**
+  (baseURL: localhost:3000,
+   withCredentials: true)
+  to call the Express backend.
+end note
+
+@enduml

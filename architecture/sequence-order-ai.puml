@@ -1,0 +1,42 @@
+@startuml AI Order Creation Sequence
+!pragma layout smetana
+skinparam sequenceMessageAlign center
+
+title KaraLog – AI Order Creation Flow
+
+actor Customer as user
+participant "Vue SPA\n(OrderCreateView)" as frontend
+participant "orderStore\n(Pinia)" as store
+participant "Express\n/customers/:id/orders/ai-generate" as route
+participant "CustomerManager" as custMgr
+participant "OrderGenerator\n(OpenAI)" as ai
+participant "OrderManager" as ordMgr
+database "MongoDB" as db
+participant "OpenAI API" as openai
+
+user -> frontend : Enter natural language\norder description
+frontend -> store : generateOrderFromPrompt(\ncustomerId, prompt)
+store -> route : POST /customers/{id}/orders/ai-generate\n{ prompt }
+
+route -> custMgr : getCustomerById(id)
+custMgr -> db : Customer.findById()
+db --> custMgr : customer doc
+custMgr --> route : customer
+
+route -> ai : generateOrder(prompt)
+ai -> openai : POST /chat/completions\n(GPT-4o-mini, system + user prompt)
+openai --> ai : JSON response\n{ origin, destination,\ndeliveryDate, cargos[] }
+ai --> route : parsed order data
+
+route -> route : resolve default billingInfo\nfrom customer
+
+route -> ordMgr : createOrder({ ...orderData,\ncustomer, company, billingInfo })
+ordMgr -> db : Order.create()
+db --> ordMgr : saved order
+ordMgr --> route : order
+
+route --> store : 201 { order }
+store --> frontend : lastGeneratedOrder
+frontend --> user : Display created order
+
+@enduml
