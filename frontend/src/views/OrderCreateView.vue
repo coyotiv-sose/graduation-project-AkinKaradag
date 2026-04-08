@@ -1,16 +1,25 @@
 <script>
 import { useOrderStore } from '@/stores/orderStore'
-import { useCustomerStore } from '@/stores/customerStore'
-import { useCompanyStore } from '@/stores/companyStore'
+import { useAccountStore } from '@/stores/accountStore'
 
 export default {
-  name: 'CustomerOrderForm',
+  name: 'OrderCreateView',
   data() {
     return {
-      selectedCompany: '',
-      selectedCustomer: '',
-      origin: '',
-      destination: '',
+      origin: {
+        name: '',
+        street: '',
+        number: '',
+        postalCode: '',
+        city: '',
+      },
+      destination: {
+        name: '',
+        street: '',
+        number: '',
+        postalCode: '',
+        city: '',
+      },
       deliveryDate: '',
       note: '',
       cargos: [
@@ -19,31 +28,32 @@ export default {
       errorMessage: '',
       successMessage: '',
       isSubmitting: false,
+      // AI section
+      prompt: '',
+      isGenerating: false,
+      generatedOrder: null,
+      aiError: '',
     }
   },
   computed: {
-    companies() {
-      return useCompanyStore().companies
+    accountStore() {
+      return useAccountStore()
     },
-    customers() {
-      return useCustomerStore().customers
+    customerId() {
+      return this.accountStore.customerId
     },
-    selectedCustomerObj() {
-      return this.customers.find(c => c._id === this.selectedCustomer)
+    profile() {
+      return this.accountStore.profile
     },
-  },
-  async mounted() {
-    await useCompanyStore().getAllCompanies()
-  },
-  watch: {
-    async selectedCompany(companyId) {
-      if (companyId) {
-        this.selectedCustomer = ''
-        await useCustomerStore().getAllCustomers(companyId)
-      }
+    addressesComplete() {
+      const filled = obj => Object.values(obj).every(v => v.trim())
+      return filled(this.origin) && filled(this.destination) && !!this.deliveryDate
     },
   },
   methods: {
+    formatAddress(addr) {
+      return `${addr.name}, ${addr.street} ${addr.number}, ${addr.postalCode} ${addr.city}`
+    },
     addCargo() {
       this.cargos.push({
         loadCarrierType: 'Pallet',
@@ -61,31 +71,30 @@ export default {
       this.errorMessage = ''
       this.successMessage = ''
 
-      if (!this.selectedCustomer) {
-        this.errorMessage = 'Please select a customer'
+      if (!this.customerId) {
+        this.errorMessage = 'Profile not loaded'
         return
       }
 
-      const customer = this.selectedCustomerObj
-      const billingInfo = customer?.billingInfo?.find(b => b.isDefault) || customer?.billingInfo?.[0]
+      const billingInfo = this.profile?.billingInfo?.find(b => b.isDefault) || this.profile?.billingInfo?.[0]
 
       if (!billingInfo) {
-        this.errorMessage = 'Customer has no billing info'
+        this.errorMessage = 'No billing info found on your account'
         return
       }
 
       this.isSubmitting = true
       try {
-        await useOrderStore().createOrderForCustomer(this.selectedCustomer, {
-          origin: this.origin,
-          destination: this.destination,
+        await useOrderStore().createOrderForCustomer(this.customerId, {
+          origin: this.formatAddress(this.origin),
+          destination: this.formatAddress(this.destination),
           deliveryDate: this.deliveryDate,
           cargos: this.cargos,
           billingInfo,
         })
         this.successMessage = 'Order created successfully!'
-        this.origin = ''
-        this.destination = ''
+        this.origin = { name: '', street: '', number: '', postalCode: '', city: '' }
+        this.destination = { name: '', street: '', number: '', postalCode: '', city: '' }
         this.deliveryDate = ''
         this.note = ''
         this.cargos = [
@@ -97,6 +106,36 @@ export default {
         this.isSubmitting = false
       }
     },
+    async generateOrder() {
+      if (!this.customerId) {
+        this.aiError = 'Profile not loaded'
+        return
+      }
+      if (!this.prompt.trim()) {
+        this.aiError = 'Please enter a prompt'
+        return
+      }
+
+      this.isGenerating = true
+      this.aiError = ''
+      this.generatedOrder = null
+
+      try {
+        const order = await useOrderStore().generateOrderFromPrompt(
+          this.customerId,
+          this.prompt,
+        )
+        this.generatedOrder = order
+        this.prompt = ''
+      } catch (e) {
+        this.aiError = e.response?.data?.error || e.message || 'Failed to generate order'
+      } finally {
+        this.isGenerating = false
+      }
+    },
+    formatDate(date) {
+      return new Date(date).toLocaleDateString()
+    },
   },
 }
 </script>
@@ -105,83 +144,134 @@ export default {
 main
   h1 New Order
 
-  section.selectors
-    label Company
-    select(v-model='selectedCompany')
-      option(disabled value='') Select a company
-      option(v-for='company in companies' :key='company._id' :value='company._id')
-        | {{ company.companyName }}
+  form.order-form(@submit.prevent="submitOrder")
+    //- Origin Address
+    h3.section-title Origin (Sender)
+    .address-block
+      .row.g-3
+        .col-12
+          label.form-label Name
+          input.form-control(v-model="origin.name" placeholder="Company or person name" required)
+      .row.g-3.mt-1
+        .col
+          label.form-label Street
+          input.form-control(v-model="origin.street" placeholder="Street name" required)
+        .col-auto.col-number
+          label.form-label Nr.
+          input.form-control(v-model="origin.number" placeholder="12a" required)
+      .row.g-3.mt-1
+        .col-auto.col-postal
+          label.form-label Postal Code
+          input.form-control(v-model="origin.postalCode" placeholder="4000" required)
+        .col
+          label.form-label City
+          input.form-control(v-model="origin.city" placeholder="Basel" required)
 
-    label Customer
-    select(v-model='selectedCustomer' :disabled='!selectedCompany')
-      option(disabled value='') Select a customer
-      option(v-for='customer in customers' :key='customer._id' :value='customer._id')
-        | {{ customer.customerName }}
+    //- Destination Address
+    h3.section-title Destination (Receiver)
+    .address-block
+      .row.g-3
+        .col-12
+          label.form-label Name
+          input.form-control(v-model="destination.name" placeholder="Company or person name" required)
+      .row.g-3.mt-1
+        .col
+          label.form-label Street
+          input.form-control(v-model="destination.street" placeholder="Street name" required)
+        .col-auto.col-number
+          label.form-label Nr.
+          input.form-control(v-model="destination.number" placeholder="5" required)
+      .row.g-3.mt-1
+        .col-auto.col-postal
+          label.form-label Postal Code
+          input.form-control(v-model="destination.postalCode" placeholder="5000" required)
+        .col
+          label.form-label City
+          input.form-control(v-model="destination.city" placeholder="Aarau" required)
 
-  form.order-form(@submit.prevent='submitOrder')
-    .form-row
-      .form-group
-        label Sender Address (Origin)
-        input(v-model='origin' placeholder='e.g. Basel, Switzerland' required)
-      .form-group
-        label Receiver Address (Destination)
-        input(v-model='destination' placeholder='e.g. Aarau, Switzerland' required)
+    //- Delivery Date
+    .row.g-3.mt-3
+      .col-auto
+        label.form-label Delivery Date
+        input.form-control(v-model="deliveryDate" type="date" required)
 
-    .form-row
-      .form-group
-        label Delivery Date
-        input(v-model='deliveryDate' type='date' required)
+    //- Cargo Details (activated only when addresses + date are filled)
+    .cargo-section(:class="{ disabled: !addressesComplete }")
+      h3 Cargo Details
+      p.hint(v-if="!addressesComplete") Fill in all address fields and the delivery date to add cargo details.
 
-    h3 Cargo Details
-    .cargo-entry(v-for='(cargo, index) in cargos' :key='index')
-      .cargo-header-row
-        span Cargo {{ index + 1 }}
-        button.btn-remove(v-if='cargos.length > 1' type='button' @click='removeCargo(index)') ×
+      template(v-if="addressesComplete")
+        .cargo-entry(v-for="(cargo, index) in cargos" :key="index")
+          .cargo-header-row
+            span Cargo {{ index + 1 }}
+            button.btn-remove(v-if="cargos.length > 1" type="button" @click="removeCargo(index)") ×
 
-      .form-row
-        .form-group
-          label Type
-          select(v-model='cargo.loadCarrierType')
-            option Pallet
-            option Box
-            option Container
-            option Envelope
-            option Other
-        .form-group
-          label Quantity
-          input(v-model.number='cargo.quantity' type='number' min='1' required)
-        .form-group
-          label Weight (kg)
-          input(v-model.number='cargo.weight' type='number' min='0' required)
+          .row.g-3
+            .col-auto
+              label.form-label Type
+              select.form-select(v-model="cargo.loadCarrierType")
+                option Pallet
+                option Box
+                option Container
+                option Envelope
+                option Other
+            .col-auto
+              label.form-label Quantity
+              input.form-control(v-model.number="cargo.quantity" type="number" min="1" required)
+            .col-auto
+              label.form-label Weight (kg)
+              input.form-control(v-model.number="cargo.weight" type="number" min="0" required)
 
-      .form-row
-        .form-group
-          label Width (cm)
-          input(v-model.number='cargo.dimensions.width' type='number' min='0')
-        .form-group
-          label Length (cm)
-          input(v-model.number='cargo.dimensions.length' type='number' min='0')
-        .form-group
-          label Height (cm)
-          input(v-model.number='cargo.dimensions.height' type='number' min='0')
+          .row.g-3.mt-1
+            .col-auto
+              label.form-label Width (cm)
+              input.form-control(v-model.number="cargo.dimensions.width" type="number" min="0")
+            .col-auto
+              label.form-label Length (cm)
+              input.form-control(v-model.number="cargo.dimensions.length" type="number" min="0")
+            .col-auto
+              label.form-label Height (cm)
+              input.form-control(v-model.number="cargo.dimensions.height" type="number" min="0")
 
-    button.btn-secondary(type='button' @click='addCargo') + Add Cargo
+        button.btn.btn-secondary.mt-3(type="button" @click="addCargo") + Add Cargo
 
-    .form-row
-      .form-group.full
-        label Note (optional)
-        textarea(v-model='note' placeholder='Additional notes...' rows='3')
+    .row.g-3.mt-2
+      .col-12
+        label.form-label Note (optional)
+        textarea.form-control(v-model="note" placeholder="Additional notes..." rows="3")
 
-    p.error(v-if='errorMessage') {{ errorMessage }}
-    p.success(v-if='successMessage') {{ successMessage }}
+    p.error(v-if="errorMessage") {{ errorMessage }}
+    p.success(v-if="successMessage") {{ successMessage }}
 
-    button.btn-primary(type='submit' :disabled='isSubmitting')
+    button.btn.btn-success.w-100.mt-3(type="submit" :disabled="isSubmitting || !addressesComplete")
       | {{ isSubmitting ? 'Creating...' : 'Submit Order' }}
+
+  //- AI Order Generator section
+  section.ai-section
+    h2 Or create with AI
+    textarea.form-control(
+      v-model="prompt"
+      placeholder='e.g. "Ship 3 pallets of electronics from Berlin to Munich by next Friday, each pallet weighs about 200kg"'
+      rows="4"
+      :disabled="isGenerating"
+    )
+    button.btn.btn-success.w-100.mt-2(@click="generateOrder" :disabled="isGenerating || !prompt.trim()")
+      | {{ isGenerating ? 'Generating...' : 'Create Order with AI' }}
+    p.error(v-if="aiError") {{ aiError }}
+
+    .order-card(v-if="generatedOrder")
+      h3 Order Created
+      p #[strong Origin:] {{ generatedOrder.origin }}
+      p #[strong Destination:] {{ generatedOrder.destination }}
+      p #[strong Delivery Date:] {{ formatDate(generatedOrder.deliveryDate) }}
+      p #[strong Status:] {{ generatedOrder.state }}
+      h4 Cargos
+      .cargo(v-for="(cargo, index) in generatedOrder.cargos" :key="index")
+        p {{ cargo.quantity }}x {{ cargo.loadCarrierType }} — {{ cargo.weight }}kg
+        p.dims {{ cargo.dimensions.width }}×{{ cargo.dimensions.length }}×{{ cargo.dimensions.height }} cm
 </template>
 
 <style scoped>
-@import '@/assets/shared.css';
-
 main {
   max-width: 700px;
   margin: 0 auto;
@@ -192,34 +282,74 @@ h1 {
   margin-bottom: 1.5rem;
 }
 
-.selectors {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.selectors select {
-  padding: 0.5rem;
-  font-size: 1rem;
-}
-
 .order-form {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.section-title {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.section-title:first-of-type {
+  margin-top: 0;
+}
+
+.address-block {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.col-number {
+  max-width: 90px;
+  min-width: 70px;
+}
+
+.col-postal {
+  max-width: 120px;
+  min-width: 100px;
 }
 
 h3 {
   margin: 1.5rem 0 0.75rem;
 }
 
+/* Cargo section disabled state */
+.cargo-section {
+  transition: opacity 0.3s ease;
+}
+
+.cargo-section.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.cargo-section.disabled h3 {
+  color: var(--color-text-secondary);
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
 .cargo-entry {
-  background: white;
-  border: 1px solid #ddd;
-  border-left: 3px solid #2c7a2c;
-  border-radius: 6px;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius);
   padding: 1rem;
   margin-bottom: 0.75rem;
 }
@@ -248,24 +378,33 @@ h3 {
   line-height: 1;
 }
 
-.btn-secondary {
-  margin-bottom: 1rem;
-}
-
-.btn-primary {
-  display: block;
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-}
-
-.btn-primary:disabled {
-  background: #999;
-  cursor: not-allowed;
-}
-
 .success {
-  color: #155724;
+  color: var(--color-primary);
   margin: 0.5rem 0;
+}
+
+.ai-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.ai-section .order-card {
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.ai-section .cargo {
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-primary);
+  margin: 0.5rem 0;
+}
+
+.dims {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
 }
 </style>
