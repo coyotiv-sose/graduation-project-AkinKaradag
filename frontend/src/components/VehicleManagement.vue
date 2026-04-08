@@ -69,23 +69,26 @@ CreateFormWrapper(:onSubmit='submitVehicle', submitLabel='Add Vehicle')
   input(v-model.number='year' type='number' placeholder='Year' required)
   input(v-model='payLoad' type='number' placeholder='Payload (kg)' required)
 
-h2 Vehicles
-.vehicle-list
-  .vehicle-card(v-for='vehicle in vehicles' :key='vehicle._id')
-    .vehicle-header
-      span.vehicle-name {{ vehicle.name || vehicle.brand + ' ' + vehicle.model }}
-      span.badge(:class='stateClass(vehicle.state)') {{ vehicle.state }}
-    p {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }})
-    p.payload Payload: {{ vehicle.payLoad }} kg
-    .state-actions
-      label Update Status:
-      select(@change='updateState(vehicle._id, $event.target.value)' :value='vehicle.state')
-        option(value='AVAILABLE') Available
-        option(value='IN_GARAGE') In Garage
-        option(value='DAMAGED') Damaged
-        option(value='PARKED') Parked
-        option(value='SOLD') Sold
-        option(value='OTHER_REASON') Other
+.card
+  .card-header
+    h2.mb-0 Vehicles
+  .list-group.list-group-flush
+    .list-group-item.list-group-item-action(v-for='vehicle in vehicles' :key='vehicle._id')
+      .d-flex.justify-content-between.align-items-center
+        span.fw-semibold {{ vehicle.name || vehicle.brand + ' ' + vehicle.model }}
+        span.badge(:class='stateClass(vehicle.state)') {{ vehicle.state }}
+      .d-flex.justify-content-between.align-items-center.mt-1
+        small.text-secondary {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }}) · {{ vehicle.payLoad }} kg
+        select.form-select.form-select-sm.w-auto(
+          @change='updateState(vehicle._id, $event.target.value)'
+          :value='vehicle.state'
+        )
+          option(value='AVAILABLE') Available
+          option(value='IN_GARAGE') In Garage
+          option(value='DAMAGED') Damaged
+          option(value='PARKED') Parked
+          option(value='SOLD') Sold
+          option(value='OTHER_REASON') Other
 </template>
 
 <style scoped>
@@ -96,57 +99,13 @@ input {
   width: 100%;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   font-size: 0.95rem;
 }
 
 h2 {
   margin-top: 2rem;
   margin-bottom: 0.75rem;
-}
-
-.vehicle-card {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.vehicle-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.25rem;
-}
-
-.vehicle-name {
-  font-weight: 600;
-  font-size: 1.05rem;
-}
-
-.payload {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.state-actions {
-  margin-top: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.state-actions label {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.state-actions select {
-  padding: 0.3rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.85rem;
 }
 </style>
