@@ -6,7 +6,20 @@ const customerManager = require('../managers/customer-manager')
 const employeeManager = require('../managers/employee-manager')
 
 router.get('/session', async(req, res, next) => {
-    res.send(req.user)
+    if (!req.user) return res.send(null)
+    const response = { ...req.user.toObject() }
+    try {
+        if (req.user.role === 'customer') {
+            const customer = await customerManager.getCustomerByAccountId(req.user._id)
+            response.profile = customer
+        } else if (req.user.role === 'employee') {
+            const employee = await employeeManager.getEmployeeByAccountId(req.user._id)
+            response.profile = employee
+        }
+    } catch {
+        response.profile = null
+    }
+    res.json(response)
 })
 
 router.post('/', async(req, res, next) => {

@@ -12,7 +12,7 @@ const createOrder = async orderData => {
 }
 
 const findOrderById = async orderId => {
-  const order = await Order.findById(orderId)
+  const order = await Order.findById(orderId).populate('customer', 'customerName')
   if (!order) throw new Error('Order not found')
   return order
 }

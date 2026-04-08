@@ -30,4 +30,10 @@ const getEmployeeByCompany = companyId => Employee.find({ company: companyId })
 
 const getAllEmployees = () => Employee.find()
 
-module.exports = { createEmployee, getEmployeeByCompany, getEmployeeById, getAllEmployees }
+const getEmployeeByAccountId = async accountId => {
+  const employee = await Employee.findOne({ account: accountId })
+  if (!employee) throw new Error('Employee not found')
+  return employee
+}
+
+module.exports = { createEmployee, getEmployeeByCompany, getEmployeeById, getEmployeeByAccountId, getAllEmployees }
