@@ -127,7 +127,7 @@ main
       p {{ order.cargos.length }} cargo(s)
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 main {
   max-width: 700px;
   margin: 0 auto;
@@ -143,41 +143,41 @@ h1 {
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+}
 
-  select {
-    padding: 0.5rem;
-    font-size: 1rem;
-  }
+.selectors select {
+  padding: 0.5rem;
+  font-size: 1rem;
 }
 
 .prompt-section {
   margin-bottom: 2rem;
+}
 
-  textarea {
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    resize: vertical;
-    font-family: inherit;
-  }
+.prompt-section textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+  font-family: inherit;
+}
 
-  button {
-    margin-top: 0.75rem;
-    padding: 0.6rem 1.5rem;
-    font-size: 1rem;
-    background: #2c7a2c;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+.prompt-section button {
+  margin-top: 0.75rem;
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  background: #2c7a2c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-    &:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
-  }
+.prompt-section button:disabled {
+  background: #999;
+  cursor: not-allowed;
 }
 
 .error {
@@ -191,16 +191,16 @@ h1 {
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
+}
 
-  .cargo {
-    padding-left: 1rem;
-    border-left: 3px solid #2c7a2c;
-    margin: 0.5rem 0;
-  }
+.order-card .cargo {
+  padding-left: 1rem;
+  border-left: 3px solid #2c7a2c;
+  margin: 0.5rem 0;
+}
 
-  .dims {
-    font-size: 0.9rem;
-    color: #666;
-  }
+.order-card .dims {
+  font-size: 0.9rem;
+  color: #666;
 }
 </style>
