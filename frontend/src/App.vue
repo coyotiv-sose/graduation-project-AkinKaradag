@@ -1,86 +1,119 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
 import { useAccountStore } from './stores/accountStore'
+import ThemeToggle from './components/ThemeToggle.vue'
 
 export default {
   name: 'App',
   components: {
     RouterLink,
     RouterView,
+    ThemeToggle,
   },
   computed: {
+    accountStore() {
+      return useAccountStore()
+    },
     user() {
-      return useAccountStore().user
+      return this.accountStore.user
+    },
+    isCustomer() {
+      return this.accountStore.isCustomer
+    },
+    isEmployee() {
+      return this.accountStore.isEmployee
+    },
+    companyId() {
+      return this.accountStore.companyId
+    },
+    customerId() {
+      return this.accountStore.customerId
     },
   },
   mounted() {
-    useAccountStore().fetchUser()
+    this.accountStore.fetchUser()
   },
 }
 </script>
 
-<template>
-  <header>
-    <nav>
-      <RouterLink to="/" class="brand">KaraLog</RouterLink>
-      <div class="nav-links">
-        <RouterLink to="/#services">Services</RouterLink>
-        <RouterLink to="/#about">Who We Are</RouterLink>
-        <RouterLink to="/#contact">Contact</RouterLink>
-        <template v-if="user">
-          <RouterLink to="/companies">Companies</RouterLink>
-          <RouterLink to="/orders/new">New Order</RouterLink>
-          <RouterLink to="/orders/list">Order List</RouterLink>
-          <RouterLink to="/orders">AI Orders</RouterLink>
-          <RouterLink to="/logout">Logout</RouterLink>
-        </template>
-        <RouterLink v-else to="/login">Login</RouterLink>
-      </div>
-    </nav>
-  </header>
+<template lang="pug">
+header
+  nav.navbar.navbar-expand-lg.border-bottom
+    .container
+      RouterLink.navbar-brand(to="/")
+        img(src="/logo.png" alt="KaraLog" height="40")
+      button.navbar-toggler(
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+      )
+        span.navbar-toggler-icon
+      #navbarNav.collapse.navbar-collapse.justify-content-end
+        ul.nav.nav-pills
+          //- Always visible
+          li.nav-item
+            RouterLink.nav-link(to="/") Home
 
-  <RouterView />
+          //- Guest-only links
+          template(v-if="!user")
+            li.nav-item
+              RouterLink.nav-link(to="/login") Login
+
+          //- Customer links
+          template(v-if="isCustomer")
+            li.nav-item
+              RouterLink.nav-link(to="/orders/new") Create Order
+            li.nav-item
+              RouterLink.nav-link(to="/orders") My Orders
+            li.nav-item
+              RouterLink.nav-link(to="/logout") Logout
+
+          //- Dispatcher links
+          template(v-if="isEmployee && companyId")
+            li.nav-item
+              RouterLink.nav-link(:to="`/companies/${companyId}/dispatcher`") Dashboard
+            li.nav-item
+              RouterLink.nav-link(to="/orders/new") Create Order
+            li.nav-item
+              RouterLink.nav-link(:to="`/companies/${companyId}/orders`") Orders
+            li.nav-item
+              RouterLink.nav-link(:to="`/companies/${companyId}/vehicles`") Vehicles
+            li.nav-item
+              RouterLink.nav-link(to="/logout") Logout
+
+          li.nav-item.d-flex.align-items-center.ms-2
+            ThemeToggle
+
+RouterView
 </template>
 
 <style scoped>
-header {
-  border-bottom: 1px solid var(--color-border);
+.navbar {
+  background: var(--color-background-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 20px rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  margin: 0.75rem 1rem 0;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-nav {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.navbar-brand img {
+  height: 40px;
 }
 
-.brand {
-  font-size: 1.4rem;
-  font-weight: bold;
-  text-decoration: none;
-  color: #2c7a2c;
-}
-
-.nav-links {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.nav-links a {
-  text-decoration: none;
+.nav-pills .nav-link {
   color: var(--color-text);
-  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
-.nav-links a:hover {
-  color: #2c7a2c;
+.nav-pills .nav-link:hover {
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
 }
 
-.nav-links a.router-link-exact-active {
-  color: #2c7a2c;
-  font-weight: 600;
+.nav-pills .nav-link.router-link-exact-active {
+  background-color: var(--color-primary);
+  color: #fff;
 }
 </style>

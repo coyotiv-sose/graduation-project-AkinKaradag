@@ -1,11 +1,27 @@
 <script>
 import { useCompanyStore } from '@/stores/companyStore'
+import { useAccountStore } from '@/stores/accountStore'
 
 export default {
   name: 'HomeView',
   computed: {
     companies() {
       return useCompanyStore().companies
+    },
+    accountStore() {
+      return useAccountStore()
+    },
+    isLoggedIn() {
+      return this.accountStore.isLoggedIn
+    },
+    isCustomer() {
+      return this.accountStore.isCustomer
+    },
+    isEmployee() {
+      return this.accountStore.isEmployee
+    },
+    companyId() {
+      return this.accountStore.companyId
     },
   },
   async mounted() {
@@ -21,9 +37,23 @@ main.landing
     h1 KaraLog
     p.subtitle Your trusted partner for logistics and transport management
     .hero-actions
-      router-link(to='/login')
-        button.btn.btn-outline-success Login
-      a.btn.btn-outline-success(href='mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.%20Please%20get%20in%20touch.') Request an Account
+      //- Guest
+      template(v-if="!isLoggedIn")
+        router-link(to="/login")
+          button.btn.btn-outline-success Login
+        a.btn.btn-outline-success(href="mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.%20Please%20get%20in%20touch.") Request an Account
+
+      //- Customer
+      template(v-else-if="isCustomer")
+        router-link(to="/orders/new")
+          button.btn.btn-success Create Order
+        router-link(to="/orders")
+          button.btn.btn-outline-success My Orders
+
+      //- Dispatcher
+      template(v-else-if="isEmployee && companyId")
+        router-link(:to="`/companies/${companyId}/dispatcher`")
+          button.btn.btn-success Go to Dashboard
 
   section#services.section
     h2 Services
@@ -90,7 +120,7 @@ main.landing
 
 .subtitle {
   font-size: 1.2rem;
-  color: #666;
+  color: var(--color-text-secondary);
   margin-bottom: 2rem;
 }
 
@@ -103,7 +133,7 @@ main.landing
 
 .section {
   padding: 2.5rem 0;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
 }
 
 .section h2 {
@@ -127,12 +157,15 @@ main.landing
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.6s;
+  transition: transform 0.6s, box-shadow 0.3s;
   transform-style: preserve-3d;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
 }
 
 .flip-card:hover .flip-card-inner {
   transform: rotateY(180deg);
+  box-shadow: var(--shadow-lg);
 }
 
 .flip-card-front,
@@ -141,7 +174,7 @@ main.landing
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,13 +183,14 @@ main.landing
 }
 
 .flip-card-front {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  color: #222;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.03);
 }
 
 .flip-card-back {
-  background: #2c7a2c;
+  background: var(--color-primary);
   color: white;
   transform: rotateY(180deg);
 }
@@ -168,6 +202,6 @@ main.landing
 
 .references-list li {
   padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
 }
 </style>
