@@ -34,10 +34,40 @@ const router = createRouter({
                 import ('../views/EmployeeView.vue'),
         },
         {
+            path: '/companies/:companyId/vehicles',
+            name: 'companyVehicles',
+            component: () =>
+                import ('../views/VehicleView.vue'),
+        },
+        {
+            path: '/companies/:companyId/dispatcher',
+            name: 'dispatcher',
+            component: () =>
+                import ('../views/DispatcherView.vue'),
+        },
+        {
             path: '/orders',
             name: 'orders',
             component: () =>
                 import ('../views/OrderView.vue'),
+        },
+        {
+            path: '/orders/new',
+            name: 'orderCreate',
+            component: () =>
+                import ('../views/OrderCreateView.vue'),
+        },
+        {
+            path: '/orders/list',
+            name: 'orderList',
+            component: () =>
+                import ('../views/OrderListView.vue'),
+        },
+        {
+            path: '/orders/:orderId',
+            name: 'orderDetail',
+            component: () =>
+                import ('../views/OrderDetailView.vue'),
         },
         {
             path: '/login',
