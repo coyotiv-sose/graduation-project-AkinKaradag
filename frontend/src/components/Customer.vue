@@ -82,8 +82,12 @@ CreateFormWrapper(:onSubmit='submitCustomer', submitLabel='Create customer')
     input(v-model='billingInfo.city' placeholder='City')
     input(v-model='billingInfo.VATnr' placeholder='VAT Number')
 
-h2 customers
-ul
-    li(v-for='customer in customers' :key='customer._id')
-        | {{ customer.customerName }} - {{ customer.account.email }}
+.card
+    .card-header
+        h2.mb-0 Customers
+    .list-group.list-group-flush
+        .list-group-item.list-group-item-action(v-for='customer in customers' :key='customer._id')
+            .d-flex.justify-content-between.align-items-center
+                span.fw-semibold {{ customer.customerName }}
+                span.text-secondary {{ customer.account.email }}
 </template>
