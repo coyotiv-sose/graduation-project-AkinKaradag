@@ -145,104 +145,119 @@ export default {
 
   .panel-top
     //- LEFT: Orders
-    .panel-orders
-      h3 Orders
-      .order-card(v-for='order in pendingOrders' :key='order._id')
-        .order-header
-          span.order-id \#{{ order._id.slice(-5) }}
-          span.badge(:class='stateClass(order.state)') {{ order.state }}
-        p.route {{ order.origin }} → {{ order.destination }}
-        p.meta {{ order.cargos.length }} cargo(s) · {{ formatDate(order.deliveryDate) }}
-        .order-actions
-          router-link(:to='`/orders/${order._id}`')
-            button.btn-sm Details
-          button.btn-sm.btn-danger(@click='deleteOrder(order._id)') Delete
-
-      p.empty(v-if='!pendingOrders.length') No pending orders
+    .panel-orders.card
+      .card-header
+        h3.mb-0 Orders
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action(v-for='order in pendingOrders' :key='order._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold \#{{ order._id.slice(-5) }}
+            span.badge(:class='stateClass(order.state)') {{ order.state }}
+          .d-flex.justify-content-between.align-items-center.mt-1
+            span {{ order.origin }} → {{ order.destination }}
+            small {{ order.cargos.length }} cargo(s) · {{ formatDate(order.deliveryDate) }}
+          .d-flex.gap-2.mt-2
+            router-link(:to='`/orders/${order._id}`')
+              button.btn.btn-outline-success.btn-sm Details
+            button.btn.btn-danger.btn-sm(@click='deleteOrder(order._id)') Delete
+      .card-body(v-if='!pendingOrders.length')
+        p.text-secondary.mb-0 No pending orders
 
       template(v-if='inProcessOrders.length')
-        h4 In Process
-        .order-card.in-process(v-for='order in inProcessOrders' :key='order._id')
-          .order-header
-            span.order-id \#{{ order._id.slice(-5) }}
-            span.badge(:class='stateClass(order.state)') {{ order.state }}
-          p.route {{ order.origin }} → {{ order.destination }}
-          p.meta {{ order.cargos.length }} cargo(s) · {{ formatDate(order.deliveryDate) }}
+        .card-header
+          h4.mb-0 In Process
+        .list-group.list-group-flush
+          .list-group-item.list-group-item-action.active(v-for='order in inProcessOrders' :key='order._id')
+            .d-flex.justify-content-between.align-items-center
+              span.fw-semibold \#{{ order._id.slice(-5) }}
+              span.badge.bg-warning.text-dark {{ order.state }}
+            .d-flex.justify-content-between.align-items-center.mt-1
+              span {{ order.origin }} → {{ order.destination }}
+              small {{ order.cargos.length }} cargo(s) · {{ formatDate(order.deliveryDate) }}
 
     //- RIGHT: Vehicles
-    .panel-vehicles
-      h3 Vehicles
-      .vehicle-card(v-for='vehicle in vehicles' :key='vehicle._id')
-        .vehicle-header
-          span.vehicle-name {{ vehicle.name || vehicle.brand + ' ' + vehicle.model }}
-          span.badge(:class='stateClass(vehicle.state)') {{ vehicle.state }}
-        p.meta {{ vehicle.payLoad }} kg capacity
-      p.empty(v-if='!vehicles.length') No vehicles registered
-      router-link(:to='`/companies/${companyId}/vehicles`')
-        button.btn-sm Manage Vehicles
+    .panel-vehicles.card
+      .card-header
+        h3.mb-0 Vehicles
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action(v-for='vehicle in vehicles' :key='vehicle._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold {{ vehicle.name || vehicle.brand + ' ' + vehicle.model }}
+            span.badge(:class='stateClass(vehicle.state)') {{ vehicle.state }}
+          small.text-secondary {{ vehicle.payLoad }} kg capacity
+      .card-body(v-if='!vehicles.length')
+        p.text-secondary.mb-0 No vehicles registered
+      .card-footer
+        router-link.btn.btn-outline-success.btn-sm(:to='`/companies/${companyId}/vehicles`') Manage Vehicles
 
   //- BOTTOM: Tours
-  .panel-tours
-    .tours-header
-      h3 Tours
-      button.btn-primary(@click='showTourForm = !showTourForm') {{ showTourForm ? 'Cancel' : '+ New Tour' }}
+  .card.panel-tours
+    .card-header.d-flex.justify-content-between.align-items-center
+      h3.mb-0 Tours
+      button.btn.btn-success.btn-sm(@click='showTourForm = !showTourForm') {{ showTourForm ? 'Cancel' : '+ New Tour' }}
 
     //- Create Tour Form
-    form.tour-form(v-if='showTourForm' @submit.prevent='createTour')
-      input(v-model='tourForm.date' type='date' placeholder='Tour Date' required)
-      input(v-model='tourForm.startLocation' placeholder='Start Location' required)
-      input(v-model='tourForm.endLocation' placeholder='End Location' required)
-      button(type='submit') Create Tour
+    .card-body(v-if='showTourForm')
+      form.tour-form(@submit.prevent='createTour')
+        input(v-model='tourForm.date' type='date' placeholder='Tour Date' required)
+        input(v-model='tourForm.startLocation' placeholder='Start Location' required)
+        input(v-model='tourForm.endLocation' placeholder='End Location' required)
+        button.btn.btn-success.btn-sm(type='submit') Create Tour
 
     //- Planned Tours
     template(v-if='plannedTours.length')
-      h4 Planned
-      .tour-card(v-for='tour in plannedTours' :key='tour._id')
-        .tour-header
-          span.tour-route {{ tour.startLocation }} → {{ tour.endLocation }}
-          span.badge(:class='stateClass(tour.state)') {{ tour.state }}
-        p.meta {{ formatDate(tour.date) }}
-        p.meta(v-if='tour.vehicle')
-          | Vehicle: {{ tour.vehicle.name || tour.vehicle.brand + ' ' + tour.vehicle.model }}
-        p.meta(v-else) No vehicle assigned
+      .card-header
+        h4.mb-0 Planned
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action(v-for='tour in plannedTours' :key='tour._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold {{ tour.startLocation }} → {{ tour.endLocation }}
+            span.badge(:class='stateClass(tour.state)') {{ tour.state }}
+          small.text-secondary {{ formatDate(tour.date) }}
+          small.text-secondary(v-if='tour.vehicle')
+            |  · Vehicle: {{ tour.vehicle.name || tour.vehicle.brand + ' ' + tour.vehicle.model }}
+          small.text-secondary(v-else)  · No vehicle assigned
 
-        .tour-orders(v-if='tour.orders && tour.orders.length')
-          p Orders:
-          .mini-order(v-for='order in tour.orders' :key='order._id')
-            | {{ order.origin }} → {{ order.destination }}
+          .tour-orders(v-if='tour.orders && tour.orders.length')
+            p.mb-1.fw-semibold.small Orders:
+            .mini-order(v-for='order in tour.orders' :key='order._id')
+              | {{ order.origin }} → {{ order.destination }}
 
-        .tour-actions
-          button.btn-sm(@click='openAssignOrder(tour._id)') + Add Order
-          select.vehicle-select(
-            v-if='!tour.vehicle && availableVehicles.length'
-            @change='assignVehicleToTour(tour._id, $event.target.value); $event.target.value=""'
-          )
-            option(value='' disabled selected) Assign Vehicle
-            option(v-for='v in availableVehicles' :key='v._id' :value='v._id')
-              | {{ v.name || v.brand + ' ' + v.model }}
-          button.btn-sm.btn-primary(
-            v-if='tour.vehicle && tour.orders && tour.orders.length'
-            @click='updateTourState(tour._id, "STARTED")'
-          ) Start Tour
+          .d-flex.gap-2.mt-2.align-items-center
+            button.btn.btn-outline-success.btn-sm(@click='openAssignOrder(tour._id)') + Add Order
+            select.form-select.form-select-sm.w-auto(
+              v-if='!tour.vehicle && availableVehicles.length'
+              @change='assignVehicleToTour(tour._id, $event.target.value); $event.target.value=""'
+            )
+              option(value='' disabled selected) Assign Vehicle
+              option(v-for='v in availableVehicles' :key='v._id' :value='v._id')
+                | {{ v.name || v.brand + ' ' + v.model }}
+            button.btn.btn-success.btn-sm(
+              v-if='tour.vehicle && tour.orders && tour.orders.length'
+              @click='updateTourState(tour._id, "STARTED")'
+            ) Start Tour
 
     //- Started Tours
     template(v-if='startedTours.length')
-      h4 Active Tours
-      .tour-card.active-tour(v-for='tour in startedTours' :key='tour._id')
-        .tour-header
-          span.tour-route {{ tour.startLocation }} → {{ tour.endLocation }}
-          span.badge(:class='stateClass(tour.state)') {{ tour.state }}
-        p.meta {{ formatDate(tour.date) }}
-        p.meta(v-if='tour.vehicle')
-          | Vehicle: {{ tour.vehicle.name || tour.vehicle.brand + ' ' + tour.vehicle.model }}
-        .tour-orders(v-if='tour.orders && tour.orders.length')
-          p Orders:
-          .mini-order(v-for='order in tour.orders' :key='order._id')
-            | {{ order.origin }} → {{ order.destination }} · {{ order.state }}
-        .tour-actions
-          button.btn-sm.btn-primary(@click='updateTourState(tour._id, "FINISHED")') Finish Tour
+      .card-header
+        h4.mb-0 Active Tours
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action.active(v-for='tour in startedTours' :key='tour._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold {{ tour.startLocation }} → {{ tour.endLocation }}
+            span.badge.bg-light.text-dark {{ tour.state }}
+          small {{ formatDate(tour.date) }}
+          small(v-if='tour.vehicle')
+            |  · Vehicle: {{ tour.vehicle.name || tour.vehicle.brand + ' ' + tour.vehicle.model }}
+          .tour-orders(v-if='tour.orders && tour.orders.length')
+            p.mb-1.fw-semibold.small Orders:
+            .mini-order(v-for='order in tour.orders' :key='order._id')
+              | {{ order.origin }} → {{ order.destination }} · {{ order.state }}
+          .mt-2
+            button.btn.btn-light.btn-sm(@click='updateTourState(tour._id, "FINISHED")') Finish Tour
 
-    p.empty(v-if='!tours.length') No tours yet
+    .card-body(v-if='!tours.length')
+      p.text-secondary.mb-0 No tours yet
 
   //- Assign Order Modal
   .modal-overlay(v-if='assignModal.visible' @click.self='assignModal.visible = false')
@@ -277,124 +292,23 @@ h2 {
 .panel-orders,
 .panel-vehicles {
   flex: 1;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
   max-height: 500px;
   overflow-y: auto;
-}
-
-h3 {
-  margin-bottom: 0.75rem;
-  font-size: 1.1rem;
-}
-
-h4 {
-  margin: 1rem 0 0.5rem;
-  color: #555;
-}
-
-.order-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.order-card.in-process {
-  border-left: 3px solid #e6a817;
-}
-
-.order-header,
-.vehicle-header,
-.tour-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.25rem;
-}
-
-.order-id {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.route {
-  font-weight: 500;
-  margin: 0.25rem 0;
-}
-
-.order-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.vehicle-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.vehicle-name {
-  font-weight: 600;
-}
-
-.panel-tours {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.tours-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
 }
 
 .tour-form {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
 .tour-form input {
   padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
   font-size: 0.9rem;
-}
-
-.tour-form button {
-  padding: 0.5rem 1rem;
-  background: #2c7a2c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.tour-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.tour-card.active-tour {
-  border-left: 3px solid #2c7a2c;
-}
-
-.tour-route {
-  font-weight: 600;
+  background: var(--color-input-bg);
+  color: var(--color-text);
 }
 
 .tour-orders {
@@ -402,38 +316,23 @@ h4 {
   padding-left: 0.5rem;
 }
 
-.tour-orders p {
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
 .mini-order {
   font-size: 0.8rem;
-  color: #555;
+  color: var(--color-text-secondary);
   padding: 0.2rem 0;
-  border-left: 2px solid #2c7a2c;
+  border-left: 2px solid var(--color-primary);
   padding-left: 0.5rem;
   margin-bottom: 0.2rem;
 }
 
-.tour-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  align-items: center;
+.list-group-item.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
-.vehicle-select {
-  padding: 0.3rem;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.btn-primary:disabled {
-  background: #999;
-  cursor: not-allowed;
+.list-group-item.active .mini-order {
+  color: rgba(255, 255, 255, 0.8);
+  border-left-color: rgba(255, 255, 255, 0.5);
 }
 
 .modal-overlay {
@@ -450,10 +349,11 @@ h4 {
 }
 
 .modal {
-  background: white;
+  background: var(--color-background-card);
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   min-width: 400px;
+  box-shadow: var(--shadow-md);
 }
 
 .modal h3 {
