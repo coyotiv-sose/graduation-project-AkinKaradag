@@ -31,9 +31,13 @@ const accountsRouter = require('./routes/accounts')
 
 const app = express()
 
+const allowedOrigins = process.env.FRONENTEND_URL
+    ? process.env.FRONENTEND_URL.split(',')
+    : []
+
 app.use(
     cors({
-        origin: process.env.FRONENTEND_URL,
+        origin: allowedOrigins,
         credentials: true,
     })
 )
