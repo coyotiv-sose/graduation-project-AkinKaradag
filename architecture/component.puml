@@ -1,0 +1,107 @@
+@startuml Component Diagram
+!pragma layout smetana
+skinparam componentStyle uml2
+skinparam linetype ortho
+
+title KaraLog – Component / Deployment Overview
+
+cloud "Client Browser" as browser {
+  [Vue 3 SPA\n(Vite + Pinia)] as frontend
+}
+
+node "Docker Compose" as dc {
+
+  package "frontend (port 5173)" as fe_container {
+    [Vite Dev Server] as vite
+  }
+
+  package "api (port 3000)" as api_container {
+
+    package "Express App" as express {
+      [Passport Auth\n(passport-local-mongoose)] as auth
+      [Session Store\n(connect-mongo)] as sessionStore
+    }
+
+    package "Routes" as routes {
+      [/accounts] as r_accounts
+      [/companies] as r_companies
+      [/customers] as r_customers
+      [/orders] as r_orders
+      [/vehicles] as r_vehicles
+      [/tours] as r_tours
+      [/employees] as r_employees
+    }
+
+    package "Managers (Business Logic)" as managers {
+      [CustomerManager] as m_customer
+      [EmployeeManager] as m_employee
+      [OrderManager] as m_order
+      [VehicleManager] as m_vehicle
+      [TourManager] as m_tour
+    }
+
+    package "Lib" as lib {
+      [OrderGenerator\n(OpenAI GPT-4o-mini)] as ai
+    }
+
+    package "Mongoose Models" as models {
+      [Account] as mod_account
+      [LogisticCompany] as mod_company
+      [Customer] as mod_customer
+      [Employee] as mod_employee
+      [Order] as mod_order
+      [Vehicle] as mod_vehicle
+      [Tour] as mod_tour
+      [BillingInfo\n(sub-schema)] as mod_billing
+      [Cargo\n(sub-schema)] as mod_cargo
+    }
+  }
+
+  database "MongoDB (port 27017)" as mongo
+}
+
+cloud "OpenAI API" as openai
+
+' ── Client to frontend ──
+browser --> vite : HTTP
+
+' ── Frontend to API ──
+vite --> express : REST / JSON\n(withCredentials)
+
+' ── Routes → Managers ──
+r_accounts --> m_customer
+r_accounts --> m_employee
+r_companies --> m_customer
+r_companies --> m_employee
+r_companies --> m_order
+r_companies --> m_vehicle
+r_companies --> m_tour
+r_customers --> m_customer
+r_customers --> m_order
+r_customers --> ai
+r_orders --> m_order
+r_vehicles --> m_vehicle
+r_tours --> m_tour
+r_employees --> m_employee
+
+' ── Managers → Models ──
+m_customer --> mod_account
+m_customer --> mod_customer
+m_employee --> mod_account
+m_employee --> mod_employee
+m_order --> mod_order
+m_vehicle --> mod_vehicle
+m_tour --> mod_tour
+m_tour --> mod_vehicle
+
+' ── Auth → Models ──
+auth --> mod_account
+
+' ── Express → MongoDB ──
+express --> mongo : mongoose
+sessionStore --> mongo : connect-mongo
+
+' ── AI ──
+ai --> openai : HTTPS
+
+@enduml

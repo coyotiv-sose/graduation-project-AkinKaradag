@@ -40,5 +40,8 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": false
-  }
+  },
+  "plantuml.render": "Local",
+  "plantuml.jar": ".vscode/tools/plantuml.jar",
+  "plantuml.java": "/home/codespace/java/current/bin/java"
 }

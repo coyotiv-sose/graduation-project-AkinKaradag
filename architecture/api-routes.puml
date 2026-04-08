@@ -1,0 +1,139 @@
+@startuml API Routes
+!pragma layout smetana
+skinparam packageStyle rectangle
+skinparam objectAttributeIconSize 0
+hide empty methods
+
+title KaraLog – REST API Endpoints
+
+package "/accounts" as acc <<Routes>> {
+  object "POST /" as acc_register {
+    Register account
+    (customer or employee)
+  }
+  object "POST /session" as acc_login {
+    Login (Passport local)
+  }
+  object "GET /session" as acc_session {
+    Get current user + profile
+  }
+  object "DELETE /session" as acc_logout {
+    Logout
+  }
+}
+
+package "/companies" as comp <<Routes>> {
+  object "POST /" as comp_create {
+    Create company
+  }
+  object "GET /" as comp_list {
+    List all companies
+  }
+  object "POST /:companyId/customers" as comp_cust_create {
+    Create customer for company
+  }
+  object "GET /:companyId/customers" as comp_cust_list {
+    List company customers
+  }
+  object "POST /:companyId/employees" as comp_emp_create {
+    Create employee for company
+  }
+  object "GET /:companyId/employees" as comp_emp_list {
+    List company employees
+  }
+  object "POST /:companyId/orders" as comp_ord_create {
+    Create order for company
+  }
+  object "GET /:companyId/orders" as comp_ord_list {
+    List company orders
+  }
+  object "DELETE /:companyId/orders/:orderId" as comp_ord_del {
+    Delete order (company auth)
+  }
+  object "GET /:companyId/customers/:customerId/orders" as comp_cust_ord {
+    Orders from customer in company
+  }
+  object "POST /:companyId/vehicles" as comp_veh_create {
+    Add vehicle
+  }
+  object "GET /:companyId/vehicles" as comp_veh_list {
+    List vehicles
+  }
+  object "PUT /:companyId/vehicles/:vehicleId" as comp_veh_upd {
+    Update vehicle
+  }
+  object "POST /:companyId/tours" as comp_tour_create {
+    Create tour
+  }
+  object "GET /:companyId/tours" as comp_tour_list {
+    List tours
+  }
+  object "POST /:companyId/tours/:tourId" as comp_tour_add {
+    Add order to tour
+  }
+  object "PUT /:companyId/tours/:tourId" as comp_tour_upd {
+    Update tour state
+  }
+}
+
+package "/customers" as cust <<Routes>> {
+  object "GET /:customerId" as cust_get {
+    Get customer
+  }
+  object "POST /:customerId/orders" as cust_ord_create {
+    Create order (manual)
+  }
+  object "POST /:customerId/orders/ai-generate" as cust_ord_ai {
+    Create order (AI prompt)
+  }
+  object "GET /:customerId/orders" as cust_ord_list {
+    List customer orders
+  }
+  object "GET /:customerId/orders/:orderId" as cust_ord_get {
+    Get order detail
+  }
+  object "DELETE /:customerId/orders/:orderId" as cust_ord_del {
+    Delete order (customer auth)
+  }
+  object "POST /:customerId/orders/:orderId/cargos" as cust_cargo_add {
+    Add cargo to order
+  }
+}
+
+package "/orders" as ord <<Routes>> {
+  object "GET /:orderId" as ord_get {
+    Get order
+  }
+  object "PUT /:orderId" as ord_upd {
+    Update order (PENDING only)
+  }
+  object "GET /:orderId/cargos" as ord_cargos {
+    List cargos
+  }
+}
+
+package "/tours" as tour <<Routes>> {
+  object "GET /:tourId" as tour_get {
+    Get tour
+  }
+  object "GET /:tourId/cargos" as tour_cargos {
+    Tour cargos (aggregated)
+  }
+  object "PUT /:tourId/vehicles" as tour_veh {
+    Assign vehicle to tour
+  }
+}
+
+package "/vehicles" as veh <<Routes>> {
+  object "GET /:vehicleId" as veh_get {
+    Get vehicle
+  }
+}
+
+package "/employees" as emp <<Routes>> {
+  object "GET /:employeeId" as emp_get {
+    Get employee
+  }
+}
+
+@enduml
