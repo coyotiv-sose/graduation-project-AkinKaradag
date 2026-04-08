@@ -1,59 +1,166 @@
-@startuml
+@startuml Class Diagram
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+hide empty methods
 
-class Account {
-  id: number
-  email: String
-  password: String
+title KaraLog – Domain Class Diagram
+
+' ──────────────────────────────────────
+'  Enumerations
+' ──────────────────────────────────────
+enum AccountRole {
+  customer
+  employee
 }
 
-class CustomerProfile {
-  id: number
-  accountId: number
+enum OrderState {
+  PENDING
+  IN_PROCESS
+  DELIVERED
 }
 
-class BillingInfo {
-  id: number
-  address: String
-  taxNo: number
+enum TourState {
+  PLANNED
+  STARTED
+  CANCELLED
+  FINISHED
 }
 
-class EmployeeProfile {
-  id: number
-  accountId: number
-  companyId: number
-  role: String
+enum VehicleState {
+  AVAILABLE
+  ON_TOUR
+  IN_GARAGE
+  DAMAGED
+  PARKED
+  SOLD
+  OTHER_REASON
 }
 
-class Customer {
-  profile.id: number
-  accountId: number
-  customerName: String
-  billingInfo: BillingInfo
+' ──────────────────────────────────────
+'  Models
+' ──────────────────────────────────────
+class Account <<Mongoose Model>> {
+  _id : ObjectId
+  email : String {required, lowercase}
+  role : AccountRole {required}
+  --
+  <i>passport-local-mongoose plugin</i>
 }
 
-class LogisticCompany {
-  profile.id: number
-  accountId: number
-  companyName: String
-  address: String
-
-  addVehicle(vehicle): void
-  getDispatcher(): void
-  createOrder(orderData): void
-  createTour(tourData): void
-  addCustomer(customer): void
+class LogisticCompany <<Mongoose Model>> {
+  _id : ObjectId
+  companyName : String {required}
+  address : String {required}
+  postalCode : String {required}
+  city : String {required}
 }
 
-Account "1" -- "1" CustomerProfile : has a
-Account "1" -- "1" EmployeeProfile : has a
-CustomerProfile "1" o-- "1" BillingInfo : Aggregate
-Customer "1" -- Account : has a
-Customer "1" -- "1" CustomerProfile : has a
-Customer "1" -- "1" BillingInfo
-LogisticCompany "0..*" --> Account
-LogisticCompany "0..*" --> Customer
-LogisticCompany "1" -- EmployeeProfile
+class Customer <<Mongoose Model>> {
+  _id : ObjectId
+  account : ObjectId → Account {required}
+  customerName : String {required}
+  company : ObjectId → LogisticCompany
+  billingInfo : BillingInfo[]
+  profile : String = "CUSTOMER_DEFAULT"
+}
 
+class Employee <<Mongoose Model>> {
+  _id : ObjectId
+  account : ObjectId → Account {required}
+  name : String {required}
+  company : ObjectId → LogisticCompany
+  profile : String = "DISPATCHER"
+}
 
+class BillingInfo <<Embedded Schema>> {
+  label : String = "default"
+  customerName : String {required}
+  address : String {required}
+  postalCode : String {required}
+  city : String {required}
+  VATnr : String
+  isDefault : Boolean = false
+}
+
+class Order <<Mongoose Model>> {
+  _id : ObjectId
+  origin : String {required}
+  destination : String {required}
+  customer : ObjectId → Customer {required}
+  company : ObjectId → LogisticCompany {required}
+  deliveryDate : Date {required}
+  state : OrderState = "PENDING"
+  cargos : Cargo[]
+  billingInfo : BillingInfo {required}
+  --
+  addCargo(cargo) : Order
+  getCargos() : Cargo[]
+}
+
+class Cargo <<Embedded Schema>> {
+  loadCarrierType : String {required}
+  dimensions.width : Number {required}
+  dimensions.length : Number {required}
+  dimensions.height : Number {required}
+  weight : Number {required}
+  quantity : Number {required}
+  --
+  «virtual» volume : Number
+}
+
+class Vehicle <<Mongoose Model>> {
+  _id : ObjectId
+  company : ObjectId → LogisticCompany {required}
+  name : String
+  brand : String {required}
+  model : String {required}
+  year : Number {required}
+  payLoad : Number {required}
+  state : VehicleState = "AVAILABLE"
+}
+
+class Tour <<Mongoose Model>> {
+  _id : ObjectId
+  company : ObjectId → LogisticCompany {required}
+  vehicle : ObjectId → Vehicle
+  date : Date {required}
+  startLocation : String {required}
+  endLocation : String {required}
+  orders : ObjectId[] → Order
+  state : TourState = "PLANNED"
+  --
+  addOrder(orderId) : Tour
+  assignVehicle(vehicleId) : Tour
+  startTour() : Tour
+  endTour() : Tour
+}
+
+' ──────────────────────────────────────
+'  Relationships
+' ──────────────────────────────────────
+Account "1" <-- "1" Customer : account
+Account "1" <-- "1" Employee : account
+
+LogisticCompany "1" <-- "0..*" Customer : company
+LogisticCompany "1" <-- "0..*" Employee : company
+LogisticCompany "1" <-- "0..*" Vehicle : company
+LogisticCompany "1" <-- "0..*" Order : company
+LogisticCompany "1" <-- "0..*" Tour : company
+
+Customer "1" <-- "0..*" Order : customer
+Customer "1" *-- "0..*" BillingInfo : embeds
+
+Order "1" *-- "0..*" Cargo : embeds
+Order "1" *-- "1" BillingInfo : embeds snapshot
+
+Tour "0..*" o-- "0..*" Order : references
+Tour "0..1" o-- "0..1" Vehicle : assigned to
+
+Account ..> AccountRole : uses
+Order ..> OrderState : uses
+Tour ..> TourState : uses
+Vehicle ..> VehicleState : uses
 
 @enduml
