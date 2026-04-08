@@ -30,5 +30,24 @@ export const useOrderStore = defineStore('order', {
       const { data } = await axios.get(`/customers/${customerId}/orders`)
       this.orders = data
     },
+    async getOrdersByCompany(companyId) {
+      const { data } = await axios.get(`/companies/${companyId}/orders`)
+      this.orders = data
+    },
+    async getOrderById(orderId) {
+      const { data } = await axios.get(`/orders/${orderId}`)
+      return data
+    },
+    async updateOrder(orderId, updateData) {
+      const { data } = await axios.put(`/orders/${orderId}`, updateData)
+      return data
+    },
+    async deleteOrderByCompany(companyId, orderId) {
+      await axios.delete(`/companies/${companyId}/orders/${orderId}`)
+    },
+    async createOrderForCustomer(customerId, orderData) {
+      const { data } = await axios.post(`/customers/${customerId}/orders`, orderData)
+      return data
+    },
   },
 })
