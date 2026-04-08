@@ -15,9 +15,16 @@ export default {
 </script>
 
 <template lang="pug">
-h2 Companies
-ul
-  li(v-for='company in companies' :key='company._id')
-    router-link(:to='`/companies/${company._id}`')
-      | {{ company.companyName }} - {{ company.city }}
+.card
+  .card-header
+    h2.mb-0 Companies
+  .list-group.list-group-flush
+    router-link.list-group-item.list-group-item-action(
+      v-for='company in companies'
+      :key='company._id'
+      :to='`/companies/${company._id}`'
+    )
+      .d-flex.justify-content-between.align-items-center
+        span.fw-semibold {{ company.companyName }}
+        span.text-secondary {{ company.city }}
 </template>
