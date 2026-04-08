@@ -158,8 +158,8 @@ h1 {
   width: 100%;
   padding: 0.75rem;
   font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   resize: vertical;
   font-family: inherit;
 }
@@ -168,15 +168,15 @@ h1 {
   margin-top: 0.75rem;
   padding: 0.6rem 1.5rem;
   font-size: 1rem;
-  background: #2c7a2c;
+  background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
 .prompt-section button:disabled {
-  background: #999;
+  background: var(--color-text-secondary);
   cursor: not-allowed;
 }
 
@@ -186,21 +186,21 @@ h1 {
 }
 
 .order-card {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   padding: 1rem;
   margin-bottom: 1rem;
 }
 
 .order-card .cargo {
   padding-left: 1rem;
-  border-left: 3px solid #2c7a2c;
+  border-left: 3px solid var(--color-primary);
   margin: 0.5rem 0;
 }
 
 .order-card .dims {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 </style>
