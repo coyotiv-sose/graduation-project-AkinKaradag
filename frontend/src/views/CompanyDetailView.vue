@@ -53,6 +53,13 @@ main(v-if='company')
     router-link(:to='`/companies/${companyId}/employees`')
       button Add Employee
 
+  section.actions
+    h2 Operations
+    router-link(:to='`/companies/${companyId}/dispatcher`')
+      button.btn-primary Planning Panel
+    router-link(:to='`/companies/${companyId}/vehicles`')
+      button Manage Vehicles
+
 main(v-else)
   p Loading company...
 </template>
@@ -82,5 +89,22 @@ button {
   margin-top: 0.75rem;
   padding: 0.5rem 1rem;
   cursor: pointer;
+}
+
+.btn-primary {
+  background: #2c7a2c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  a {
+    display: inline-block;
+  }
 }
 </style>
