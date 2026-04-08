@@ -29,6 +29,8 @@ export default {
         <RouterLink to="/#contact">Contact</RouterLink>
         <template v-if="user">
           <RouterLink to="/companies">Companies</RouterLink>
+          <RouterLink to="/orders/new">New Order</RouterLink>
+          <RouterLink to="/orders/list">Order List</RouterLink>
           <RouterLink to="/orders">AI Orders</RouterLink>
           <RouterLink to="/logout">Logout</RouterLink>
         </template>
