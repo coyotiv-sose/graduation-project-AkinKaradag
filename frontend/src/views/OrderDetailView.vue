@@ -139,10 +139,11 @@ main {
 }
 
 .order-detail {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .detail-header {
@@ -166,7 +167,7 @@ main {
 
 .detail-item label {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -188,10 +189,10 @@ main {
 }
 
 .cargo-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-left: 3px solid #2c7a2c;
-  border-radius: 6px;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius);
   padding: 0.75rem;
   margin-bottom: 0.5rem;
 }
@@ -203,7 +204,7 @@ main {
 
 .cargo-card p {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0.1rem 0;
 }
 
@@ -222,8 +223,8 @@ main {
 .edit-form input,
 .edit-form select {
   padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   font-size: 0.95rem;
 }
 
@@ -235,7 +236,7 @@ main {
 
 .form-actions button {
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
