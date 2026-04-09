@@ -100,13 +100,36 @@ app.use(function(err, req, res, next) {
 })
 
 app.createSocketServer = function (server) {
-    const io = require('socket.io')(server)
+    const io = require('socket.io')(server, {
+        cors: {
+            origin: true,
+            credentials: true,
+        },
+    })
 
-    console.log('Socket server created')
+    app.io = io
+
     io.on('connection', (socket) => {
-        console.log('A user connected')
+        console.log('A user connected:', socket.id)
+
+        socket.on('join:customer', (customerId) => {
+            socket.join(`customer:${customerId}`)
+        })
+
+        socket.on('join:company', (companyId) => {
+            socket.join(`company:${companyId}`)
+        })
+
+        socket.on('join:order', (orderId) => {
+            socket.join(`order:${orderId}`)
+        })
+
+        socket.on('leave:order', (orderId) => {
+            socket.leave(`order:${orderId}`)
+        })
+
         socket.on('disconnect', () => {
-            console.log('A user disconnected')
+            console.log('A user disconnected:', socket.id)
         })
     })
 }

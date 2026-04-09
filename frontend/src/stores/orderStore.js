@@ -49,5 +49,23 @@ export const useOrderStore = defineStore('order', {
       const { data } = await axios.post(`/customers/${customerId}/orders`, orderData)
       return data
     },
+
+    applyOrderUpdate(updatedOrder) {
+      const index = this.orders.findIndex(o => o._id === updatedOrder._id)
+      if (index !== -1) {
+        this.orders[index] = updatedOrder
+      }
+    },
+
+    applyOrderCreated(newOrder) {
+      const exists = this.orders.some(o => o._id === newOrder._id)
+      if (!exists) {
+        this.orders.push(newOrder)
+      }
+    },
+
+    applyOrderDeleted(orderId) {
+      this.orders = this.orders.filter(o => o._id !== orderId)
+    },
   },
 })

@@ -1,6 +1,8 @@
 <script>
 import { mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/orderStore'
+import { useSocketStore } from '@/stores/socketStore'
+import { socket } from '@/stores/socketStore'
 
 export default {
   name: 'OrderDetailView',
@@ -21,14 +23,30 @@ export default {
     orderId() {
       return this.$route.params.orderId
     },
+    stateClass() {
+      return {
+        PENDING: 'badge-pending',
+        IN_PROCESS: 'badge-process',
+        DELIVERED: 'badge-delivered',
+      }[this.order?.state] || ''
+    },
   },
   methods: {
     ...mapActions(useOrderStore, ['getOrderById', 'updateOrder']),
+    ...mapActions(useSocketStore, ['joinOrderRoom', 'leaveOrderRoom']),
     async loadOrder() {
       try {
         this.order = await this.getOrderById(this.orderId)
       } catch (e) {
         this.errorMessage = e.response?.data?.error || 'Order not found'
+      }
+    },
+    handleOrderUpdate(updatedOrder) {
+      if (updatedOrder._id === this.orderId) {
+        this.order = updatedOrder
+        if (this.editing) {
+          this.editing = false
+        }
       }
     },
     formatDate(date) {
@@ -63,6 +81,12 @@ export default {
   },
   async mounted() {
     await this.loadOrder()
+    this.joinOrderRoom(this.orderId)
+    socket.on('order:updated', this.handleOrderUpdate)
+  },
+  beforeUnmount() {
+    this.leaveOrderRoom(this.orderId)
+    socket.off('order:updated', this.handleOrderUpdate)
   },
 }
 </script>
