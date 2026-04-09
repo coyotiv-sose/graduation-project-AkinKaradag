@@ -1,34 +1,16 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/orderStore'
 import { useAccountStore } from '@/stores/accountStore'
 
 export default {
   name: 'OrderListView',
   computed: {
-    accountStore() {
-      return useAccountStore()
-    },
-    isCustomer() {
-      return this.accountStore.isCustomer
-    },
-    customerId() {
-      return this.accountStore.customerId
-    },
-    companyId() {
-      return this.accountStore.companyId
-    },
-    orders() {
-      return useOrderStore().orders
-    },
-  },
-  async mounted() {
-    if (this.isCustomer && this.customerId) {
-      await useOrderStore().getOrders(this.customerId)
-    } else if (this.companyId) {
-      await useOrderStore().getOrdersByCompany(this.companyId)
-    }
+    ...mapState(useAccountStore, ['isCustomer', 'customerId', 'companyId']),
+    ...mapState(useOrderStore, ['orders']),
   },
   methods: {
+    ...mapActions(useOrderStore, ['getOrders', 'getOrdersByCompany']),
     formatDate(date) {
       return new Date(date).toLocaleDateString()
     },
@@ -39,6 +21,13 @@ export default {
         'DELIVERED': 'badge-delivered',
       }[state] || ''
     },
+  },
+  async mounted() {
+    if (this.isCustomer && this.customerId) {
+      await this.getOrders(this.customerId)
+    } else if (this.companyId) {
+      await this.getOrdersByCompany(this.companyId)
+    }
   },
 }
 </script>

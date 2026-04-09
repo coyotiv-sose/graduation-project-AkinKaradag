@@ -1,4 +1,5 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useCustomerStore } from '@/stores/customerStore'
 import CreateFormWrapper from './CreateFormWrapper.vue'
 
@@ -28,24 +29,12 @@ export default {
         }
     },
     computed: {
-        customers() {
-            return useCustomerStore().customers
-        }
+        ...mapState(useCustomerStore, ['customers']),
     },
-
-    async mounted() {
-        await useCustomerStore().getAllCustomers(this.companyId)
-    },
-
-    watch: {
-        customerName(newName) {
-            this.billingInfo.customerName = newName
-        }
-    },
-
     methods: {
+        ...mapActions(useCustomerStore, ['getAllCustomers', 'createCustomer']),
         async submitCustomer() {
-            await useCustomerStore().createCustomer(this.companyId, {
+            await this.createCustomer(this.companyId, {
                 email: this.email,
                 password: this.password,
                 customerName: this.customerName,
@@ -64,6 +53,14 @@ export default {
                 isDefault: true,
             }
         },
+    },
+    async mounted() {
+        await this.getAllCustomers(this.companyId)
+    },
+    watch: {
+        customerName(newName) {
+            this.billingInfo.customerName = newName
+        }
     },
 }
 </script>

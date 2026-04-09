@@ -1,4 +1,5 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/orderStore'
 import { useAccountStore } from '@/stores/accountStore'
 
@@ -28,7 +29,6 @@ export default {
       errorMessage: '',
       successMessage: '',
       isSubmitting: false,
-      // AI section
       prompt: '',
       isGenerating: false,
       generatedOrder: null,
@@ -36,21 +36,14 @@ export default {
     }
   },
   computed: {
-    accountStore() {
-      return useAccountStore()
-    },
-    customerId() {
-      return this.accountStore.customerId
-    },
-    profile() {
-      return this.accountStore.profile
-    },
+    ...mapState(useAccountStore, ['customerId', 'profile']),
     addressesComplete() {
       const filled = obj => Object.values(obj).every(v => v.trim())
       return filled(this.origin) && filled(this.destination) && !!this.deliveryDate
     },
   },
   methods: {
+    ...mapActions(useOrderStore, ['createOrderForCustomer', 'generateOrderFromPrompt']),
     formatAddress(addr) {
       return `${addr.name}, ${addr.street} ${addr.number}, ${addr.postalCode} ${addr.city}`
     },
@@ -85,7 +78,7 @@ export default {
 
       this.isSubmitting = true
       try {
-        await useOrderStore().createOrderForCustomer(this.customerId, {
+        await this.createOrderForCustomer(this.customerId, {
           origin: this.formatAddress(this.origin),
           destination: this.formatAddress(this.destination),
           deliveryDate: this.deliveryDate,
@@ -121,7 +114,7 @@ export default {
       this.generatedOrder = null
 
       try {
-        const order = await useOrderStore().generateOrderFromPrompt(
+        const order = await this.generateOrderFromPrompt(
           this.customerId,
           this.prompt,
         )

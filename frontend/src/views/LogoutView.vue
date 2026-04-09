@@ -1,10 +1,14 @@
 <script>
+import { mapActions } from 'pinia'
 import { useAccountStore } from '../stores/accountStore'
 
 export default {
   name: 'LogoutView',
+  methods: {
+    ...mapActions(useAccountStore, ['logout']),
+  },
   async mounted() {
-    await useAccountStore().logout()
+    await this.logout()
     this.$router.push('/')
   },
 }

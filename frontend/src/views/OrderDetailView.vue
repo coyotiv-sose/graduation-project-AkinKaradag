@@ -1,4 +1,5 @@
 <script>
+import { mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/orderStore'
 
 export default {
@@ -21,13 +22,11 @@ export default {
       return this.$route.params.orderId
     },
   },
-  async mounted() {
-    await this.loadOrder()
-  },
   methods: {
+    ...mapActions(useOrderStore, ['getOrderById', 'updateOrder']),
     async loadOrder() {
       try {
-        this.order = await useOrderStore().getOrderById(this.orderId)
+        this.order = await this.getOrderById(this.orderId)
       } catch (e) {
         this.errorMessage = e.response?.data?.error || 'Order not found'
       }
@@ -54,13 +53,16 @@ export default {
     async saveEdit() {
       this.errorMessage = ''
       try {
-        await useOrderStore().updateOrder(this.orderId, this.editForm)
+        await this.updateOrder(this.orderId, this.editForm)
         await this.loadOrder()
         this.editing = false
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
       }
     },
+  },
+  async mounted() {
+    await this.loadOrder()
   },
 }
 </script>

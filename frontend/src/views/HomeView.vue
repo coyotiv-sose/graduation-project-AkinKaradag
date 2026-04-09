@@ -1,31 +1,19 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useCompanyStore } from '@/stores/companyStore'
 import { useAccountStore } from '@/stores/accountStore'
 
 export default {
   name: 'HomeView',
   computed: {
-    companies() {
-      return useCompanyStore().companies
-    },
-    accountStore() {
-      return useAccountStore()
-    },
-    isLoggedIn() {
-      return this.accountStore.isLoggedIn
-    },
-    isCustomer() {
-      return this.accountStore.isCustomer
-    },
-    isEmployee() {
-      return this.accountStore.isEmployee
-    },
-    companyId() {
-      return this.accountStore.companyId
-    },
+    ...mapState(useCompanyStore, ['companies']),
+    ...mapState(useAccountStore, ['isLoggedIn', 'isCustomer', 'isEmployee', 'companyId']),
+  },
+  methods: {
+    ...mapActions(useCompanyStore, ['getAllCompanies']),
   },
   async mounted() {
-    await useCompanyStore().getAllCompanies()
+    await this.getAllCompanies()
   },
 }
 </script>

@@ -1,16 +1,14 @@
 <script>
-import { useTheme } from '@/composables/useTheme'
+import { mapState, mapActions } from 'pinia'
+import { useThemeStore } from '@/stores/themeStore'
 
 export default {
   name: 'ThemeToggle',
-  setup() {
-    const { theme, toggleTheme } = useTheme()
-    return { theme, toggleTheme }
-  },
   computed: {
-    isDark() {
-      return this.theme === 'dark'
-    },
+    ...mapState(useThemeStore, ['isDark']),
+  },
+  methods: {
+    ...mapActions(useThemeStore, ['toggleTheme']),
   },
 }
 </script>

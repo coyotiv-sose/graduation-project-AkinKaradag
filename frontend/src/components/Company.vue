@@ -1,15 +1,17 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useCompanyStore } from '@/stores/companyStore'
 
 export default {
   name: 'CompanyList',
   computed: {
-    companies() {
-      return useCompanyStore().companies
-    },
+    ...mapState(useCompanyStore, ['companies']),
+  },
+  methods: {
+    ...mapActions(useCompanyStore, ['getAllCompanies']),
   },
   async mounted() {
-    await useCompanyStore().getAllCompanies()
+    await this.getAllCompanies()
   },
 }
 </script>

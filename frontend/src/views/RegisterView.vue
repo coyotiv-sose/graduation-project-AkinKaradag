@@ -1,4 +1,5 @@
 <script>
+import { mapActions } from 'pinia'
 import { useAccountStore } from '../stores/accountStore'
 
 export default {
@@ -12,7 +13,8 @@ export default {
     }
   },
   methods: {
-    async register() {
+    ...mapActions(useAccountStore, ['register']),
+    async handleRegister() {
       const payload = {
         email: this.email,
         password: this.password,
@@ -23,7 +25,7 @@ export default {
       } else {
         payload.name = this.name
       }
-      await useAccountStore().register(payload)
+      await this.register(payload)
       alert('Registration successful!')
       this.$router.push('/login')
     },
@@ -33,7 +35,7 @@ export default {
 
 <template lang="pug">
 h1 Register
-form(@submit.prevent='register')
+form(@submit.prevent='handleRegister')
     div
         input(v-model='email' placeholder='Email')
     div

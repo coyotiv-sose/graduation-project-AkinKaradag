@@ -1,8 +1,8 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/orderStore'
 import { useVehicleStore } from '@/stores/vehicleStore'
 import { useTourStore } from '@/stores/tourStore'
-import { useCompanyStore } from '@/stores/companyStore'
 
 export default {
   name: 'DispatcherDashboard',
@@ -30,15 +30,9 @@ export default {
     }
   },
   computed: {
-    orders() {
-      return useOrderStore().orders
-    },
-    vehicles() {
-      return useVehicleStore().vehicles
-    },
-    tours() {
-      return useTourStore().tours
-    },
+    ...mapState(useOrderStore, ['orders']),
+    ...mapState(useVehicleStore, ['vehicles']),
+    ...mapState(useTourStore, ['tours']),
     pendingOrders() {
       return this.orders.filter(o => o.state === 'PENDING')
     },
@@ -55,15 +49,15 @@ export default {
       return this.tours.filter(t => t.state === 'PLANNED')
     },
   },
-  async mounted() {
-    await this.refreshAll()
-  },
   methods: {
+    ...mapActions(useOrderStore, ['getOrdersByCompany', 'deleteOrderByCompany']),
+    ...mapActions(useVehicleStore, ['getAllVehicles']),
+    ...mapActions(useTourStore, ['getAllTours', 'createTour', 'addOrderToTour', 'assignVehicleToTour', 'updateTour']),
     async refreshAll() {
       await Promise.all([
-        useOrderStore().getOrdersByCompany(this.companyId),
-        useVehicleStore().getAllVehicles(this.companyId),
-        useTourStore().getAllTours(this.companyId),
+        this.getOrdersByCompany(this.companyId),
+        this.getAllVehicles(this.companyId),
+        this.getAllTours(this.companyId),
       ])
     },
     formatDate(date) {
@@ -83,10 +77,10 @@ export default {
         'CANCELLED': 'badge-garage',
       }[state] || ''
     },
-    async createTour() {
+    async handleCreateTour() {
       this.errorMessage = ''
       try {
-        await useTourStore().createTour(this.companyId, this.tourForm)
+        await this.createTour(this.companyId, this.tourForm)
         this.tourForm = { date: '', startLocation: '', endLocation: '' }
         this.showTourForm = false
       } catch (e) {
@@ -99,17 +93,17 @@ export default {
     async assignOrderToTour() {
       this.errorMessage = ''
       try {
-        await useTourStore().addOrderToTour(this.companyId, this.assignModal.tourId, this.assignModal.orderId)
+        await this.addOrderToTour(this.companyId, this.assignModal.tourId, this.assignModal.orderId)
         this.assignModal = { visible: false, tourId: null, orderId: null, vehicleId: null }
         await this.refreshAll()
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
       }
     },
-    async assignVehicleToTour(tourId, vehicleId) {
+    async handleAssignVehicle(tourId, vehicleId) {
       this.errorMessage = ''
       try {
-        await useTourStore().assignVehicleToTour(tourId, vehicleId)
+        await this.assignVehicleToTour(tourId, vehicleId)
         await this.refreshAll()
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
@@ -118,7 +112,7 @@ export default {
     async updateTourState(tourId, state) {
       this.errorMessage = ''
       try {
-        await useTourStore().updateTour(this.companyId, tourId, { state })
+        await this.updateTour(this.companyId, tourId, { state })
         await this.refreshAll()
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
@@ -127,12 +121,15 @@ export default {
     async deleteOrder(orderId) {
       this.errorMessage = ''
       try {
-        await useOrderStore().deleteOrderByCompany(this.companyId, orderId)
-        await useOrderStore().getOrdersByCompany(this.companyId)
+        await this.deleteOrderByCompany(this.companyId, orderId)
+        await this.getOrdersByCompany(this.companyId)
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
       }
     },
+  },
+  async mounted() {
+    await this.refreshAll()
   },
 }
 </script>
@@ -198,7 +195,7 @@ export default {
 
     //- Create Tour Form
     .card-body(v-if='showTourForm')
-      form.tour-form(@submit.prevent='createTour')
+      form.tour-form(@submit.prevent='handleCreateTour')
         input(v-model='tourForm.date' type='date' placeholder='Tour Date' required)
         input(v-model='tourForm.startLocation' placeholder='Start Location' required)
         input(v-model='tourForm.endLocation' placeholder='End Location' required)
@@ -227,7 +224,7 @@ export default {
             button.btn.btn-outline-success.btn-sm(@click='openAssignOrder(tour._id)') + Add Order
             select.form-select.form-select-sm.w-auto(
               v-if='!tour.vehicle && availableVehicles.length'
-              @change='assignVehicleToTour(tour._id, $event.target.value); $event.target.value=""'
+              @change='handleAssignVehicle(tour._id, $event.target.value); $event.target.value=""'
             )
               option(value='' disabled selected) Assign Vehicle
               option(v-for='v in availableVehicles' :key='v._id' :value='v._id')
