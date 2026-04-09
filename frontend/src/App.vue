@@ -1,6 +1,8 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
+import { mapState, mapActions } from 'pinia'
 import { useAccountStore } from './stores/accountStore'
+import { useSocketStore } from './stores/socketStore'
 import ThemeToggle from './components/ThemeToggle.vue'
 
 export default {
@@ -11,27 +13,15 @@ export default {
     ThemeToggle,
   },
   computed: {
-    accountStore() {
-      return useAccountStore()
-    },
-    user() {
-      return this.accountStore.user
-    },
-    isCustomer() {
-      return this.accountStore.isCustomer
-    },
-    isEmployee() {
-      return this.accountStore.isEmployee
-    },
-    companyId() {
-      return this.accountStore.companyId
-    },
-    customerId() {
-      return this.accountStore.customerId
-    },
+    ...mapState(useAccountStore, ['user', 'isCustomer', 'isEmployee', 'companyId', 'customerId']),
   },
-  mounted() {
-    this.accountStore.fetchUser()
+  methods: {
+    ...mapActions(useAccountStore, ['fetchUser']),
+    ...mapActions(useSocketStore, ['init']),
+  },
+  async mounted() {
+    await this.fetchUser()
+    await this.init()
   },
 }
 </script>

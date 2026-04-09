@@ -1,4 +1,5 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useEmployeeStore } from '@/stores/employeeStore'
 import CreateFormWrapper from './CreateFormWrapper.vue'
 
@@ -19,16 +20,12 @@ export default {
         }
     },
     computed: {
-        employees() {
-            return useEmployeeStore().employees
-        },
-    },
-    async mounted() {
-        await useEmployeeStore().getAllEmployees(this.companyId)
+        ...mapState(useEmployeeStore, ['employees']),
     },
     methods: {
+        ...mapActions(useEmployeeStore, ['getAllEmployees', 'createEmployee']),
         async submitEmployee() {
-            await useEmployeeStore().createEmployee(this.companyId, {
+            await this.createEmployee(this.companyId, {
                 email: this.email,
                 password: this.password,
                 name: this.name,
@@ -37,6 +34,9 @@ export default {
             this.password = ''
             this.name = ''
         },
+    },
+    async mounted() {
+        await this.getAllEmployees(this.companyId)
     },
 }
 </script>

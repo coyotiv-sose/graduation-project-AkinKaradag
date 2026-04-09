@@ -1,4 +1,5 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/orderStore'
 import { useCustomerStore } from '@/stores/customerStore'
 import { useCompanyStore } from '@/stores/companyStore'
@@ -16,33 +17,14 @@ export default {
     }
   },
   computed: {
-    companies() {
-      return useCompanyStore().companies
-    },
-    customers() {
-      return useCustomerStore().customers
-    },
-    orders() {
-      return useOrderStore().orders
-    },
-  },
-  async mounted() {
-    await useCompanyStore().getAllCompanies()
-  },
-  watch: {
-    async selectedCompany(companyId) {
-      if (companyId) {
-        this.selectedCustomer = ''
-        await useCustomerStore().getAllCustomers(companyId)
-      }
-    },
-    async selectedCustomer(customerId) {
-      if (customerId) {
-        await useOrderStore().getOrders(customerId)
-      }
-    },
+    ...mapState(useCompanyStore, ['companies']),
+    ...mapState(useCustomerStore, ['customers']),
+    ...mapState(useOrderStore, ['orders']),
   },
   methods: {
+    ...mapActions(useCompanyStore, ['getAllCompanies']),
+    ...mapActions(useCustomerStore, ['getAllCustomers']),
+    ...mapActions(useOrderStore, ['getOrders', 'generateOrderFromPrompt']),
     async generateOrder() {
       if (!this.selectedCustomer) {
         this.errorMessage = 'Please select a customer first'
@@ -58,13 +40,13 @@ export default {
       this.generatedOrder = null
 
       try {
-        const order = await useOrderStore().generateOrderFromPrompt(
+        const order = await this.generateOrderFromPrompt(
           this.selectedCustomer,
           this.prompt
         )
         this.generatedOrder = order
         this.prompt = ''
-        await useOrderStore().getOrders(this.selectedCustomer)
+        await this.getOrders(this.selectedCustomer)
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message || 'Failed to generate order'
       } finally {
@@ -73,6 +55,22 @@ export default {
     },
     formatDate(date) {
       return new Date(date).toLocaleDateString()
+    },
+  },
+  async mounted() {
+    await this.getAllCompanies()
+  },
+  watch: {
+    async selectedCompany(companyId) {
+      if (companyId) {
+        this.selectedCustomer = ''
+        await this.getAllCustomers(companyId)
+      }
+    },
+    async selectedCustomer(customerId) {
+      if (customerId) {
+        await this.getOrders(customerId)
+      }
     },
   },
 }

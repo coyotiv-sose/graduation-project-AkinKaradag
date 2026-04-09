@@ -1,4 +1,5 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useCompanyStore } from '@/stores/companyStore'
 import { useCustomerStore } from '@/stores/customerStore'
 import { useEmployeeStore } from '@/stores/employeeStore'
@@ -14,19 +15,21 @@ export default {
     companyId() {
       return this.$route.params.companyId
     },
-    customers() {
-      return useCustomerStore().customers
-    },
-    employees() {
-      return useEmployeeStore().employees
-    },
+    ...mapState(useCompanyStore, ['companies']),
+    ...mapState(useCustomerStore, ['customers']),
+    ...mapState(useEmployeeStore, ['employees']),
+  },
+  methods: {
+    ...mapActions(useCompanyStore, ['getAllCompanies']),
+    ...mapActions(useCustomerStore, ['getAllCustomers']),
+    ...mapActions(useEmployeeStore, ['getAllEmployees']),
   },
   async mounted() {
-    await useCompanyStore().getAllCompanies()
-    this.company = useCompanyStore().companies.find(c => c._id === this.companyId)
+    await this.getAllCompanies()
+    this.company = this.companies.find(c => c._id === this.companyId)
     await Promise.all([
-      useCustomerStore().getAllCustomers(this.companyId),
-      useEmployeeStore().getAllEmployees(this.companyId),
+      this.getAllCustomers(this.companyId),
+      this.getAllEmployees(this.companyId),
     ])
   },
 }

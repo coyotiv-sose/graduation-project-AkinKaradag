@@ -1,4 +1,5 @@
 <script>
+import { mapState, mapActions } from 'pinia'
 import { useVehicleStore } from '@/stores/vehicleStore'
 import CreateFormWrapper from './CreateFormWrapper.vue'
 
@@ -21,16 +22,12 @@ export default {
     }
   },
   computed: {
-    vehicles() {
-      return useVehicleStore().vehicles
-    },
-  },
-  async mounted() {
-    await useVehicleStore().getAllVehicles(this.companyId)
+    ...mapState(useVehicleStore, ['vehicles']),
   },
   methods: {
+    ...mapActions(useVehicleStore, ['getAllVehicles', 'createVehicle', 'updateVehicle']),
     async submitVehicle() {
-      await useVehicleStore().createVehicle(this.companyId, {
+      await this.createVehicle(this.companyId, {
         name: this.name,
         brand: this.brand,
         model: this.model,
@@ -54,8 +51,11 @@ export default {
       }[state] || ''
     },
     async updateState(vehicleId, state) {
-      await useVehicleStore().updateVehicle(this.companyId, vehicleId, { state })
+      await this.updateVehicle(this.companyId, vehicleId, { state })
     },
+  },
+  async mounted() {
+    await this.getAllVehicles(this.companyId)
   },
 }
 </script>
