@@ -1,5 +1,6 @@
 const { findOrderById } = require('./order-manager')
 const Tour = require('../models/tour')
+const Order = require('../models/order')
 const Vehicle = require('../models/vehicle')
 
 const createTour = async tourData => {
@@ -39,8 +40,23 @@ const updateTour = async (tourId, updateData) => {
   const tour = await Tour.findById(tourId)
   if (!tour) throw new Error('Tour not found')
 
-  if (updateData.state === 'STARTED') return tour.startTour()
-  if (updateData.state === 'FINISHED') return tour.endTour()
+  const orderIds = tour.orders.map(o => o._id || o)
+
+  if (updateData.state === 'STARTED') {
+    await Order.updateMany(
+      { _id: { $in: orderIds }, state: 'PENDING' },
+      { $set: { state: 'IN_PROCESS' } }
+    )
+    return tour.startTour()
+  }
+
+  if (updateData.state === 'FINISHED') {
+    await Order.updateMany(
+      { _id: { $in: orderIds }, state: 'IN_PROCESS' },
+      { $set: { state: 'DELIVERED' } }
+    )
+    return tour.endTour()
+  }
 
   Object.assign(tour, updateData)
   return tour.save()

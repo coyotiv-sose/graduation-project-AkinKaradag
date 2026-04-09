@@ -2,6 +2,7 @@ const express = require('express')
 
 const router = express.Router()
 const LogisticCompany = require('../models/logistic-company')
+const Order = require('../models/order')
 const customerManager = require('../managers/customer-manager')
 const employeeManager = require('../managers/employee-manager')
 const orderManager = require('../managers/order-manager')
@@ -74,6 +75,8 @@ router.post('/:companyId/orders', async(req, res, next) => {
             ...req.body,
             company: req.params.companyId,
         })
+        req.app.io.to(`company:${req.params.companyId}`).emit('order:created', newOrder)
+        req.app.io.to(`customer:${newOrder.customer}`).emit('order:created', newOrder)
         res.status(201).json(newOrder)
     } catch (error) {
         res.status(400).json({ error: error.message })
@@ -92,6 +95,8 @@ router.get('/:companyId/orders', async(req, res, next) => {
 router.delete('/:companyId/orders/:orderId', async(req, res, next) => {
     try {
         const order = await orderManager.deleteOrderByCompany(req.params.orderId, req.params.companyId)
+        req.app.io.to(`customer:${order.customer}`).emit('order:deleted', { orderId: order._id })
+        req.app.io.to(`company:${req.params.companyId}`).emit('order:deleted', { orderId: order._id })
         res.status(204).send()
     } catch (error) {
         const status = error.message === 'Order not found' ? 404 : 400
@@ -175,8 +180,21 @@ router.post('/:companyId/tours/:tourId', async(req, res, next) => {
 
 router.put('/:companyId/tours/:tourId', async(req, res, next) => {
     try {
-        const start = await tourManager.updateTour(req.params.tourId, req.body)
-        res.status(200).json(start)
+        const tour = await tourManager.updateTour(req.params.tourId, req.body)
+
+        if (req.body.state === 'STARTED' || req.body.state === 'FINISHED') {
+            const orderIds = tour.orders.map(o => o._id || o)
+            const updatedOrders = await Order.find({ _id: { $in: orderIds } })
+                .populate('customer', 'customerName')
+
+            updatedOrders.forEach(order => {
+                req.app.io.to(`customer:${order.customer._id || order.customer}`).emit('order:updated', order)
+                req.app.io.to(`order:${order._id}`).emit('order:updated', order)
+            })
+            req.app.io.to(`company:${req.params.companyId}`).emit('orders:refresh')
+        }
+
+        res.status(200).json(tour)
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
