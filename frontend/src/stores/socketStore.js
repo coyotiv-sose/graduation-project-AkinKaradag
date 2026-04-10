@@ -3,7 +3,9 @@ import io from 'socket.io-client'
 import { useOrderStore } from './orderStore'
 import { useAccountStore } from './accountStore'
 
-export const socket = io('http://localhost:3000')
+export const socket = io('http://localhost:3000', {
+    withCredentials: true,
+})
 
 export const useSocketStore = defineStore('Socket', {
     state: () => ({
