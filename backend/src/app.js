@@ -51,18 +51,18 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET || 'adaw35345tfgs4wsgsA+_3sada',
-        resave: false,
-        saveUninitialized: true,
-        cookie: {
-            maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
-            secure: process.env.NODE_ENV === 'production',
-        },
-        store: MongoStore.create({ clientPromise, stringify: false }),
-    })
-)
+const sessionMiddleware = session({
+    secret: process.env.SESSION_SECRET || 'adaw35345tfgs4wsgsA+_3sada',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
+        secure: process.env.NODE_ENV === 'production',
+    },
+    store: MongoStore.create({ clientPromise, stringify: false }),
+})
+
+app.use(sessionMiddleware)
 app.use(passport.initialize())
 app.use(passport.session())
 app.use((req, res, next) => {
@@ -109,8 +109,13 @@ app.createSocketServer = function (server) {
 
     app.io = io
 
+    io.engine.use(sessionMiddleware)
+    io.engine.use(passport.initialize())
+    io.engine.use(passport.session())
+
     io.on('connection', (socket) => {
-        console.log('A user connected:', socket.id)
+        const user = socket.request.user
+        console.log('A user connected:', socket.id, user?._id?.toString())
 
         socket.on('join:customer', (customerId) => {
             socket.join(`customer:${customerId}`)
