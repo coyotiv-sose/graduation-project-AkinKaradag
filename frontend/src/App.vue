@@ -4,6 +4,7 @@ import { mapState, mapActions } from 'pinia'
 import { useAccountStore } from './stores/accountStore'
 import { useSocketStore } from './stores/socketStore'
 import ThemeToggle from './components/ThemeToggle.vue'
+import NotificationBell from './components/NotificationBell.vue'
 
 export default {
   name: 'App',
@@ -11,6 +12,7 @@ export default {
     RouterLink,
     RouterView,
     ThemeToggle,
+    NotificationBell,
   },
   computed: {
     ...mapState(useAccountStore, ['user', 'isCustomer', 'isEmployee', 'companyId', 'customerId']),
@@ -71,6 +73,8 @@ header
             li.nav-item
               RouterLink.nav-link(to="/logout") Logout
 
+          li.nav-item.d-flex.align-items-center.ms-2(v-if="user")
+            NotificationBell
           li.nav-item.d-flex.align-items-center.ms-2
             ThemeToggle
 
