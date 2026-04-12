@@ -100,6 +100,9 @@ app.use(function(err, req, res, next) {
 })
 
 app.createSocketServer = function (server) {
+    const customerManager = require('./managers/customer-manager')
+    const employeeManager = require('./managers/employee-manager')
+
     const io = require('socket.io')(server, {
         cors: {
             origin: true,
@@ -113,17 +116,23 @@ app.createSocketServer = function (server) {
     io.engine.use(passport.initialize())
     io.engine.use(passport.session())
 
-    io.on('connection', (socket) => {
-        const user = socket.request.user
-        console.log('A user connected:', socket.id, user?._id?.toString())
+    io.on('connection', async (socket) => {
+        const account = socket.request.user
+        console.log('A account connected:', socket.id, account?._id?.toString())
 
-        socket.on('join:customer', (customerId) => {
-            socket.join(`customer:${customerId}`)
-        })
-
-        socket.on('join:company', (companyId) => {
-            socket.join(`company:${companyId}`)
-        })
+        if (account) {
+            try {
+                if (account.role === 'customer') {
+                    const customer = await customerManager.getCustomerByAccountId(account._id)
+                    socket.join(`customer:${customer._id.toString()}`)
+                } else if (account.role === 'employee') {
+                    const employee = await employeeManager.getEmployeeByAccountId(account._id)
+                    socket.join(`company:${employee.company.toString()}`)
+                }
+            } catch (error) {
+                console.error('Failed to auto-join rooms for account:', account._id, error.message)
+            }
+        }
 
         socket.on('join:order', (orderId) => {
             socket.join(`order:${orderId}`)
@@ -134,7 +143,7 @@ app.createSocketServer = function (server) {
         })
 
         socket.on('disconnect', () => {
-            console.log('A user disconnected:', socket.id)
+            console.log('A account disconnected:', socket.id)
         })
     })
 }
