@@ -11,6 +11,7 @@ export const useAccountStore = defineStore('account', {
         role: (state) => state.user?.role || null,
         isCustomer: (state) => state.user?.role === 'customer',
         isEmployee: (state) => state.user?.role === 'employee',
+        isAdmin: (state) => state.user?.role === 'admin',
         companyId: (state) => state.profile?.company || null,
         customerId: (state) => state.profile?._id || null,
     },

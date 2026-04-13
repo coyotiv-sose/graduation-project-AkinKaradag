@@ -15,6 +15,8 @@ router.get('/session', async(req, res, next) => {
         } else if (req.user.role === 'employee') {
             const employee = await employeeManager.getEmployeeByAccountId(req.user._id)
             response.profile = employee
+        } else if (req.user.role === 'admin') {
+            response.profile = null
         }
     } catch {
         response.profile = null
@@ -30,6 +32,15 @@ router.post('/', async(req, res, next) => {
             result = await customerManager.createCustomer(req.body)
         } else if (role === 'employee') {
             result = await employeeManager.createEmployee(req.body)
+        } else if (role === 'admin') {
+            const Account = require('../models/account')
+            const exist = await Account.findOne({ email: req.body.email })
+            if (exist) throw new Error('Email already registered')
+            const account = await Account.register(new Account({
+                email: req.body.email,
+                role: 'admin',
+            }), req.body.password)
+            result = account
         } else {
             return res.status(400).json({ error: 'Invalid role' })
         }
