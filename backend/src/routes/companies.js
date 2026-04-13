@@ -9,24 +9,6 @@ const orderManager = require('../managers/order-manager')
 const vehicleManager = require('../managers/vehicle-manager')
 const tourManager = require('../managers/tour-manager')
 
-router.post('/', async (req, res, next) => {
-  try {
-    const company = await LogisticCompany.create(req.body)
-    res.status(201).json(company)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
-  }
-})
-
-router.get('/', async (req, res, next) => {
-  try {
-    const companies = await LogisticCompany.find()
-    res.status(200).json(companies)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
-  }
-})
-
 router.post('/:companyId/customers', async (req, res, next) => {
   try {
     const customer = await customerManager.createCustomer({

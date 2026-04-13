@@ -15,7 +15,7 @@ export default {
     NotificationBell,
   },
   computed: {
-    ...mapState(useAccountStore, ['user', 'isCustomer', 'isEmployee', 'companyId', 'customerId']),
+    ...mapState(useAccountStore, ['user', 'isCustomer', 'isEmployee', 'isAdmin', 'companyId', 'customerId']),
   },
   methods: {
     ...mapActions(useAccountStore, ['fetchUser']),
@@ -70,6 +70,13 @@ header
               RouterLink.nav-link(:to="`/companies/${companyId}/orders`") Orders
             li.nav-item
               RouterLink.nav-link(:to="`/companies/${companyId}/vehicles`") Vehicles
+            li.nav-item
+              RouterLink.nav-link(to="/logout") Logout
+
+          //- Admin links
+          template(v-if="isAdmin")
+            li.nav-item
+              RouterLink.nav-link(to="/admin") Admin Dashboard
             li.nav-item
               RouterLink.nav-link(to="/logout") Logout
 

@@ -28,6 +28,7 @@ const vehiclesRouter = require('./routes/vehicles')
 const toursRouter = require('./routes/tours')
 const employeesRouter = require('./routes/employees')
 const accountsRouter = require('./routes/accounts')
+const adminRouter = require('./routes/admin')
 
 const app = express()
 
@@ -82,6 +83,7 @@ app.use('/vehicles', vehiclesRouter)
 app.use('/tours', toursRouter)
 app.use('/employees', employeesRouter)
 app.use('/accounts', accountsRouter)
+app.use('/admin', adminRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

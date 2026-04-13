@@ -7,12 +7,8 @@ export const useCompanyStore = defineStore('company', {
     }),
     actions: {
         async getAllCompanies() {
-            const { data } = await axios.get('/companies')
+            const { data } = await axios.get('/admin/companies')
             this.companies = data
         },
-        async createCompany(companyData) {
-            await axios.post('/companies', companyData)
-            await this.getAllCompanies()
-        }
     }
 })
