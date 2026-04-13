@@ -11,6 +11,10 @@ export default {
       showCompanyForm: false,
       editingCompany: null,
       companyForm: { companyName: '', address: '', postalCode: '', city: '' },
+      editingCustomer: null,
+      customerForm: { customerName: '' },
+      editingOrder: null,
+      orderForm: { origin: '', destination: '', state: '', deliveryDate: '' },
       error: null,
     }
   },
@@ -19,7 +23,11 @@ export default {
     ...mapState(useAdminStore, ['companies', 'allCustomers', 'allOrders']),
   },
   methods: {
-    ...mapActions(useAdminStore, ['getAllCompanies', 'createCompany', 'updateCompany', 'deleteCompany', 'getAllCustomers', 'getAllOrders']),
+    ...mapActions(useAdminStore, [
+      'getAllCompanies', 'createCompany', 'updateCompany', 'deleteCompany',
+      'getAllCustomers', 'updateCustomer', 'deleteCustomer',
+      'getAllOrders', 'updateOrder', 'deleteOrder',
+    ]),
     openCreateCompany() {
       this.editingCompany = null
       this.companyForm = { companyName: '', address: '', postalCode: '', city: '' }
@@ -63,8 +71,62 @@ export default {
     cancelForm() {
       this.showCompanyForm = false
       this.editingCompany = null
+      this.editingCustomer = null
+      this.editingOrder = null
       this.error = null
     },
+    // ---- Customers ----
+    openEditCustomer(customer) {
+      this.editingCustomer = customer._id
+      this.customerForm = { customerName: customer.customerName }
+      this.error = null
+    },
+    async submitCustomer() {
+      try {
+        this.error = null
+        await this.updateCustomer(this.editingCustomer, this.customerForm)
+        this.editingCustomer = null
+      } catch (err) {
+        this.error = err.response?.data?.error || err.message
+      }
+    },
+    async removeCustomer(customerId) {
+      if (!confirm('Are you sure you want to delete this customer and their account?')) return
+      try {
+        await this.deleteCustomer(customerId)
+      } catch (err) {
+        this.error = err.response?.data?.error || err.message
+      }
+    },
+    // ---- Orders ----
+    openEditOrder(order) {
+      this.editingOrder = order._id
+      this.orderForm = {
+        origin: order.origin,
+        destination: order.destination,
+        state: order.state,
+        deliveryDate: order.deliveryDate ? order.deliveryDate.substring(0, 10) : '',
+      }
+      this.error = null
+    },
+    async submitOrder() {
+      try {
+        this.error = null
+        await this.updateOrder(this.editingOrder, this.orderForm)
+        this.editingOrder = null
+      } catch (err) {
+        this.error = err.response?.data?.error || err.message
+      }
+    },
+    async removeOrder(orderId) {
+      if (!confirm('Are you sure you want to delete this order?')) return
+      try {
+        await this.deleteOrder(orderId)
+      } catch (err) {
+        this.error = err.response?.data?.error || err.message
+      }
+    },
+
     formatDate(date) {
       if (!date) return '—'
       return new Date(date).toLocaleDateString()
@@ -161,17 +223,55 @@ main(v-if="isAdmin")
             th Name
             th Email
             th Company
+            th Actions
         tbody
           tr(v-for="customer in allCustomers" :key="customer._id")
-            td {{ customer.customerName }}
+            td
+              template(v-if="editingCustomer === customer._id")
+                input.form-control.form-control-sm(v-model="customerForm.customerName")
+              template(v-else) {{ customer.customerName }}
             td {{ customer.account?.email }}
             td
               router-link(v-if="customer.company" :to="`/companies/${customer.company._id || customer.company}`") {{ customer.company.companyName || customer.company }}
               span(v-else) —
+            td
+              template(v-if="editingCustomer === customer._id")
+                .btn-group.btn-group-sm
+                  button.btn.btn-success(@click="submitCustomer") Save
+                  button.btn.btn-outline-secondary(@click="editingCustomer = null") Cancel
+              template(v-else)
+                .btn-group.btn-group-sm
+                  button.btn.btn-outline-primary(@click="openEditCustomer(customer)") Edit
+                  button.btn.btn-outline-danger(@click="removeCustomer(customer._id)") Delete
 
   //- Orders Tab
   section(v-if="activeTab === 'orders'")
     h2 All Orders
+    //- Inline edit form
+    .card.mb-3(v-if="editingOrder")
+      .card-body
+        h5.card-title Edit Order
+        form(@submit.prevent="submitOrder")
+          .row.mb-2
+            .col
+              label.form-label Origin
+              input.form-control(v-model="orderForm.origin" required)
+            .col
+              label.form-label Destination
+              input.form-control(v-model="orderForm.destination" required)
+          .row.mb-2
+            .col
+              label.form-label Delivery Date
+              input.form-control(v-model="orderForm.deliveryDate" type="date" required)
+            .col
+              label.form-label State
+              select.form-select(v-model="orderForm.state")
+                option(value="PENDING") PENDING
+                option(value="IN_PROCESS") IN_PROCESS
+                option(value="DELIVERED") DELIVERED
+          .d-flex.gap-2
+            button.btn.btn-success(type="submit") Save
+            button.btn.btn-outline-secondary(type="button" @click="editingOrder = null") Cancel
     .table-responsive
       table.table.table-hover
         thead
@@ -181,6 +281,7 @@ main(v-if="isAdmin")
             th Customer
             th Delivery Date
             th State
+            th Actions
         tbody
           tr(v-for="order in allOrders" :key="order._id")
             td {{ order.origin }}
@@ -189,6 +290,10 @@ main(v-if="isAdmin")
             td {{ formatDate(order.deliveryDate) }}
             td
               span.badge(:class="stateBadgeClass(order.state)") {{ order.state }}
+            td
+              .btn-group.btn-group-sm
+                button.btn.btn-outline-primary(@click="openEditOrder(order)") Edit
+                button.btn.btn-outline-danger(@click="removeOrder(order._id)") Delete
 
 main(v-else)
   .alert.alert-warning.mt-4 You do not have admin access.
