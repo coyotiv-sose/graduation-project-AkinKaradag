@@ -32,8 +32,8 @@ const adminRouter = require('./routes/admin')
 
 const app = express()
 
-const allowedOrigins = process.env.FRONENTEND_URL
-    ? process.env.FRONENTEND_URL.split(',')
+const allowedOrigins = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',')
     : []
 
 app.use(
