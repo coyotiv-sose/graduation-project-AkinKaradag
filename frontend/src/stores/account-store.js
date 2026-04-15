@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { useSocketStore } from './socket-store'
 
 export const useAccountStore = defineStore('account', {
     state: () => ({
@@ -34,11 +35,15 @@ export const useAccountStore = defineStore('account', {
         async login(email, password) {
             await axios.post('/accounts/session', { email, password })
             await this.fetchUser()
+            const socketStore = useSocketStore()
+            socketStore.connect()
         },
         async register(payload) {
             await axios.post('/accounts', payload)
         },
         async logout() {
+            const socketStore = useSocketStore()
+            socketStore.disconnect()
             await axios.delete('/accounts/session')
             this.user = null
             this.profile = null
