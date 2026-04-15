@@ -1,11 +1,9 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useThemeStore } from '@/stores/theme-store'
-import { Sun, Moon } from 'lucide-vue-next'
 
 export default {
   name: 'ThemeToggle',
-  components: { Sun, Moon },
   computed: {
     ...mapState(useThemeStore, ['isDark']),
   },
@@ -15,84 +13,66 @@ export default {
 }
 </script>
 
-<template>
-  <button
-    type="button"
-    class="theme-toggle"
-    :class="{ 'theme-toggle--dark': isDark }"
-    :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-    :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-    @click="toggleTheme"
-  >
-    <span class="theme-toggle__icon theme-toggle__icon--sun">
-      <Sun :size="14" :stroke-width="2" />
-    </span>
-    <span class="theme-toggle__icon theme-toggle__icon--moon">
-      <Moon :size="14" :stroke-width="2" />
-    </span>
-    <span class="theme-toggle__thumb" />
-  </button>
+<template lang="pug">
+button.theme-toggle(
+  @click="toggleTheme"
+  :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+  :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+)
+  .toggle-track(:class="{ dark: isDark }")
+    span.toggle-icon.sun 🌞
+    span.toggle-icon.moon 🌙
+    .toggle-thumb(:class="{ dark: isDark }")
 </template>
 
 <style scoped>
 .theme-toggle {
-  position: relative;
-  width: 54px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  background: var(--color-background-hover);
-  border-radius: var(--radius-pill);
+  background: none;
+  border: none;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  transition: background-color var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease);
-  flex-shrink: 0;
-}
-
-.theme-toggle:hover {
-  border-color: var(--color-border-hover);
-}
-
-.theme-toggle__icon {
-  position: relative;
-  z-index: 2;
-  width: 26px;
-  height: 26px;
+  padding: 4px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
-  transition: color var(--duration-fast) var(--ease);
 }
 
-.theme-toggle__icon--sun {
-  color: var(--color-warning);
+.toggle-track {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: #e0e0e0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+  transition: background-color 0.3s ease;
 }
 
-.theme-toggle--dark .theme-toggle__icon--sun {
-  color: var(--color-text-muted);
+.toggle-track.dark {
+  background: #3a3a5c;
 }
 
-.theme-toggle--dark .theme-toggle__icon--moon {
-  color: var(--color-primary);
+.toggle-icon {
+  font-size: 14px;
+  line-height: 1;
+  z-index: 1;
+  user-select: none;
 }
 
-.theme-toggle__thumb {
+.toggle-thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 3px;
+  left: 3px;
   width: 22px;
   height: 22px;
+  background: #ffffff;
   border-radius: 50%;
-  background: var(--color-background-card);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--duration) var(--ease);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
-.theme-toggle--dark .theme-toggle__thumb {
+.toggle-thumb.dark {
   transform: translateX(24px);
+  background: #1e1e2e;
 }
 </style>

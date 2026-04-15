@@ -3,11 +3,9 @@ import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useVehicleStore } from '@/stores/vehicle-store'
 import { useTourStore } from '@/stores/tour-store'
-import { Plus, Trash2, Truck, Package, Route, ChevronRight } from 'lucide-vue-next'
 
 export default {
   name: 'DispatcherDashboard',
-  components: { Plus, Trash2, Truck, Package, Route, ChevronRight },
   props: {
     companyId: {
       type: String,
@@ -65,33 +63,19 @@ export default {
     formatDate(date) {
       return new Date(date).toLocaleDateString()
     },
-    orderBadgeClass(state) {
+    stateClass(state) {
       return {
-        PENDING: 'kl-badge kl-badge--warning',
-        IN_PROCESS: 'kl-badge kl-badge--info',
-        DELIVERED: 'kl-badge kl-badge--primary',
-      }[state] || 'kl-badge kl-badge--muted'
-    },
-    vehicleBadgeClass(state) {
-      return {
-        AVAILABLE: 'kl-badge kl-badge--primary',
-        ON_TOUR: 'kl-badge kl-badge--info',
-        IN_GARAGE: 'kl-badge kl-badge--danger',
-        DAMAGED: 'kl-badge kl-badge--danger',
-        PARKED: 'kl-badge kl-badge--muted',
-        SOLD: 'kl-badge kl-badge--muted',
-      }[state] || 'kl-badge kl-badge--muted'
-    },
-    tourBadgeClass(state) {
-      return {
-        PLANNED: 'kl-badge kl-badge--warning',
-        STARTED: 'kl-badge kl-badge--info',
-        FINISHED: 'kl-badge kl-badge--primary',
-        CANCELLED: 'kl-badge kl-badge--danger',
-      }[state] || 'kl-badge kl-badge--muted'
-    },
-    vehicleName(v) {
-      return v.name || `${v.brand} ${v.model}`
+        'PENDING': 'badge-pending',
+        'IN_PROCESS': 'badge-process',
+        'DELIVERED': 'badge-delivered',
+        'AVAILABLE': 'badge-available',
+        'ON_TOUR': 'badge-ontour',
+        'IN_GARAGE': 'badge-garage',
+        'PLANNED': 'badge-pending',
+        'STARTED': 'badge-process',
+        'FINISHED': 'badge-delivered',
+        'CANCELLED': 'badge-garage',
+      }[state] || ''
     },
     async handleCreateTour() {
       this.errorMessage = ''
@@ -150,522 +134,239 @@ export default {
 }
 </script>
 
-<template>
-  <div class="dispatcher">
-    <div v-if="errorMessage" class="kl-alert kl-alert--danger">{{ errorMessage }}</div>
+<template lang="pug">
+.dispatcher-dashboard
+  h2 Planning Panel
 
-    <section class="kpi-row">
-      <div class="kpi">
-        <div class="kpi__icon"><Package :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Pending orders</div>
-          <div class="kpi__value">{{ pendingOrders.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon kpi__icon--info"><Route :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Active tours</div>
-          <div class="kpi__value">{{ startedTours.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon kpi__icon--warn"><Route :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Planned tours</div>
-          <div class="kpi__value">{{ plannedTours.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon kpi__icon--info"><Truck :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Available fleet</div>
-          <div class="kpi__value">{{ availableVehicles.length }} / {{ vehicles.length }}</div>
-        </div>
-      </div>
-    </section>
+  p.error(v-if='errorMessage') {{ errorMessage }}
 
-    <div class="dispatcher__grid">
-      <!-- LEFT: Pending orders -->
-      <section class="kl-card kl-card--flush panel">
-        <div class="kl-card-header">
-          <div>
-            <h3>Pending orders</h3>
-            <p class="kl-muted panel__sub">Orders awaiting tour assignment</p>
-          </div>
-          <span class="kl-badge kl-badge--warning">{{ pendingOrders.length }}</span>
-        </div>
-        <ul class="panel__list">
-          <li v-for="order in pendingOrders" :key="order._id" class="order-item">
-            <div class="order-item__row">
-              <span class="order-item__id">#{{ order._id.slice(-5) }}</span>
-              <span :class="orderBadgeClass(order.state)">{{ order.state }}</span>
-            </div>
-            <div class="order-item__route">
-              {{ order.origin }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ order.destination }}
-            </div>
-            <div class="order-item__meta">
-              <span>{{ order.cargos.length }} cargo(s)</span>
-              <span>&middot;</span>
-              <span>{{ formatDate(order.deliveryDate) }}</span>
-            </div>
-            <div class="order-item__actions">
-              <router-link :to="`/orders/${order._id}`" class="kl-btn kl-btn--outline kl-btn--sm">
-                Details
-              </router-link>
-              <button
-                type="button"
-                class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                title="Delete"
-                @click="deleteOrder(order._id)"
-              >
-                <Trash2 :size="14" :stroke-width="1.75" />
-              </button>
-            </div>
-          </li>
-          <li v-if="!pendingOrders.length" class="panel__empty">No pending orders.</li>
-        </ul>
+  .panel-top
+    //- LEFT: Orders
+    .panel-orders.card
+      .card-header
+        h3.mb-0 Orders
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action(v-for='order in pendingOrders' :key='order._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold \#{{ order._id.slice(-5) }}
+            span.badge(:class='stateClass(order.state)') {{ order.state }}
+          .d-flex.justify-content-between.align-items-center.mt-1
+            span {{ order.origin }} → {{ order.destination }}
+            small {{ order.cargos.length }} cargo(s) · {{ formatDate(order.deliveryDate) }}
+          .d-flex.gap-2.mt-2
+            router-link(:to='`/orders/${order._id}`')
+              button.btn.btn-outline-success.btn-sm Details
+            button.btn.btn-danger.btn-sm(@click='deleteOrder(order._id)') Delete
+      .card-body(v-if='!pendingOrders.length')
+        p.text-secondary.mb-0 No pending orders
 
-        <template v-if="inProcessOrders.length">
-          <div class="panel__subheader">In process</div>
-          <ul class="panel__list">
-            <li v-for="order in inProcessOrders" :key="order._id" class="order-item order-item--active">
-              <div class="order-item__row">
-                <span class="order-item__id">#{{ order._id.slice(-5) }}</span>
-                <span :class="orderBadgeClass(order.state)">{{ order.state }}</span>
-              </div>
-              <div class="order-item__route">
-                {{ order.origin }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ order.destination }}
-              </div>
-              <div class="order-item__meta">
-                <span>{{ order.cargos.length }} cargo(s)</span>
-                <span>&middot;</span>
-                <span>{{ formatDate(order.deliveryDate) }}</span>
-              </div>
-            </li>
-          </ul>
-        </template>
-      </section>
+      template(v-if='inProcessOrders.length')
+        .card-header
+          h4.mb-0 In Process
+        .list-group.list-group-flush
+          .list-group-item.list-group-item-action.active(v-for='order in inProcessOrders' :key='order._id')
+            .d-flex.justify-content-between.align-items-center
+              span.fw-semibold \#{{ order._id.slice(-5) }}
+              span.badge.bg-warning.text-dark {{ order.state }}
+            .d-flex.justify-content-between.align-items-center.mt-1
+              span {{ order.origin }} → {{ order.destination }}
+              small {{ order.cargos.length }} cargo(s) · {{ formatDate(order.deliveryDate) }}
 
-      <!-- RIGHT: Fleet -->
-      <section class="kl-card kl-card--flush panel">
-        <div class="kl-card-header">
-          <div>
-            <h3>Active fleet</h3>
-            <p class="kl-muted panel__sub">Vehicle states across your company</p>
-          </div>
-          <router-link :to="`/companies/${companyId}/vehicles`" class="kl-btn kl-btn--ghost kl-btn--sm">
-            Manage
-          </router-link>
-        </div>
-        <ul class="panel__list">
-          <li v-for="vehicle in vehicles" :key="vehicle._id" class="vehicle-item">
-            <div class="vehicle-item__row">
-              <div class="vehicle-item__head">
-                <span class="vehicle-item__name">{{ vehicleName(vehicle) }}</span>
-                <span class="vehicle-item__meta">
-                  {{ vehicle.brand }} {{ vehicle.model }} &middot; {{ vehicle.payLoad }} kg
-                </span>
-              </div>
-              <span :class="vehicleBadgeClass(vehicle.state)">{{ vehicle.state }}</span>
-            </div>
-          </li>
-          <li v-if="!vehicles.length" class="panel__empty">No vehicles registered.</li>
-        </ul>
-      </section>
-    </div>
+    //- RIGHT: Vehicles
+    .panel-vehicles.card
+      .card-header
+        h3.mb-0 Vehicles
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action(v-for='vehicle in vehicles' :key='vehicle._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold {{ vehicle.name || vehicle.brand + ' ' + vehicle.model }}
+            span.badge(:class='stateClass(vehicle.state)') {{ vehicle.state }}
+          small.text-secondary {{ vehicle.payLoad }} kg capacity
+      .card-body(v-if='!vehicles.length')
+        p.text-secondary.mb-0 No vehicles registered
+      .card-footer
+        router-link.btn.btn-outline-success.btn-sm(:to='`/companies/${companyId}/vehicles`') Manage Vehicles
 
-    <!-- BOTTOM: Tours -->
-    <section class="kl-card kl-card--flush panel">
-      <div class="kl-card-header">
-        <div>
-          <h3>Tours</h3>
-          <p class="kl-muted panel__sub">Plan, assign and start delivery tours</p>
-        </div>
-        <button type="button" class="kl-btn kl-btn--primary kl-btn--sm" @click="showTourForm = !showTourForm">
-          <Plus :size="14" :stroke-width="2" />
-          {{ showTourForm ? 'Cancel' : 'New tour' }}
-        </button>
-      </div>
+  //- BOTTOM: Tours
+  .card.panel-tours
+    .card-header.d-flex.justify-content-between.align-items-center
+      h3.mb-0 Tours
+      button.btn.btn-success.btn-sm(@click='showTourForm = !showTourForm') {{ showTourForm ? 'Cancel' : '+ New Tour' }}
 
-      <div v-if="showTourForm" class="inline-form">
-        <form class="tour-form" @submit.prevent="handleCreateTour">
-          <div class="kl-field">
-            <label class="kl-label">Date</label>
-            <input v-model="tourForm.date" class="kl-input" type="date" required />
-          </div>
-          <div class="kl-field">
-            <label class="kl-label">Start location</label>
-            <input v-model="tourForm.startLocation" class="kl-input" placeholder="Depot" required />
-          </div>
-          <div class="kl-field">
-            <label class="kl-label">End location</label>
-            <input v-model="tourForm.endLocation" class="kl-input" placeholder="Destination" required />
-          </div>
-          <button type="submit" class="kl-btn kl-btn--primary">Create tour</button>
-        </form>
-      </div>
+    //- Create Tour Form
+    .card-body(v-if='showTourForm')
+      form.tour-form(@submit.prevent='handleCreateTour')
+        input(v-model='tourForm.date' type='date' placeholder='Tour Date' required)
+        input(v-model='tourForm.startLocation' placeholder='Start Location' required)
+        input(v-model='tourForm.endLocation' placeholder='End Location' required)
+        button.btn.btn-success.btn-sm(type='submit') Create Tour
 
-      <template v-if="plannedTours.length">
-        <div class="panel__subheader">Planned</div>
-        <ul class="panel__list panel__list--tours">
-          <li v-for="tour in plannedTours" :key="tour._id" class="tour-item">
-            <div class="tour-item__head">
-              <div class="tour-item__route">
-                {{ tour.startLocation }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ tour.endLocation }}
-              </div>
-              <span :class="tourBadgeClass(tour.state)">{{ tour.state }}</span>
-            </div>
-            <div class="tour-item__meta">
-              <span>{{ formatDate(tour.date) }}</span>
-              <span>&middot;</span>
-              <span v-if="tour.vehicle">Vehicle: {{ vehicleName(tour.vehicle) }}</span>
-              <span v-else>No vehicle assigned</span>
-            </div>
-            <div v-if="tour.orders && tour.orders.length" class="tour-item__orders">
-              <div class="tour-item__orders-label">Orders</div>
-              <div v-for="order in tour.orders" :key="order._id" class="mini-order">
-                {{ order.origin }} <ChevronRight :size="12" :stroke-width="1.75" /> {{ order.destination }}
-              </div>
-            </div>
-            <div class="tour-item__actions">
-              <button type="button" class="kl-btn kl-btn--outline kl-btn--sm" @click="openAssignOrder(tour._id)">
-                <Plus :size="14" :stroke-width="2" /> Add order
-              </button>
-              <select
-                v-if="!tour.vehicle && availableVehicles.length"
-                class="kl-select kl-input--sm"
-                @change="handleAssignVehicle(tour._id, $event.target.value); $event.target.value=''"
-              >
-                <option value="" disabled selected>Assign vehicle</option>
-                <option v-for="v in availableVehicles" :key="v._id" :value="v._id">
-                  {{ vehicleName(v) }}
-                </option>
-              </select>
-              <button
-                v-if="tour.vehicle && tour.orders && tour.orders.length"
-                type="button"
-                class="kl-btn kl-btn--primary kl-btn--sm"
-                @click="updateTourState(tour._id, 'STARTED')"
-              >
-                Start tour
-              </button>
-            </div>
-          </li>
-        </ul>
-      </template>
+    //- Planned Tours
+    template(v-if='plannedTours.length')
+      .card-header
+        h4.mb-0 Planned
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action(v-for='tour in plannedTours' :key='tour._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold {{ tour.startLocation }} → {{ tour.endLocation }}
+            span.badge(:class='stateClass(tour.state)') {{ tour.state }}
+          small.text-secondary {{ formatDate(tour.date) }}
+          small.text-secondary(v-if='tour.vehicle')
+            |  · Vehicle: {{ tour.vehicle.name || tour.vehicle.brand + ' ' + tour.vehicle.model }}
+          small.text-secondary(v-else)  · No vehicle assigned
 
-      <template v-if="startedTours.length">
-        <div class="panel__subheader">Active</div>
-        <ul class="panel__list panel__list--tours">
-          <li v-for="tour in startedTours" :key="tour._id" class="tour-item tour-item--active">
-            <div class="tour-item__head">
-              <div class="tour-item__route">
-                {{ tour.startLocation }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ tour.endLocation }}
-              </div>
-              <span :class="tourBadgeClass(tour.state)">{{ tour.state }}</span>
-            </div>
-            <div class="tour-item__meta">
-              <span>{{ formatDate(tour.date) }}</span>
-              <span v-if="tour.vehicle">&middot;</span>
-              <span v-if="tour.vehicle">Vehicle: {{ vehicleName(tour.vehicle) }}</span>
-            </div>
-            <div v-if="tour.orders && tour.orders.length" class="tour-item__orders">
-              <div class="tour-item__orders-label">Orders</div>
-              <div v-for="order in tour.orders" :key="order._id" class="mini-order">
-                {{ order.origin }} <ChevronRight :size="12" :stroke-width="1.75" /> {{ order.destination }}
-                <span class="mini-order__state">&middot; {{ order.state }}</span>
-              </div>
-            </div>
-            <div class="tour-item__actions">
-              <button
-                type="button"
-                class="kl-btn kl-btn--outline kl-btn--sm"
-                @click="updateTourState(tour._id, 'FINISHED')"
-              >
-                Finish tour
-              </button>
-            </div>
-          </li>
-        </ul>
-      </template>
+          .tour-orders(v-if='tour.orders && tour.orders.length')
+            p.mb-1.fw-semibold.small Orders:
+            .mini-order(v-for='order in tour.orders' :key='order._id')
+              | {{ order.origin }} → {{ order.destination }}
 
-      <div v-if="!tours.length" class="panel__empty panel__empty--big">No tours yet.</div>
-    </section>
+          .d-flex.gap-2.mt-2.align-items-center
+            button.btn.btn-outline-success.btn-sm(@click='openAssignOrder(tour._id)') + Add Order
+            select.form-select.form-select-sm.w-auto(
+              v-if='!tour.vehicle && availableVehicles.length'
+              @change='handleAssignVehicle(tour._id, $event.target.value); $event.target.value=""'
+            )
+              option(value='' disabled selected) Assign Vehicle
+              option(v-for='v in availableVehicles' :key='v._id' :value='v._id')
+                | {{ v.name || v.brand + ' ' + v.model }}
+            button.btn.btn-success.btn-sm(
+              v-if='tour.vehicle && tour.orders && tour.orders.length'
+              @click='updateTourState(tour._id, "STARTED")'
+            ) Start Tour
 
-    <!-- Assign modal -->
-    <div v-if="assignModal.visible" class="kl-modal-overlay" @click.self="assignModal.visible = false">
-      <div class="kl-modal">
-        <div class="kl-modal-header">
-          <h3>Assign order</h3>
-        </div>
-        <div class="kl-modal-body">
-          <div class="kl-field">
-            <label class="kl-label">Select an order</label>
-            <select v-model="assignModal.orderId" class="kl-select">
-              <option disabled value="">Select an order</option>
-              <option v-for="order in pendingOrders" :key="order._id" :value="order._id">
-                {{ order.origin }} -> {{ order.destination }} ({{ formatDate(order.deliveryDate) }})
-              </option>
-            </select>
-          </div>
-        </div>
-        <div class="kl-modal-footer">
-          <button type="button" class="kl-btn kl-btn--ghost" @click="assignModal.visible = false">
-            Cancel
-          </button>
-          <button
-            type="button"
-            class="kl-btn kl-btn--primary"
-            :disabled="!assignModal.orderId"
-            @click="assignOrderToTour"
-          >
-            Assign
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+    //- Started Tours
+    template(v-if='startedTours.length')
+      .card-header
+        h4.mb-0 Active Tours
+      .list-group.list-group-flush
+        .list-group-item.list-group-item-action.active(v-for='tour in startedTours' :key='tour._id')
+          .d-flex.justify-content-between.align-items-center
+            span.fw-semibold {{ tour.startLocation }} → {{ tour.endLocation }}
+            span.badge.bg-light.text-dark {{ tour.state }}
+          small {{ formatDate(tour.date) }}
+          small(v-if='tour.vehicle')
+            |  · Vehicle: {{ tour.vehicle.name || tour.vehicle.brand + ' ' + tour.vehicle.model }}
+          .tour-orders(v-if='tour.orders && tour.orders.length')
+            p.mb-1.fw-semibold.small Orders:
+            .mini-order(v-for='order in tour.orders' :key='order._id')
+              | {{ order.origin }} → {{ order.destination }} · {{ order.state }}
+          .mt-2
+            button.btn.btn-light.btn-sm(@click='updateTourState(tour._id, "FINISHED")') Finish Tour
+
+    .card-body(v-if='!tours.length')
+      p.text-secondary.mb-0 No tours yet
+
+  //- Assign Order Modal
+  .modal-overlay(v-if='assignModal.visible' @click.self='assignModal.visible = false')
+    .modal
+      h3 Assign Order to Tour
+      select(v-model='assignModal.orderId')
+        option(disabled value='') Select an order
+        option(v-for='order in pendingOrders' :key='order._id' :value='order._id')
+          | {{ order.origin }} → {{ order.destination }} ({{ formatDate(order.deliveryDate) }})
+      .modal-actions
+        button.btn-primary(:disabled='!assignModal.orderId' @click='assignOrderToTour') Assign
+        button(@click='assignModal.visible = false') Cancel
 </template>
 
 <style scoped>
-.dispatcher {
+@import '@/assets/shared.css';
+
+.dispatcher-dashboard {
   width: 100%;
+}
+
+h2 {
+  margin-bottom: 1rem;
+}
+
+.panel-top {
   display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.85rem;
+.panel-orders,
+.panel-vehicles {
+  flex: 1;
+  max-height: 500px;
+  overflow-y: auto;
 }
 
-.kpi {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 1rem 1.15rem;
-  background: var(--color-background-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-}
-
-.kpi__icon {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.kpi__icon--info  { background: var(--color-info-soft);    color: var(--color-info); }
-.kpi__icon--warn  { background: var(--color-warning-soft); color: var(--color-warning); }
-
-.kpi__label {
-  font-size: 0.72rem;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-}
-
-.kpi__value {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--color-heading);
-  letter-spacing: -0.01em;
-  margin-top: 0.1rem;
-}
-
-.dispatcher__grid {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 1.25rem;
-}
-
-.panel__sub {
-  margin: 0.25rem 0 0;
-  font-size: 0.8rem;
-}
-
-.panel__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.panel__list--tours {
-  padding: 0.5rem 0;
-}
-
-.panel__subheader {
-  padding: 0.6rem 1.25rem;
-  background: var(--color-background-subtle);
-  border-top: 1px solid var(--color-border);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.panel__empty {
-  padding: 1.5rem 1.25rem;
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-  font-style: italic;
-  text-align: center;
-}
-
-.panel__empty--big {
-  padding: 3rem 1.25rem;
-}
-
-.order-item,
-.vehicle-item,
-.tour-item {
-  padding: 0.9rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.order-item:last-child,
-.vehicle-item:last-child,
-.tour-item:last-child {
-  border-bottom: none;
-}
-
-.order-item__row,
-.vehicle-item__row,
-.tour-item__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.order-item__id {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-}
-
-.order-item__route,
-.tour-item__route {
-  font-weight: 500;
-  color: var(--color-heading);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.order-item__meta,
-.tour-item__meta {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.order-item__actions,
-.tour-item__actions {
+.tour-form {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin-top: 0.4rem;
-  align-items: center;
 }
 
-.order-item--active,
-.tour-item--active {
-  background: var(--color-primary-softer);
+.tour-form input {
+  padding: 0.5rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  background: var(--color-input-bg);
+  color: var(--color-text);
 }
 
-.vehicle-item__head {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.vehicle-item__name {
-  font-weight: 500;
-  color: var(--color-heading);
-}
-
-.vehicle-item__meta {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-}
-
-.tour-item__orders {
-  margin-top: 0.3rem;
-  padding-left: 0.75rem;
-  border-left: 2px solid var(--color-primary-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.tour-item__orders-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin-bottom: 0.2rem;
+.tour-orders {
+  margin-top: 0.5rem;
+  padding-left: 0.5rem;
 }
 
 .mini-order {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
-  display: inline-flex;
+  padding: 0.2rem 0;
+  border-left: 2px solid var(--color-primary);
+  padding-left: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.list-group-item.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.list-group-item.active .mini-order {
+  color: rgba(255, 255, 255, 0.8);
+  border-left-color: rgba(255, 255, 255, 0.5);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
   align-items: center;
-  gap: 0.3rem;
-  flex-wrap: wrap;
+  justify-content: center;
+  z-index: 100;
 }
 
-.mini-order__state {
-  font-weight: 500;
-  color: var(--color-text);
+.modal {
+  background: var(--color-background-card);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  min-width: 400px;
+  box-shadow: var(--shadow-md);
 }
 
-.inline-form {
-  padding: 1.25rem;
-  background: var(--color-background-subtle);
-  border-bottom: 1px solid var(--color-border);
+.modal h3 {
+  margin-bottom: 1rem;
 }
 
-.tour-form {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-  gap: 0.85rem;
-  align-items: end;
+.modal select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
 }
 
-.danger-icon:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
-}
-
-@media (max-width: 960px) {
-  .kpi-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .dispatcher__grid {
-    grid-template-columns: 1fr;
-  }
-  .tour-form {
-    grid-template-columns: 1fr;
-  }
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 </style>

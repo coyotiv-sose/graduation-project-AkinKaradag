@@ -1,10 +1,7 @@
 <script>
 import VehicleManagement from '@/components/vehicle-management.vue'
-import PageHeader from '@/components/page-header.vue'
-
 export default {
-  name: 'VehicleView',
-  components: { VehicleManagement, PageHeader },
+  components: { VehicleManagement },
   computed: {
     companyId() {
       return this.$route.params.companyId
@@ -14,21 +11,19 @@ export default {
 </script>
 
 <template>
-  <div class="vehicle-view">
-    <PageHeader
-      title="Manage vehicles"
-      subtitle="Add vehicles to your fleet and adjust their state."
-      :back-to="`/companies/${companyId}`"
-      back-label="Back to company"
-    />
+  <main>
+    <h1>Manage Vehicles</h1>
+    <router-link :to="`/companies/${companyId}`">← Back to Company</router-link>
     <Suspense>
-      <VehicleManagement :company-id="companyId" />
+      <VehicleManagement :companyId="companyId" />
     </Suspense>
-  </div>
+  </main>
 </template>
 
 <style scoped>
-.vehicle-view {
-  padding-bottom: 2rem;
+main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 </style>
