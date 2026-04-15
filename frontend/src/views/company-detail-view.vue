@@ -1,10 +1,10 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useCompanyStore } from '@/stores/companyStore'
-import { useCustomerStore } from '@/stores/customerStore'
-import { useEmployeeStore } from '@/stores/employeeStore'
-import { useAccountStore } from '@/stores/accountStore'
-import { useAdminStore } from '@/stores/adminStore'
+import { useCompanyStore } from '@/stores/company-store'
+import { useCustomerStore } from '@/stores/customer-store'
+import { useEmployeeStore } from '@/stores/employee-store'
+import { useAccountStore } from '@/stores/account-store'
+import { useAdminStore } from '@/stores/admin-store'
 
 export default {
   name: 'CompanyDetailView',

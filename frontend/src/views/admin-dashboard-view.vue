@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useAdminStore } from '@/stores/adminStore'
-import { useAccountStore } from '@/stores/accountStore'
+import { useAdminStore } from '@/stores/admin-store'
+import { useAccountStore } from '@/stores/account-store'
 
 export default {
   name: 'AdminDashboardView',

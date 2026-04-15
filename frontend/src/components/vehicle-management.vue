@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useVehicleStore } from '@/stores/vehicleStore'
-import CreateFormWrapper from './CreateFormWrapper.vue'
+import { useVehicleStore } from '@/stores/vehicle-store'
+import CreateFormWrapper from './create-form-wrapper.vue'
 
 export default {
   name: 'VehicleManagement',

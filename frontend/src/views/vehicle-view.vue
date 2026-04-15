@@ -1,7 +1,7 @@
 <script>
-import DispatcherDashboard from '@/components/DispatcherDashboard.vue'
+import VehicleManagement from '@/components/vehicle-management.vue'
 export default {
-  components: { DispatcherDashboard },
+  components: { VehicleManagement },
   computed: {
     companyId() {
       return this.$route.params.companyId
@@ -12,16 +12,17 @@ export default {
 
 <template>
   <main>
+    <h1>Manage Vehicles</h1>
     <router-link :to="`/companies/${companyId}`">← Back to Company</router-link>
     <Suspense>
-      <DispatcherDashboard :companyId="companyId" />
+      <VehicleManagement :companyId="companyId" />
     </Suspense>
   </main>
 </template>
 
 <style scoped>
 main {
-  max-width: 1100px;
+  max-width: 700px;
   margin: 0 auto;
   padding: 2rem;
 }

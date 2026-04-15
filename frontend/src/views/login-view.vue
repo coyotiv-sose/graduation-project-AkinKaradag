@@ -1,6 +1,6 @@
 <script>
 import { mapActions } from 'pinia'
-import { useAccountStore } from '../stores/accountStore'
+import { useAccountStore } from '../stores/account-store'
 
 export default {
   name: 'LoginView',

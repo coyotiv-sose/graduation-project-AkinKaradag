@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useCompanyStore } from '@/stores/companyStore'
-import { useAccountStore } from '@/stores/accountStore'
+import { useCompanyStore } from '@/stores/company-store'
+import { useAccountStore } from '@/stores/account-store'
 
 export default {
   name: 'HomeView',

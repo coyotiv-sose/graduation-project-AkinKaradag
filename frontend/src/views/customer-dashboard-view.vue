@@ -1,7 +1,7 @@
 <script>
-import VehicleManagement from '@/components/VehicleManagement.vue'
+import Customer from '@/components/customer.vue'
 export default {
-  components: { VehicleManagement },
+  components: { Customer },
   computed: {
     companyId() {
       return this.$route.params.companyId
@@ -12,18 +12,10 @@ export default {
 
 <template>
   <main>
-    <h1>Manage Vehicles</h1>
+    <h1>Manage Customers</h1>
     <router-link :to="`/companies/${companyId}`">← Back to Company</router-link>
     <Suspense>
-      <VehicleManagement :companyId="companyId" />
+      <Customer :companyId="companyId" />
     </Suspense>
   </main>
 </template>
-
-<style scoped>
-main {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-</style>

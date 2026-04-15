@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useEmployeeStore } from '@/stores/employeeStore'
-import CreateFormWrapper from './CreateFormWrapper.vue'
+import { useEmployeeStore } from '@/stores/employee-store'
+import CreateFormWrapper from './create-form-wrapper.vue'
 
 export default {
     name: 'EmployeeForm',

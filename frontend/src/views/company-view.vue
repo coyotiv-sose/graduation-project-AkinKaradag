@@ -1,5 +1,5 @@
 <script>
-import Company from '@/components/Company.vue'
+import Company from '@/components/company.vue'
 export default {
   components: { Company },
 }

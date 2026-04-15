@@ -1,5 +1,5 @@
 <script>
-import Employee from '@/components/Employee.vue'
+import Employee from '@/components/employee.vue'
 export default {
   components: { Employee },
   computed: {
