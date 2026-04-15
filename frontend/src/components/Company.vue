@@ -1,7 +1,6 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useCompanyStore } from '@/stores/company-store'
-import { ChevronRight, Building2 } from 'lucide-vue-next'
 
 export default {
   name: 'CompanyList',

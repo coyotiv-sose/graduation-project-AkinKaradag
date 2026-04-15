@@ -1,10 +1,7 @@
 <script>
 import DispatcherDashboard from '@/components/dispatcher-dashboard.vue'
-import PageHeader from '@/components/page-header.vue'
-
 export default {
-  name: 'DispatcherDashboardView',
-  components: { DispatcherDashboard, PageHeader },
+  components: { DispatcherDashboard },
   computed: {
     companyId() {
       return this.$route.params.companyId
@@ -14,21 +11,18 @@ export default {
 </script>
 
 <template>
-  <div class="dispatcher-view">
-    <PageHeader
-      title="Dispatcher hub"
-      subtitle="Monitor pending orders, plan tours and assign vehicles in real time."
-      :back-to="`/companies/${companyId}`"
-      back-label="Back to company"
-    />
+  <main>
+    <router-link :to="`/companies/${companyId}`">← Back to Company</router-link>
     <Suspense>
-      <DispatcherDashboard :company-id="companyId" />
+      <DispatcherDashboard :companyId="companyId" />
     </Suspense>
-  </div>
+  </main>
 </template>
 
 <style scoped>
-.dispatcher-view {
-  padding-bottom: 2rem;
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 </style>

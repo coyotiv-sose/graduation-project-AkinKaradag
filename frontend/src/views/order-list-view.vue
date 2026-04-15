@@ -2,12 +2,9 @@
 import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useAccountStore } from '@/stores/account-store'
-import PageHeader from '@/components/page-header.vue'
-import { Plus, ChevronRight } from 'lucide-vue-next'
 
 export default {
   name: 'OrderListView',
-  components: { PageHeader, Plus, ChevronRight },
   computed: {
     ...mapState(useAccountStore, ['isCustomer', 'customerId', 'companyId']),
     ...mapState(useOrderStore, ['orders']),
@@ -17,12 +14,12 @@ export default {
     formatDate(date) {
       return new Date(date).toLocaleDateString()
     },
-    orderBadgeClass(state) {
+    stateClass(state) {
       return {
-        PENDING: 'kl-badge kl-badge--warning',
-        IN_PROCESS: 'kl-badge kl-badge--info',
-        DELIVERED: 'kl-badge kl-badge--primary',
-      }[state] || 'kl-badge kl-badge--muted'
+        'PENDING': 'badge-pending',
+        'IN_PROCESS': 'badge-process',
+        'DELIVERED': 'badge-delivered',
+      }[state] || ''
     },
   },
   async mounted() {
@@ -35,116 +32,41 @@ export default {
 }
 </script>
 
-<template>
-  <div class="order-list">
-    <PageHeader
-      title="Orders"
-      :subtitle="isCustomer ? 'Your transport orders.' : 'All company transport orders.'"
-    >
-      <template #actions>
-        <router-link to="/orders/new" class="kl-btn kl-btn--primary">
-          <Plus :size="14" :stroke-width="2" /> New order
-        </router-link>
-      </template>
-    </PageHeader>
-
-    <section class="kl-card kl-card--flush">
-      <div v-if="!orders.length" class="empty">
-        <p>No orders yet.</p>
-        <router-link to="/orders/new" class="kl-btn kl-btn--outline">
-          Create your first order
-        </router-link>
-      </div>
-
-      <table v-else class="kl-table">
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Route</th>
-            <th v-if="!isCustomer">Customer</th>
-            <th>Cargo</th>
-            <th>Delivery</th>
-            <th>Status</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="order in orders"
-            :key="order._id"
-            class="order-row"
-            @click="$router.push(`/orders/${order._id}`)"
-          >
-            <td>
-              <span class="order-id">#{{ order._id.slice(-5) }}</span>
-            </td>
-            <td>
-              <span class="order-route">
-                {{ order.origin }}
-                <ChevronRight :size="14" :stroke-width="1.75" />
-                {{ order.destination }}
-              </span>
-            </td>
-            <td v-if="!isCustomer" class="kl-muted">
-              {{ order.customer?.customerName || '—' }}
-            </td>
-            <td class="kl-muted">{{ order.cargos.length }} cargo(s)</td>
-            <td class="kl-muted">{{ formatDate(order.deliveryDate) }}</td>
-            <td>
-              <span :class="orderBadgeClass(order.state)">{{ order.state }}</span>
-            </td>
-            <td class="row-chev">
-              <ChevronRight :size="16" :stroke-width="1.75" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-  </div>
+<template lang="pug">
+main
+  .card
+    .card-header
+      h1.mb-0 Orders
+    .list-group.list-group-flush
+      router-link.list-group-item.list-group-item-action(
+        v-for="order in orders"
+        :key="order._id"
+        :to="`/orders/${order._id}`"
+        :class="{ active: order.state === 'IN_PROCESS' }"
+      )
+        .d-flex.justify-content-between.align-items-center
+          span.fw-semibold \#{{ order._id.slice(-5) }}
+          span.badge(:class="stateClass(order.state)") {{ order.state }}
+        .d-flex.justify-content-between.align-items-center.mt-1
+          span {{ order.origin }} → {{ order.destination }}
+          small {{ formatDate(order.deliveryDate) }} · {{ order.cargos.length }} cargo(s)
+        small.mt-1(v-if="!isCustomer && order.customer && order.customer.customerName")
+          | Customer: {{ order.customer.customerName }}
+    .card-body(v-if="!orders.length")
+      p.text-secondary.mb-0 No orders found
 </template>
 
 <style scoped>
-.order-list {
-  padding-bottom: 2rem;
+@import '@/assets/shared.css';
+
+main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
-.empty {
-  padding: 3rem 1rem;
-  text-align: center;
-  color: var(--color-text-secondary);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.order-row {
-  cursor: pointer;
-}
-
-.order-id {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--color-text);
-  font-weight: 500;
-}
-
-.order-route {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: var(--color-text);
-  font-weight: 500;
-  flex-wrap: wrap;
-}
-
-.row-chev {
-  color: var(--color-text-muted);
-  text-align: right;
-  width: 32px;
-}
-
-.order-row:hover .row-chev {
-  color: var(--color-primary);
+.list-group-item.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 </style>
