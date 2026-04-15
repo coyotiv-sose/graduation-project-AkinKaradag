@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useCustomerStore } from '@/stores/customerStore'
-import CreateFormWrapper from './CreateFormWrapper.vue'
+import { useCustomerStore } from '@/stores/customer-store'
+import CreateFormWrapper from './create-form-wrapper.vue'
 
 export default {
     name: 'CustomerForm',

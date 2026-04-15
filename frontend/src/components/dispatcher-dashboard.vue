@@ -1,8 +1,8 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useOrderStore } from '@/stores/orderStore'
-import { useVehicleStore } from '@/stores/vehicleStore'
-import { useTourStore } from '@/stores/tourStore'
+import { useOrderStore } from '@/stores/order-store'
+import { useVehicleStore } from '@/stores/vehicle-store'
+import { useTourStore } from '@/stores/tour-store'
 
 export default {
   name: 'DispatcherDashboard',

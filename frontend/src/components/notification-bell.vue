@@ -1,6 +1,6 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useNotificationStore } from '@/stores/notificationStore'
+import { useNotificationStore } from '@/stores/notification-store'
 
 export default {
   name: 'NotificationBell',

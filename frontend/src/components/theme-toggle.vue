@@ -1,6 +1,6 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useThemeStore } from '@/stores/themeStore'
+import { useThemeStore } from '@/stores/theme-store'
 
 export default {
   name: 'ThemeToggle',

@@ -1,8 +1,8 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useOrderStore } from '@/stores/orderStore'
-import { useCustomerStore } from '@/stores/customerStore'
-import { useCompanyStore } from '@/stores/companyStore'
+import { useOrderStore } from '@/stores/order-store'
+import { useCustomerStore } from '@/stores/customer-store'
+import { useCompanyStore } from '@/stores/company-store'
 
 export default {
   name: 'OrderView',

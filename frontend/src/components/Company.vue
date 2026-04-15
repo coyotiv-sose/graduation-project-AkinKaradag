@@ -1,6 +1,6 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import { useCompanyStore } from '@/stores/companyStore'
+import { useCompanyStore } from '@/stores/company-store'
 
 export default {
   name: 'CompanyList',
