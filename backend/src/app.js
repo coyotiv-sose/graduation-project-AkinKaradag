@@ -53,12 +53,12 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 const sessionMiddleware = session({
-    secret: process.env.SESSION_SECRET || 'adaw35345tfgs4wsgsA+_3sada',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: {
         maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV,
     },
     store: MongoStore.create({ clientPromise, stringify: false }),
 })
