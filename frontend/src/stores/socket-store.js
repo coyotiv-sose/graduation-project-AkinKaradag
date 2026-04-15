@@ -1,19 +1,23 @@
 import { defineStore } from 'pinia'
 import io from 'socket.io-client'
-import { useOrderStore } from './orderStore'
-import { useAccountStore } from './accountStore'
-import { useNotificationStore } from './notificationStore'
+import { useOrderStore } from './order-store'
+import { useAccountStore } from './account-store'
+import { useNotificationStore } from './notification-store'
 
-export const socket = io(import.meta.env.VITE_BACKEND_URL, {
-    withCredentials: true,
-})
+let socket = null
 
 export const useSocketStore = defineStore('Socket', {
     state: () => ({
         connected: false,
     }),
     actions: {
-        init() {
+        connect() {
+            if (socket) return
+
+            socket = io(import.meta.env.VITE_BACKEND_URL, {
+                withCredentials: true,
+            })
+
             socket.on('connect', () => {
                 this.connected = true
             })
@@ -75,12 +79,23 @@ export const useSocketStore = defineStore('Socket', {
             })
         },
 
+        disconnect() {
+            if (!socket) return
+            socket.disconnect()
+            socket = null
+            this.connected = false
+        },
+
+        getSocket() {
+            return socket
+        },
+
         joinOrderRoom(orderId) {
-            socket.emit('join:order', orderId)
+            socket?.emit('join:order', orderId)
         },
 
         leaveOrderRoom(orderId) {
-            socket.emit('leave:order', orderId)
+            socket?.emit('leave:order', orderId)
         },
     },
 })

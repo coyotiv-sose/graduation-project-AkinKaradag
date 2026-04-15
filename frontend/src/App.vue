@@ -1,10 +1,10 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
 import { mapState, mapActions } from 'pinia'
-import { useAccountStore } from './stores/accountStore'
-import { useSocketStore } from './stores/socketStore'
-import ThemeToggle from './components/ThemeToggle.vue'
-import NotificationBell from './components/NotificationBell.vue'
+import { useAccountStore } from './stores/account-store'
+import { useSocketStore } from './stores/socket-store'
+import ThemeToggle from './components/theme-toggle.vue'
+import NotificationBell from './components/notification-bell.vue'
 
 export default {
   name: 'App',
@@ -19,11 +19,13 @@ export default {
   },
   methods: {
     ...mapActions(useAccountStore, ['fetchUser']),
-    ...mapActions(useSocketStore, ['init']),
+    ...mapActions(useSocketStore, ['connect']),
   },
   async mounted() {
     await this.fetchUser()
-    await this.init()
+    if (this.user) {
+      this.connect()
+    }
   },
 }
 </script>

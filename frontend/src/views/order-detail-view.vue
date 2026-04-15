@@ -1,8 +1,7 @@
 <script>
 import { mapActions } from 'pinia'
-import { useOrderStore } from '@/stores/orderStore'
-import { useSocketStore } from '@/stores/socketStore'
-import { socket } from '@/stores/socketStore'
+import { useOrderStore } from '@/stores/order-store'
+import { useSocketStore } from '@/stores/socket-store'
 
 export default {
   name: 'OrderDetailView',
@@ -33,7 +32,7 @@ export default {
   },
   methods: {
     ...mapActions(useOrderStore, ['getOrderById', 'updateOrder']),
-    ...mapActions(useSocketStore, ['joinOrderRoom', 'leaveOrderRoom']),
+    ...mapActions(useSocketStore, ['joinOrderRoom', 'leaveOrderRoom', 'getSocket']),
     async loadOrder() {
       try {
         this.order = await this.getOrderById(this.orderId)
@@ -82,11 +81,17 @@ export default {
   async mounted() {
     await this.loadOrder()
     this.joinOrderRoom(this.orderId)
-    socket.on('order:updated', this.handleOrderUpdate)
+    const socket = this.getSocket()
+    if (socket) {
+      socket.on('order:updated', this.handleOrderUpdate)
+    }
   },
   beforeUnmount() {
     this.leaveOrderRoom(this.orderId)
-    socket.off('order:updated', this.handleOrderUpdate)
+    const socket = this.getSocket()
+    if (socket) {
+      socket.off('order:updated', this.handleOrderUpdate)
+    }
   },
 }
 </script>
