@@ -1,199 +1,96 @@
 /* ===========================
-   Shared styles across views
+   Legacy shared styles.
+   These exist because a few older components import this file directly.
+   The real system lives in main.css (.kl-* utility layer).
+   Everything here just defers to the new tokens.
    =========================== */
 
-/* --- Badges --- */
+/* Badges: aliased to the new kl-badge look */
 .badge {
-  font-size: 0.75rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 10px;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill);
   font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.badge-pending {
-  background: #fff3cd;
-  color: #856404;
-}
+.badge-pending    { color: var(--color-warning); background: var(--color-warning-soft); }
+.badge-process    { color: var(--color-info);    background: var(--color-info-soft); }
+.badge-delivered  { color: var(--color-success); background: var(--color-success-soft); }
+.badge-available  { color: var(--color-success); background: var(--color-success-soft); }
+.badge-ontour     { color: var(--color-info);    background: var(--color-info-soft); }
+.badge-garage     { color: var(--color-danger);  background: var(--color-danger-soft); }
+.badge-damaged    { color: var(--color-danger);  background: var(--color-danger-soft); }
+.badge-parked     { color: var(--color-text-secondary); background: var(--color-background-hover); }
+.badge-sold       { color: var(--color-text-secondary); background: var(--color-background-hover); }
 
-.badge-process {
-  background: #cce5ff;
-  color: #004085;
-}
-
-.badge-delivered {
-  background: #d4edda;
-  color: #155724;
-}
-
-.badge-available {
-  background: #d4edda;
-  color: #155724;
-}
-
-.badge-ontour {
-  background: #cce5ff;
-  color: #004085;
-}
-
-.badge-garage {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.badge-damaged {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.badge-parked {
-  background: #e2e3e5;
-  color: #383d41;
-}
-
-.badge-sold {
-  background: #d6d8db;
-  color: #1b1e21;
-}
-
-/* --- Buttons --- */
+/* Compact utility buttons used in legacy templates */
 .btn-primary {
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 0.95rem;
   background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius);
+  color: var(--color-primary-contrast);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  transition: background-color var(--duration-fast) var(--ease);
 }
 
 .btn-primary:hover {
-  background: #146c43;
+  background: var(--color-primary-hover);
 }
 
 .btn-sm {
-  padding: 0.3rem 0.6rem;
+  padding: 0.35rem 0.65rem;
   font-size: 0.8rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
   cursor: pointer;
   background: var(--color-background-card);
   color: var(--color-text);
 }
 
 .btn-sm:hover {
-  background: var(--color-background);
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-  border: none;
-}
-
-.btn-danger:hover {
-  background: #c82333;
-}
-
-.btn-secondary {
-  padding: 0.5rem 1rem;
-  background: var(--color-background-card);
-  border: 1px solid var(--color-primary);
-  color: var(--color-primary);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btn-secondary:hover {
-  background: var(--color-primary-light);
+  background: var(--color-background-hover);
 }
 
 .btn-back {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: var(--color-primary);
   margin-bottom: 1rem;
   padding: 0;
 }
 
-/* --- Utility --- */
+.btn-back:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Utility text */
 .error {
-  color: red;
+  color: var(--color-danger);
   margin-bottom: 1rem;
+  font-size: 0.875rem;
 }
 
 .success {
-  color: #2c7a2c;
+  color: var(--color-success);
   margin-bottom: 1rem;
+  font-size: 0.875rem;
 }
 
 .meta {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--color-text-secondary);
 }
 
 .empty {
   color: var(--color-text-secondary);
   font-style: italic;
-}
-
-/* --- Cards --- */
-.card {
-  background: var(--color-background-card);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.25rem;
-}
-
-/* --- Forms --- */
-.form-row {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group.full {
-  flex: 1 1 100%;
-}
-
-.form-group label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  color: var(--color-text-secondary);
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 0.5rem;
-  border: 1px solid var(--color-input-border);
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-family: inherit;
-  background: var(--color-input-bg);
-  color: var(--color-text);
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-
-.form-group textarea {
-  resize: vertical;
 }

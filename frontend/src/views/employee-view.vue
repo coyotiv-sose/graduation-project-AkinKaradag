@@ -1,7 +1,10 @@
 <script>
 import Employee from '@/components/employee.vue'
+import PageHeader from '@/components/page-header.vue'
+
 export default {
-  components: { Employee },
+  name: 'EmployeeView',
+  components: { Employee, PageHeader },
   computed: {
     companyId() {
       return this.$route.params.companyId
@@ -11,11 +14,21 @@ export default {
 </script>
 
 <template>
-  <main>
-    <h1>Manage Employees</h1>
-    <router-link :to="`/companies/${companyId}`">← Back to Company</router-link>
+  <div class="employee-view">
+    <PageHeader
+      title="Manage employees"
+      subtitle="Add dispatchers and staff to this company."
+      :back-to="`/companies/${companyId}`"
+      back-label="Back to company"
+    />
     <Suspense>
-      <Employee :companyId="companyId" />
+      <Employee :company-id="companyId" />
     </Suspense>
-  </main>
+  </div>
 </template>
+
+<style scoped>
+.employee-view {
+  padding-bottom: 2rem;
+}
+</style>
