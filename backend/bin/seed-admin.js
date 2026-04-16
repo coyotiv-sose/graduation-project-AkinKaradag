@@ -6,6 +6,9 @@ const mongoose = require('mongoose')
 require('dotenv').config({
     path: path.resolve(__dirname, '../../secrets/admin.env'),
 })
+require('dotenv').config({
+    path: path.resolve(__dirname, '../.env'),
+})
 
 const Account = require('../src/models/account')
 
@@ -14,7 +17,10 @@ const DEFAULT_MONGODB_URI = 'mongodb://localhost:27017/karalog'
 async function seedAdmin() {
     const email = process.env.SEED_ADMIN_EMAIL
     const password = process.env.SEED_ADMIN_PASSWORD
-    const mongoUri = process.env.SEED_MONGODB_URI || DEFAULT_MONGODB_URI
+    const mongoUri =
+        process.env.SEED_MONGODB_URI ||
+        process.env.MONGODB_CONNECTION_STRING ||
+        DEFAULT_MONGODB_URI
 
     if (!email || !password) {
         console.error(
