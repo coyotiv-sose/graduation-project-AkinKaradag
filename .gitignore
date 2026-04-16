@@ -27,3 +27,6 @@ coverage/
 
 #Docker
 data
+
+# Local secrets (admin seed credentials, etc.)
+secrets/
