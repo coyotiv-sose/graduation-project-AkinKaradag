@@ -1,21 +1,18 @@
 <script>
-import { RouterLink, RouterView } from 'vue-router'
 import { mapState, mapActions } from 'pinia'
 import { useAccountStore } from './stores/account-store'
 import { useSocketStore } from './stores/socket-store'
-import ThemeToggle from './components/theme-toggle.vue'
-import NotificationBell from './components/notification-bell.vue'
+import AppSidebar from './components/app-sidebar.vue'
+import PublicTopNav from './components/public-top-nav.vue'
 
 export default {
   name: 'App',
-  components: {
-    RouterLink,
-    RouterView,
-    ThemeToggle,
-    NotificationBell,
-  },
+  components: { AppSidebar, PublicTopNav },
   computed: {
-    ...mapState(useAccountStore, ['user', 'isCustomer', 'isEmployee', 'isAdmin', 'companyId', 'customerId']),
+    ...mapState(useAccountStore, ['user']),
+    isPublicLayout() {
+      return this.$route.meta?.layout === 'public'
+    },
   },
   methods: {
     ...mapActions(useAccountStore, ['fetchUser']),
@@ -30,93 +27,47 @@ export default {
 }
 </script>
 
-<template lang="pug">
-header
-  nav.navbar.navbar-expand-lg.border-bottom
-    .container
-      RouterLink.navbar-brand(to="/")
-        img(src="/logo.png" alt="KaraLog" height="40")
-      button.navbar-toggler(
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarNav"
-      )
-        span.navbar-toggler-icon
-      #navbarNav.collapse.navbar-collapse.justify-content-end
-        ul.nav.nav-pills
-          //- Always visible
-          li.nav-item
-            RouterLink.nav-link(to="/") Home
-
-          //- Guest-only links
-          template(v-if="!user")
-            li.nav-item
-              RouterLink.nav-link(to="/login") Login
-
-          //- Customer links
-          template(v-if="isCustomer")
-            li.nav-item
-              RouterLink.nav-link(to="/orders/new") Create Order
-            li.nav-item
-              RouterLink.nav-link(to="/orders") My Orders
-            li.nav-item
-              RouterLink.nav-link(to="/logout") Logout
-
-          //- Dispatcher links
-          template(v-if="isEmployee && companyId")
-            li.nav-item
-              RouterLink.nav-link(:to="`/companies/${companyId}/dispatcher`") Dashboard
-            li.nav-item
-              RouterLink.nav-link(to="/orders/new") Create Order
-            li.nav-item
-              RouterLink.nav-link(:to="`/companies/${companyId}/orders`") Orders
-            li.nav-item
-              RouterLink.nav-link(:to="`/companies/${companyId}/vehicles`") Vehicles
-            li.nav-item
-              RouterLink.nav-link(to="/logout") Logout
-
-          //- Admin links
-          template(v-if="isAdmin")
-            li.nav-item
-              RouterLink.nav-link(to="/admin") Admin Dashboard
-            li.nav-item
-              RouterLink.nav-link(to="/logout") Logout
-
-          li.nav-item.d-flex.align-items-center.ms-2(v-if="user")
-            NotificationBell
-          li.nav-item.d-flex.align-items-center.ms-2
-            ThemeToggle
-
-RouterView
+<template>
+  <div :class="['app-shell', isPublicLayout ? 'app-shell--public' : 'app-shell--app']">
+    <template v-if="isPublicLayout">
+      <PublicTopNav />
+      <router-view />
+    </template>
+    <template v-else>
+      <AppSidebar />
+      <main class="app-main">
+        <div class="app-main__inner">
+          <router-view />
+        </div>
+      </main>
+    </template>
+  </div>
 </template>
 
 <style scoped>
-.navbar {
-  background: var(--color-background-card);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 20px rgba(0, 0, 0, 0.06);
-  border-radius: 14px;
-  margin: 0.75rem 1rem 0;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.navbar-brand img {
-  height: 40px;
-}
-
-.nav-pills .nav-link {
+.app-shell {
+  min-height: 100vh;
+  background: var(--color-background);
   color: var(--color-text);
-  font-weight: 500;
-  border-radius: var(--radius);
-  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
-.nav-pills .nav-link:hover {
-  color: var(--color-primary);
-  background-color: var(--color-primary-light);
+.app-shell--app {
+  padding-left: var(--sidebar-collapsed);
 }
 
-.nav-pills .nav-link.router-link-exact-active {
-  background-color: var(--color-primary);
-  color: #fff;
+.app-main {
+  min-height: 100vh;
+}
+
+.app-main__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+
+@media (max-width: 720px) {
+  .app-main__inner {
+    padding: 0 1rem 2rem;
+  }
 }
 </style>
