@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAccountStore } from '../stores/account-store'
+import { homeRedirectGuard } from './guards/home-redirect-guard'
 import HomeView from '../views/home-view.vue'
 import LoginView from '../views/login-view.vue'
 const router = createRouter({
@@ -90,22 +90,6 @@ const router = createRouter({
     ],
 })
 
-router.beforeEach((to, from, next) => {
-    const accountStore = useAccountStore()
-
-    if (to.name === 'home' && accountStore.isLoggedIn) {
-        if (accountStore.isCustomer) {
-            return next({ name: 'orderList' })
-        }
-        if (accountStore.isEmployee && accountStore.companyId) {
-            return next({ name: 'dispatcher', params: { companyId: accountStore.companyId } })
-        }
-        if (accountStore.isAdmin) {
-            return next({ name: 'admin' })
-        }
-    }
-
-    next()
-})
+router.beforeEach(homeRedirectGuard)
 
 export default router
