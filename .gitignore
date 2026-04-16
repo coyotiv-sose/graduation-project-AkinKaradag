@@ -28,6 +28,3 @@ data
 
 # Local secrets (admin seed credentials, etc.)
 secrets/
-
-# Local tooling (e.g. git-filter-repo standalone)
-.scripts/
