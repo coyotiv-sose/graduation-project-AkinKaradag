@@ -12,6 +12,8 @@ services:
       - ./backend/src:/app/src
     env_file:
       - backend/.env
+    environment:
+      - MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/karalog
 
   frontend:
     image: karalog-frontend
@@ -25,6 +27,8 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
+    env_file:
+      - frontend/.env
 
   mongodb:
     image: mongo
