@@ -6,6 +6,10 @@ const Customer = require('../models/customer')
 const Order = require('../models/order')
 const Employee = require('../models/employee')
 const Account = require('../models/account')
+const employeeManager = require('../managers/employee-manager')
+const requireRole = require('../middlewares/require-role')
+
+router.use(requireRole('admin'))
 
 // ---- Companies ----
 
@@ -20,8 +24,25 @@ router.get('/companies', async (req, res, next) => {
 
 router.post('/companies', async (req, res, next) => {
   try {
-    const company = await LogisticCompany.create(req.body)
-    res.status(201).json(company)
+    const { ownerName, ownerEmail, ownerPassword, ...companyData } = req.body
+    const company = await LogisticCompany.create(companyData)
+
+    let owner = null
+    if (ownerName && ownerEmail && ownerPassword) {
+      try {
+        owner = await employeeManager.createEmployee({
+          name: ownerName,
+          email: ownerEmail,
+          password: ownerPassword,
+          company: company._id,
+        })
+      } catch (ownerError) {
+        await LogisticCompany.findByIdAndDelete(company._id)
+        return res.status(400).json({ error: ownerError.message })
+      }
+    }
+
+    res.status(201).json({ company, owner })
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -64,13 +85,26 @@ router.get('/customers', async (req, res, next) => {
 
 router.put('/customers/:customerId', async (req, res, next) => {
   try {
-    const customer = await Customer.findByIdAndUpdate(
-      req.params.customerId,
-      { $set: { customerName: req.body.customerName } },
-      { new: true, runValidators: true }
-    ).populate('company', 'companyName')
+    const { customerName, company, billingInfo, profile, email } = req.body
+    const customer = await Customer.findById(req.params.customerId)
     if (!customer) return res.status(404).json({ error: 'Customer not found' })
-    res.status(200).json(customer)
+
+    if (customerName !== undefined) customer.customerName = customerName
+    if (company !== undefined) customer.company = company || null
+    if (billingInfo !== undefined) customer.billingInfo = billingInfo
+    if (profile !== undefined) customer.profile = profile
+    await customer.save()
+
+    if (email !== undefined) {
+      const account = await Account.findById(customer.account._id || customer.account)
+      if (account) {
+        account.email = email
+        await account.save()
+      }
+    }
+
+    const populated = await Customer.findById(customer._id).populate('company', 'companyName')
+    res.status(200).json(populated)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -135,6 +169,62 @@ router.get('/employees', async (req, res, next) => {
     res.status(200).json(employees)
   } catch (error) {
     res.status(500).json({ error: error.message })
+  }
+})
+
+router.put('/employees/:employeeId', async (req, res, next) => {
+  try {
+    const { name, profile, email, company } = req.body
+    const employee = await Employee.findById(req.params.employeeId)
+    if (!employee) return res.status(404).json({ error: 'Employee not found' })
+
+    if (name !== undefined) employee.name = name
+    if (profile !== undefined) employee.profile = profile
+    if (company !== undefined) employee.company = company
+    await employee.save()
+
+    if (email !== undefined) {
+      const account = await Account.findById(employee.account._id || employee.account)
+      if (account) {
+        account.email = email
+        await account.save()
+      }
+    }
+
+    const populated = await Employee.findById(employee._id)
+      .populate('account', 'email')
+      .populate('company', 'companyName')
+    res.status(200).json(populated)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.delete('/employees/:employeeId', async (req, res, next) => {
+  try {
+    const employee = await Employee.findById(req.params.employeeId)
+    if (!employee) return res.status(404).json({ error: 'Employee not found' })
+    await Account.findByIdAndDelete(employee.account._id || employee.account)
+    await Employee.findByIdAndDelete(req.params.employeeId)
+    res.status(204).send()
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/customers/:customerId/reset-password', async (req, res, next) => {
+  try {
+    const { newPassword } = req.body
+    if (!newPassword) return res.status(400).json({ error: 'New password is required' })
+    const customer = await Customer.findById(req.params.customerId)
+    if (!customer) return res.status(404).json({ error: 'Customer not found' })
+    const account = await Account.findById(customer.account._id || customer.account)
+    if (!account) return res.status(404).json({ error: 'Account not found' })
+    await account.setPassword(newPassword)
+    await account.save()
+    res.status(200).json({ message: 'Password reset successfully' })
+  } catch (error) {
+    res.status(400).json({ error: error.message })
   }
 })
 
