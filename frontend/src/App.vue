@@ -2,8 +2,8 @@
 import { mapState, mapActions } from 'pinia'
 import { useAccountStore } from './stores/account-store'
 import { useSocketStore } from './stores/socket-store'
-import ThemeToggle from './components/theme-toggle.vue'
-import NotificationBell from './components/notification-bell.vue'
+import AppSidebar from './components/app-sidebar.vue'
+import PublicTopNav from './components/public-top-nav.vue'
 
 export default {
   name: 'App',
