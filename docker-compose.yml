@@ -13,7 +13,8 @@ services:
     env_file:
       - backend/.env
     environment:
-      - MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/karalog
+      #- MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/karalog
+      - MONGODB_CONNECTION_STRING=mongodb+srv://akinkaradag_db_user:6bsZeBfaDh2A6tjm@cluster0.bgbtatx.mongodb.net/karalog?appName=Cluster0
 
   frontend:
     image: karalog-frontend
