@@ -1,7 +1,10 @@
 <script>
 import Customer from '@/components/customer.vue'
+import PageHeader from '@/components/page-header.vue'
+
 export default {
-  components: { Customer },
+  name: 'CustomerDashboardView',
+  components: { Customer, PageHeader },
   computed: {
     companyId() {
       return this.$route.params.companyId
@@ -11,11 +14,21 @@ export default {
 </script>
 
 <template>
-  <main>
-    <h1>Manage Customers</h1>
-    <router-link :to="`/companies/${companyId}`">← Back to Company</router-link>
+  <div class="customer-dashboard">
+    <PageHeader
+      title="Manage customers"
+      subtitle="Add customers to this company and view their accounts."
+      :back-to="`/companies/${companyId}`"
+      back-label="Back to company"
+    />
     <Suspense>
-      <Customer :companyId="companyId" />
+      <Customer :company-id="companyId" />
     </Suspense>
-  </main>
+  </div>
 </template>
+
+<style scoped>
+.customer-dashboard {
+  padding-bottom: 2rem;
+}
+</style>

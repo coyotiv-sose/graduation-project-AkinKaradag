@@ -1,9 +1,11 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useNotificationStore } from '@/stores/notification-store'
+import { Bell, BellOff, Check, Trash2 } from 'lucide-vue-next'
 
 export default {
   name: 'NotificationBell',
+  components: { Bell, BellOff, Check, Trash2 },
   data() {
     return {
       isOpen: false,
@@ -51,54 +53,57 @@ export default {
 }
 </script>
 
-<template lang="pug">
-.notification-bell(ref="bellWrapper")
-  button.bell-button(@click="toggle" aria-label="Notifications")
-    svg.bell-icon(
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    )
-      path(d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9")
-      path(d="M13.73 21a2 2 0 0 1-3.46 0")
-    span.badge(v-if="hasUnread") {{ displayCount }}
+<template>
+  <div class="notification-bell" ref="bellWrapper">
+    <button
+      type="button"
+      class="bell-button"
+      :class="{ 'bell-button--active': isOpen }"
+      aria-label="Notifications"
+      @click="toggle"
+    >
+      <Bell :size="18" :stroke-width="1.75" />
+      <span v-if="hasUnread" class="badge">{{ displayCount }}</span>
+    </button>
 
-  Transition(name="dropdown")
-    .dropdown-panel(v-if="isOpen")
-      .dropdown-header
-        span.dropdown-title Notifications
-        .dropdown-actions(v-if="notifications.length")
-          button.action-btn(@click="markAllAsRead") Mark all read
-          button.action-btn(@click="clearAll") Clear
-      .dropdown-body
-        .empty-state(v-if="!notifications.length")
-          svg.empty-icon(
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          )
-            path(d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9")
-            path(d="M13.73 21a2 2 0 0 1-3.46 0")
-            line(x1="1" y1="1" x2="23" y2="23")
-          span No notifications yet
-        .notification-list(v-else)
-          .notification-item(
-            v-for="n in notifications"
-            :key="n.id"
-            :class="{ unread: !n.read, [n.type]: true }"
-            @click="handleClickNotification(n)"
-          )
-            .notification-dot(v-if="!n.read")
-            .notification-content
-              .notification-title {{ n.title }}
-              .notification-message {{ n.message }}
-              .notification-time {{ formatTime(n.createdAt) }}
+    <Transition name="dropdown">
+      <div v-if="isOpen" class="dropdown-panel">
+        <div class="dropdown-header">
+          <span class="dropdown-title">Notifications</span>
+          <div v-if="notifications.length" class="dropdown-actions">
+            <button type="button" class="action-btn" title="Mark all read" @click="markAllAsRead">
+              <Check :size="14" :stroke-width="2" />
+            </button>
+            <button type="button" class="action-btn" title="Clear all" @click="clearAll">
+              <Trash2 :size="14" :stroke-width="2" />
+            </button>
+          </div>
+        </div>
+        <div class="dropdown-body">
+          <div v-if="!notifications.length" class="empty-state">
+            <BellOff :size="28" :stroke-width="1.5" />
+            <span>No notifications yet</span>
+          </div>
+          <div v-else class="notification-list">
+            <div
+              v-for="n in notifications"
+              :key="n.id"
+              class="notification-item"
+              :class="{ unread: !n.read, [n.type]: true }"
+              @click="handleClickNotification(n)"
+            >
+              <span v-if="!n.read" class="notification-dot"></span>
+              <div class="notification-content">
+                <div class="notification-title">{{ n.title }}</div>
+                <div class="notification-message">{{ n.message }}</div>
+                <div class="notification-time">{{ formatTime(n.createdAt) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </div>
 </template>
 
 <style scoped>
@@ -109,51 +114,52 @@ export default {
 }
 
 .bell-button {
-  background: none;
-  border: none;
+  position: relative;
+  background: transparent;
+  border: 1px solid var(--color-border);
   cursor: pointer;
-  padding: 6px;
-  display: flex;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
+  border-radius: var(--radius-sm);
   color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
 }
 
-.bell-button:hover {
-  background-color: var(--color-primary-light);
-}
-
-.bell-icon {
-  width: 22px;
-  height: 22px;
+.bell-button:hover,
+.bell-button--active {
+  background: var(--color-background-hover);
+  border-color: var(--color-border-hover);
+  color: var(--color-heading);
 }
 
 .badge {
   position: absolute;
-  top: 0;
-  right: 0;
-  background: #e74c3c;
-  color: #fff;
+  top: -4px;
+  right: -4px;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   min-width: 18px;
   height: 18px;
-  border-radius: 9px;
+  border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+  padding: 0 5px;
   line-height: 1;
   border: 2px solid var(--color-background-card);
 }
 
 .dropdown-panel {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 340px;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: 320px;
   max-height: 420px;
   background: var(--color-background-card);
   border: 1px solid var(--color-border);
@@ -175,28 +181,34 @@ export default {
 
 .dropdown-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-heading);
+  letter-spacing: -0.01em;
 }
 
 .dropdown-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .action-btn {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   cursor: pointer;
-  font-size: 12px;
-  color: var(--color-primary);
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .action-btn:hover {
-  background-color: var(--color-primary-light);
+  background: var(--color-background-hover);
+  color: var(--color-heading);
+  border-color: var(--color-border);
 }
 
 .dropdown-body {
@@ -209,15 +221,9 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 32px 16px;
+  padding: 36px 16px;
   color: var(--color-text-secondary);
   font-size: 13px;
-}
-
-.empty-icon {
-  width: 36px;
-  height: 36px;
-  opacity: 0.4;
 }
 
 .notification-list {
@@ -231,7 +237,7 @@ export default {
   gap: 10px;
   padding: 12px 16px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--duration-fast) var(--ease);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -240,24 +246,20 @@ export default {
 }
 
 .notification-item:hover {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-background-hover);
 }
 
 .notification-item.unread {
-  background-color: rgba(21, 115, 71, 0.04);
-}
-
-[data-theme='dark'] .notification-item.unread {
-  background-color: rgba(46, 204, 113, 0.06);
+  background-color: var(--color-primary-soft);
 }
 
 .notification-dot {
-  width: 8px;
-  height: 8px;
-  min-width: 8px;
+  width: 6px;
+  height: 6px;
+  min-width: 6px;
   border-radius: 50%;
   background: var(--color-primary);
-  margin-top: 5px;
+  margin-top: 6px;
 }
 
 .notification-content {
@@ -278,24 +280,25 @@ export default {
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .notification-time {
   font-size: 11px;
-  color: var(--color-text-secondary);
-  opacity: 0.7;
+  color: var(--color-text-muted);
   margin-top: 4px;
 }
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity var(--duration-fast) var(--ease), transform var(--duration-fast) var(--ease);
 }
 
 .dropdown-enter-from,
 .dropdown-leave-to {
   opacity: 0;
-  transform: translateY(-4px);
+  transform: translateY(4px);
 }
 </style>
