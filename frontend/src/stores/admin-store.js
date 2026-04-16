@@ -14,8 +14,9 @@ export const useAdminStore = defineStore('admin', {
             this.companies = data
         },
         async createCompany(companyData) {
-            await axios.post('/admin/companies', companyData)
+            const { data } = await axios.post('/admin/companies', companyData)
             await this.getAllCompanies()
+            return data
         },
         async updateCompany(companyId, companyData) {
             await axios.put(`/admin/companies/${companyId}`, companyData)
@@ -53,8 +54,19 @@ export const useAdminStore = defineStore('admin', {
             const { data } = await axios.get('/admin/employees')
             this.allEmployees = data
         },
+        async updateEmployee(employeeId, employeeData) {
+            await axios.put(`/admin/employees/${employeeId}`, employeeData)
+            await this.getAllEmployees()
+        },
+        async deleteEmployee(employeeId) {
+            await axios.delete(`/admin/employees/${employeeId}`)
+            await this.getAllEmployees()
+        },
         async resetEmployeePassword(employeeId, newPassword) {
             await axios.post(`/admin/employees/${employeeId}/reset-password`, { newPassword })
+        },
+        async resetCustomerPassword(customerId, newPassword) {
+            await axios.post(`/admin/customers/${customerId}/reset-password`, { newPassword })
         },
     },
 })
