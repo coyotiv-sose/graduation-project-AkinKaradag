@@ -20,13 +20,14 @@ coverage/
 
 # dotenv environment variable files
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.*
+!.env.example
 
 #Docker
 data
 
 # Local secrets (admin seed credentials, etc.)
 secrets/
+
+# Local tooling (e.g. git-filter-repo standalone)
+.scripts/
