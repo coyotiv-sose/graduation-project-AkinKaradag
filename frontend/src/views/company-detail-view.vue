@@ -66,8 +66,11 @@ export default {
     ...mapState(useCompanyStore, ['companies']),
     ...mapState(useCustomerStore, ['customers']),
     ...mapState(useEmployeeStore, ['employees']),
-    ...mapState(useAccountStore, ['isAdmin']),
+    ...mapState(useAccountStore, ['isAdmin', 'isEmployee']),
     ...mapState(useAdminStore, ['allOrders']),
+    canManage() {
+      return this.isAdmin || this.isEmployee
+    },
     companyOrders() {
       if (!this.isAdmin) return []
       return this.allOrders.filter(o => {
@@ -90,16 +93,20 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useCompanyStore, ['getAllCompanies']),
-    ...mapActions(useCustomerStore, ['getAllCustomers']),
-    ...mapActions(useEmployeeStore, ['getAllEmployees']),
+    ...mapActions(useCompanyStore, ['getAllCompanies', 'getCompany']),
+    ...mapActions(useCustomerStore, {
+      getAllCustomers: 'getAllCustomers',
+      companyUpdateCustomer: 'updateCustomer',
+      companyDeleteCustomer: 'deleteCustomer',
+      companyResetCustomerPassword: 'resetCustomerPassword',
+    }),
+    ...mapActions(useEmployeeStore, {
+      getAllEmployees: 'getAllEmployees',
+      companyUpdateEmployee: 'updateEmployee',
+      companyDeleteEmployee: 'deleteEmployee',
+      companyResetEmployeePassword: 'resetEmployeePassword',
+    }),
     ...mapActions(useAdminStore, {
-      adminResetEmployeePassword: 'resetEmployeePassword',
-      adminResetCustomerPassword: 'resetCustomerPassword',
-      adminUpdateCustomer: 'updateCustomer',
-      adminDeleteCustomer: 'deleteCustomer',
-      adminUpdateEmployee: 'updateEmployee',
-      adminDeleteEmployee: 'deleteEmployee',
       adminUpdateOrder: 'updateOrder',
       adminDeleteOrder: 'deleteOrder',
       adminGetAllOrders: 'getAllOrders',
@@ -132,9 +139,9 @@ export default {
         this.clearMessages()
         if (!this.resetTarget) return
         if (this.resetTarget.type === 'employee') {
-          await this.adminResetEmployeePassword(this.resetTarget.id, this.newPassword)
+          await this.companyResetEmployeePassword(this.companyId, this.resetTarget.id, this.newPassword)
         } else if (this.resetTarget.type === 'customer') {
-          await this.adminResetCustomerPassword(this.resetTarget.id, this.newPassword)
+          await this.companyResetCustomerPassword(this.companyId, this.resetTarget.id, this.newPassword)
         }
         this.success = 'Password reset successfully'
         this.resetTarget = null
@@ -183,7 +190,7 @@ export default {
     async submitCustomer() {
       try {
         this.clearMessages()
-        await this.adminUpdateCustomer(this.editingCustomerId, this.customerForm)
+        await this.companyUpdateCustomer(this.companyId, this.editingCustomerId, this.customerForm)
         await this.getAllCustomers(this.companyId)
         this.editingCustomerId = null
         this.customerForm = emptyCustomerForm()
@@ -196,7 +203,7 @@ export default {
       if (!confirm('Are you sure you want to delete this customer and their account?')) return
       try {
         this.clearMessages()
-        await this.adminDeleteCustomer(customerId)
+        await this.companyDeleteCustomer(this.companyId, customerId)
         await this.getAllCustomers(this.companyId)
         this.success = 'Customer deleted'
       } catch (err) {
@@ -221,7 +228,7 @@ export default {
     async submitEmployee() {
       try {
         this.clearMessages()
-        await this.adminUpdateEmployee(this.editingEmployeeId, this.employeeForm)
+        await this.companyUpdateEmployee(this.companyId, this.editingEmployeeId, this.employeeForm)
         await this.getAllEmployees(this.companyId)
         this.editingEmployeeId = null
         this.employeeForm = emptyEmployeeForm()
@@ -234,7 +241,7 @@ export default {
       if (!confirm('Are you sure you want to delete this employee and their account?')) return
       try {
         this.clearMessages()
-        await this.adminDeleteEmployee(employeeId)
+        await this.companyDeleteEmployee(this.companyId, employeeId)
         await this.getAllEmployees(this.companyId)
         this.success = 'Employee deleted'
       } catch (err) {
@@ -299,7 +306,11 @@ export default {
     },
   },
   async mounted() {
-    await this.getAllCompanies()
+    if (this.isAdmin) {
+      await this.getAllCompanies()
+    } else {
+      await this.getCompany(this.companyId)
+    }
     this.company = this.companies.find(c => c._id === this.companyId)
     const jobs = [
       this.getAllCustomers(this.companyId),
@@ -358,7 +369,7 @@ export default {
               <div class="list-item__name">{{ customer.customerName }}</div>
               <div class="list-item__meta">{{ customer.account?.email }}</div>
             </div>
-            <div v-if="isAdmin" class="list-item__actions">
+            <div v-if="canManage" class="list-item__actions">
               <button
                 class="kl-btn kl-btn--ghost kl-btn--sm"
                 title="Edit"
@@ -383,7 +394,7 @@ export default {
             </div>
           </div>
 
-          <div v-if="isAdmin && isResetOpen('customer', customer._id)" class="inline-panel">
+          <div v-if="canManage && isResetOpen('customer', customer._id)" class="inline-panel">
             <form class="inline-panel__row" @submit.prevent="submitResetPassword">
               <div class="kl-field flex-grow">
                 <label class="kl-label">New password</label>
@@ -404,7 +415,7 @@ export default {
             </form>
           </div>
 
-          <div v-if="isAdmin && editingCustomerId === customer._id" class="inline-panel">
+          <div v-if="canManage && editingCustomerId === customer._id" class="inline-panel">
             <form @submit.prevent="submitCustomer">
               <div class="kl-form-row">
                 <div class="kl-field">
@@ -417,7 +428,7 @@ export default {
                 </div>
               </div>
               <div class="kl-form-row" style="margin-top: 0.85rem">
-                <div class="kl-field">
+                <div v-if="isAdmin" class="kl-field">
                   <label class="kl-label">Company</label>
                   <select v-model="customerForm.company" class="kl-select" required>
                     <option v-for="c in companies" :key="c._id" :value="c._id">
@@ -525,7 +536,7 @@ export default {
               <div class="list-item__name">{{ employee.name }}</div>
               <div class="list-item__meta">{{ employee.profile }}</div>
             </div>
-            <div v-if="isAdmin" class="list-item__actions">
+            <div v-if="canManage" class="list-item__actions">
               <button
                 class="kl-btn kl-btn--ghost kl-btn--sm"
                 title="Edit"
@@ -550,7 +561,7 @@ export default {
             </div>
           </div>
 
-          <div v-if="isAdmin && isResetOpen('employee', employee._id)" class="inline-panel">
+          <div v-if="canManage && isResetOpen('employee', employee._id)" class="inline-panel">
             <form class="inline-panel__row" @submit.prevent="submitResetPassword">
               <div class="kl-field flex-grow">
                 <label class="kl-label">New password</label>
@@ -571,7 +582,7 @@ export default {
             </form>
           </div>
 
-          <div v-if="isAdmin && editingEmployeeId === employee._id" class="inline-panel">
+          <div v-if="canManage && editingEmployeeId === employee._id" class="inline-panel">
             <form @submit.prevent="submitEmployee">
               <div class="kl-form-row">
                 <div class="kl-field">

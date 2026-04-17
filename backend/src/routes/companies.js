@@ -9,6 +9,20 @@ const orderManager = require('../managers/order-manager')
 const vehicleManager = require('../managers/vehicle-manager')
 const tourManager = require('../managers/tour-manager')
 
+// ---- Company detail ----
+
+router.get('/:companyId', async (req, res, next) => {
+  try {
+    const company = await LogisticCompany.findById(req.params.companyId)
+    if (!company) return res.status(404).json({ error: 'Company not found' })
+    res.status(200).json(company)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// ---- Customers ----
+
 router.post('/:companyId/customers', async (req, res, next) => {
   try {
     const customer = await customerManager.createCustomer({
@@ -30,6 +44,42 @@ router.get('/:companyId/customers', async (req, res, next) => {
   }
 })
 
+router.put('/:companyId/customers/:customerId', async (req, res, next) => {
+  try {
+    const customer = await customerManager.updateCustomerByCompany(
+      req.params.customerId, req.params.companyId, req.body
+    )
+    res.status(200).json(customer)
+  } catch (error) {
+    const status = error.message.includes('not found') ? 404 : 400
+    res.status(status).json({ error: error.message })
+  }
+})
+
+router.delete('/:companyId/customers/:customerId', async (req, res, next) => {
+  try {
+    await customerManager.deleteCustomerByCompany(req.params.customerId, req.params.companyId)
+    res.status(204).send()
+  } catch (error) {
+    const status = error.message.includes('not found') ? 404 : 500
+    res.status(status).json({ error: error.message })
+  }
+})
+
+router.post('/:companyId/customers/:customerId/reset-password', async (req, res, next) => {
+  try {
+    await customerManager.resetCustomerPasswordByCompany(
+      req.params.customerId, req.params.companyId, req.body.newPassword
+    )
+    res.status(200).json({ message: 'Password reset successfully' })
+  } catch (error) {
+    const status = error.message.includes('not found') ? 404 : 400
+    res.status(status).json({ error: error.message })
+  }
+})
+
+// ---- Employees ----
+
 router.post('/:companyId/employees', async(req, res, next) => {
     try {
         const employee = await employeeManager.createEmployee({
@@ -50,6 +100,42 @@ router.get('/:companyId/employees', async(req, res, next) => {
         res.status(500).json({ error: error.message })
     }
 })
+
+router.put('/:companyId/employees/:employeeId', async (req, res, next) => {
+  try {
+    const employee = await employeeManager.updateEmployeeByCompany(
+      req.params.employeeId, req.params.companyId, req.body
+    )
+    res.status(200).json(employee)
+  } catch (error) {
+    const status = error.message.includes('not found') ? 404 : 400
+    res.status(status).json({ error: error.message })
+  }
+})
+
+router.delete('/:companyId/employees/:employeeId', async (req, res, next) => {
+  try {
+    await employeeManager.deleteEmployeeByCompany(req.params.employeeId, req.params.companyId)
+    res.status(204).send()
+  } catch (error) {
+    const status = error.message.includes('not found') ? 404 : 500
+    res.status(status).json({ error: error.message })
+  }
+})
+
+router.post('/:companyId/employees/:employeeId/reset-password', async (req, res, next) => {
+  try {
+    await employeeManager.resetEmployeePasswordByCompany(
+      req.params.employeeId, req.params.companyId, req.body.newPassword
+    )
+    res.status(200).json({ message: 'Password reset successfully' })
+  } catch (error) {
+    const status = error.message.includes('not found') ? 404 : 400
+    res.status(status).json({ error: error.message })
+  }
+})
+
+// ---- Orders ----
 
 router.post('/:companyId/orders', async(req, res, next) => {
     try {

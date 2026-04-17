@@ -14,5 +14,16 @@ export const useEmployeeStore = defineStore('employee', {
             await axios.post(`/companies/${companyId}/employees`, employeeData)
             await this.getAllEmployees(companyId)
         },
+        async updateEmployee(companyId, employeeId, employeeData) {
+            await axios.put(`/companies/${companyId}/employees/${employeeId}`, employeeData)
+            await this.getAllEmployees(companyId)
+        },
+        async deleteEmployee(companyId, employeeId) {
+            await axios.delete(`/companies/${companyId}/employees/${employeeId}`)
+            await this.getAllEmployees(companyId)
+        },
+        async resetEmployeePassword(companyId, employeeId, newPassword) {
+            await axios.post(`/companies/${companyId}/employees/${employeeId}/reset-password`, { newPassword })
+        },
     },
 })
