@@ -32,6 +32,10 @@ const adminRouter = require('./routes/admin')
 
 const app = express()
 
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1)
+}
+
 const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : []
 
 app.use(
