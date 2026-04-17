@@ -36,4 +36,52 @@ const getEmployeeByAccountId = async accountId => {
   return employee
 }
 
-module.exports = { createEmployee, getEmployeeByCompany, getEmployeeById, getEmployeeByAccountId, getAllEmployees }
+const updateEmployeeByCompany = async (employeeId, companyId, updates) => {
+  const { name, profile, email } = updates
+  const employee = await Employee.findOne({ _id: employeeId, company: companyId })
+  if (!employee) throw new Error('Employee not found in this company')
+
+  if (name !== undefined) employee.name = name
+  if (profile !== undefined) employee.profile = profile
+  await employee.save()
+
+  if (email !== undefined) {
+    const account = await Account.findById(employee.account._id || employee.account)
+    if (account) {
+      account.email = email
+      await account.save()
+    }
+  }
+
+  return Employee.findById(employee._id)
+    .populate('account', 'email')
+    .populate('company', 'companyName')
+}
+
+const deleteEmployeeByCompany = async (employeeId, companyId) => {
+  const employee = await Employee.findOne({ _id: employeeId, company: companyId })
+  if (!employee) throw new Error('Employee not found in this company')
+  await Account.findByIdAndDelete(employee.account._id || employee.account)
+  await Employee.findByIdAndDelete(employeeId)
+}
+
+const resetEmployeePasswordByCompany = async (employeeId, companyId, newPassword) => {
+  if (!newPassword) throw new Error('New password is required')
+  const employee = await Employee.findOne({ _id: employeeId, company: companyId })
+  if (!employee) throw new Error('Employee not found in this company')
+  const account = await Account.findById(employee.account._id || employee.account)
+  if (!account) throw new Error('Account not found')
+  await account.setPassword(newPassword)
+  await account.save()
+}
+
+module.exports = {
+  createEmployee,
+  getEmployeeByCompany,
+  getEmployeeById,
+  getEmployeeByAccountId,
+  getAllEmployees,
+  updateEmployeeByCompany,
+  deleteEmployeeByCompany,
+  resetEmployeePasswordByCompany,
+}
