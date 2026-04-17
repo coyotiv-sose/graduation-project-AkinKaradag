@@ -69,12 +69,6 @@ const router = createRouter({
       meta: { layout: 'public' },
     },
     {
-      path: '/register',
-      name: 'register',
-      component: () => import('../views/register-view.vue'),
-      meta: { layout: 'public' },
-    },
-    {
       path: '/about',
       name: 'about',
       component: () => import('../views/about-view.vue'),
