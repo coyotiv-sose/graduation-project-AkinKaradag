@@ -23,8 +23,7 @@ router.post('/:customerId/orders', async (req, res, next) => {
       customer: customer._id,
       company: customer.company,
     })
-    req.app.io.to(`company:${customer.company}`).emit('order:created', newOrder)
-    req.app.io.to(`customer:${customer._id}`).emit('order:created', newOrder)
+    req.app.io.to(`company:${customer.company}`).to(`customer:${customer._id}`).emit('order:created', newOrder)
     res.status(201).json(newOrder)
   } catch (error) {
     res.status(400).json({ error: error.message })
@@ -54,8 +53,7 @@ router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
       billingInfo,
     })
 
-    req.app.io.to(`company:${customer.company}`).emit('order:created', newOrder)
-    req.app.io.to(`customer:${customer._id}`).emit('order:created', newOrder)
+    req.app.io.to(`company:${customer.company}`).to(`customer:${customer._id}`).emit('order:created', newOrder)
     res.status(201).json(newOrder)
   } catch (error) {
     res.status(400).json({ error: error.message })
@@ -83,8 +81,7 @@ router.get('/:customerId/orders/:orderId', async (req, res, next) => {
 router.delete('/:customerId/orders/:orderId', async (req, res, next) => {
   try {
     const order = await orderManager.deleteOrderByCustomer(req.params.orderId, req.params.customerId)
-    req.app.io.to(`company:${order.company}`).emit('order:deleted', { orderId: order._id })
-    req.app.io.to(`customer:${req.params.customerId}`).emit('order:deleted', { orderId: order._id })
+    req.app.io.to(`company:${order.company}`).to(`customer:${req.params.customerId}`).emit('order:deleted', { orderId: order._id })
     res.status(204).send()
   } catch (error) {
     const status = error.message === 'Order not found' ? 404 : 400

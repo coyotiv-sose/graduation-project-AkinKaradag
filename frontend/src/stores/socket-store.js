@@ -28,9 +28,9 @@ export const useSocketStore = defineStore('Socket', {
 
             socket.on('order:updated', (order) => {
                 const orderStore = useOrderStore()
-                const notificationStore = useNotificationStore()
                 orderStore.applyOrderUpdate(order)
 
+                const notificationStore = useNotificationStore()
                 const stateLabel = order.state?.replace('_', ' ').toLowerCase() || 'updated'
                 notificationStore.addNotification({
                     title: 'Order Updated',
@@ -41,9 +41,9 @@ export const useSocketStore = defineStore('Socket', {
 
             socket.on('order:created', (order) => {
                 const orderStore = useOrderStore()
-                const notificationStore = useNotificationStore()
                 orderStore.applyOrderCreated(order)
 
+                const notificationStore = useNotificationStore()
                 notificationStore.addNotification({
                     title: 'New Order',
                     message: `Order from ${order.origin || 'N/A'} to ${order.destination || 'N/A'} created`,
@@ -53,9 +53,9 @@ export const useSocketStore = defineStore('Socket', {
 
             socket.on('order:deleted', ({ orderId }) => {
                 const orderStore = useOrderStore()
-                const notificationStore = useNotificationStore()
                 orderStore.applyOrderDeleted(orderId)
 
+                const notificationStore = useNotificationStore()
                 notificationStore.addNotification({
                     title: 'Order Removed',
                     message: `An order has been removed`,

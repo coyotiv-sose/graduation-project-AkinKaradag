@@ -15,9 +15,7 @@ router.get('/:orderId', async (req, res, next) => {
 router.put('/:orderId', async (req, res, next) => {
   try {
     const order = await orderManager.updateOrder(req.params.orderId, req.body)
-    req.app.io.to(`customer:${order.customer}`).emit('order:updated', order)
-    req.app.io.to(`company:${order.company}`).emit('order:updated', order)
-    req.app.io.to(`order:${order._id}`).emit('order:updated', order)
+    req.app.io.to(`customer:${order.customer}`).to(`company:${order.company}`).to(`order:${order._id}`).emit('order:updated', order)
     res.status(200).json(order)
   } catch (error) {
     const status = error.message === 'Order not found' ? 404 : 400
