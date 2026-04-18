@@ -1,11 +1,11 @@
+/* eslint-disable prefer-destructuring */
+/* eslint-disable consistent-return */
 const express = require('express')
 
 const router = express.Router()
-const LogisticCompany = require('../models/logistic-company')
-const Customer = require('../models/customer')
-const Order = require('../models/order')
-const Employee = require('../models/employee')
-const Account = require('../models/account')
+const companyManager = require('../managers/company-manager')
+const orderManager = require('../managers/order-manager')
+const customerManager = require('../managers/customer-manager')
 const employeeManager = require('../managers/employee-manager')
 const requireRole = require('../middlewares/require-role')
 
@@ -15,7 +15,7 @@ router.use(requireRole('admin'))
 
 router.get('/companies', async (req, res, next) => {
   try {
-    const companies = await LogisticCompany.find()
+    const companies = await companyManager.getAllCompanies()
     res.status(200).json(companies)
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -25,7 +25,7 @@ router.get('/companies', async (req, res, next) => {
 router.post('/companies', async (req, res, next) => {
   try {
     const { ownerName, ownerEmail, ownerPassword, ...companyData } = req.body
-    const company = await LogisticCompany.create(companyData)
+    const company = await companyManager.createCompany(companyData)
 
     let owner = null
     if (ownerName && ownerEmail && ownerPassword) {
@@ -37,7 +37,7 @@ router.post('/companies', async (req, res, next) => {
           company: company._id,
         })
       } catch (ownerError) {
-        await LogisticCompany.findByIdAndDelete(company._id)
+        await companyManager.deleteCompany(company._id)
         return res.status(400).json({ error: ownerError.message })
       }
     }
@@ -50,11 +50,7 @@ router.post('/companies', async (req, res, next) => {
 
 router.put('/companies/:companyId', async (req, res, next) => {
   try {
-    const company = await LogisticCompany.findByIdAndUpdate(
-      req.params.companyId,
-      { $set: req.body },
-      { new: true, runValidators: true }
-    )
+    const company = await companyManager.updateCompany(req.params.companyId, req.body)
     if (!company) return res.status(404).json({ error: 'Company not found' })
     res.status(200).json(company)
   } catch (error) {
@@ -64,8 +60,7 @@ router.put('/companies/:companyId', async (req, res, next) => {
 
 router.delete('/companies/:companyId', async (req, res, next) => {
   try {
-    const company = await LogisticCompany.findByIdAndDelete(req.params.companyId)
-    if (!company) return res.status(404).json({ error: 'Company not found' })
+    await companyManager.deleteCompany(req.params.companyId)
     res.status(204).send()
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -76,7 +71,7 @@ router.delete('/companies/:companyId', async (req, res, next) => {
 
 router.get('/customers', async (req, res, next) => {
   try {
-    const customers = await Customer.find().populate('company', 'companyName')
+    const customers = await customerManager.getAllCustomers()
     res.status(200).json(customers)
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -85,26 +80,11 @@ router.get('/customers', async (req, res, next) => {
 
 router.put('/customers/:customerId', async (req, res, next) => {
   try {
-    const { customerName, company, billingInfo, profile, email } = req.body
-    const customer = await Customer.findById(req.params.customerId)
-    if (!customer) return res.status(404).json({ error: 'Customer not found' })
-
-    if (customerName !== undefined) customer.customerName = customerName
-    if (company !== undefined) customer.company = company || null
-    if (billingInfo !== undefined) customer.billingInfo = billingInfo
-    if (profile !== undefined) customer.profile = profile
-    await customer.save()
-
-    if (email !== undefined) {
-      const account = await Account.findById(customer.account._id || customer.account)
-      if (account) {
-        account.email = email
-        await account.save()
-      }
-    }
-
-    const populated = await Customer.findById(customer._id).populate('company', 'companyName')
-    res.status(200).json(populated)
+    const company = req.body.company
+    const updates = req.body
+    const updated = await customerManager.updateCustomerByCompany(req.params.customerId, company, updates)
+    if (!updated) return res.status(404).json({ error: 'Customer not found' })
+    res.status(200).json(updated)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -112,10 +92,8 @@ router.put('/customers/:customerId', async (req, res, next) => {
 
 router.delete('/customers/:customerId', async (req, res, next) => {
   try {
-    const customer = await Customer.findById(req.params.customerId)
-    if (!customer) return res.status(404).json({ error: 'Customer not found' })
-    await Account.findByIdAndDelete(customer.account._id || customer.account)
-    await Customer.findByIdAndDelete(req.params.customerId)
+    const company = req.body.company
+    await customerManager.deleteCustomerByCompany(req.params.customerId, company)
     res.status(204).send()
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -126,9 +104,7 @@ router.delete('/customers/:customerId', async (req, res, next) => {
 
 router.get('/orders', async (req, res, next) => {
   try {
-    const orders = await Order.find()
-      .populate('customer', 'customerName')
-      .populate('company', 'companyName')
+    const orders = await orderManager.getOrders()
     res.status(200).json(orders)
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -137,13 +113,9 @@ router.get('/orders', async (req, res, next) => {
 
 router.put('/orders/:orderId', async (req, res, next) => {
   try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.orderId,
-      { $set: req.body },
-      { new: true, runValidators: true }
-    ).populate('customer', 'customerName').populate('company', 'companyName')
-    if (!order) return res.status(404).json({ error: 'Order not found' })
-    res.status(200).json(order)
+    const updated = await orderManager.updateOrder(req.params.orderId, req.body)
+    if (!updated) return res.status(404).json({ error: 'Order not found or not pending' })
+    res.status(200).json(updated)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -151,8 +123,9 @@ router.put('/orders/:orderId', async (req, res, next) => {
 
 router.delete('/orders/:orderId', async (req, res, next) => {
   try {
-    const order = await Order.findByIdAndDelete(req.params.orderId)
-    if (!order) return res.status(404).json({ error: 'Order not found' })
+    // For admin, we assume company context is not required, so just delete by id
+    const deleted = await orderManager.deleteOrderByCompany(req.params.orderId, req.body.company)
+    if (!deleted) return res.status(404).json({ error: 'Order not found' })
     res.status(204).send()
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -163,9 +136,7 @@ router.delete('/orders/:orderId', async (req, res, next) => {
 
 router.get('/employees', async (req, res, next) => {
   try {
-    const employees = await Employee.find()
-      .populate('account', 'email')
-      .populate('company', 'companyName')
+    const employees = await employeeManager.getAllEmployees()
     res.status(200).json(employees)
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -174,27 +145,11 @@ router.get('/employees', async (req, res, next) => {
 
 router.put('/employees/:employeeId', async (req, res, next) => {
   try {
-    const { name, profile, email, company } = req.body
-    const employee = await Employee.findById(req.params.employeeId)
-    if (!employee) return res.status(404).json({ error: 'Employee not found' })
-
-    if (name !== undefined) employee.name = name
-    if (profile !== undefined) employee.profile = profile
-    if (company !== undefined) employee.company = company
-    await employee.save()
-
-    if (email !== undefined) {
-      const account = await Account.findById(employee.account._id || employee.account)
-      if (account) {
-        account.email = email
-        await account.save()
-      }
-    }
-
-    const populated = await Employee.findById(employee._id)
-      .populate('account', 'email')
-      .populate('company', 'companyName')
-    res.status(200).json(populated)
+    const company = req.body.company
+    const updates = req.body
+    const updated = await employeeManager.updateEmployeeByCompany(req.params.employeeId, company, updates)
+    if (!updated) return res.status(404).json({ error: 'Employee not found' })
+    res.status(200).json(updated)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -202,10 +157,8 @@ router.put('/employees/:employeeId', async (req, res, next) => {
 
 router.delete('/employees/:employeeId', async (req, res, next) => {
   try {
-    const employee = await Employee.findById(req.params.employeeId)
-    if (!employee) return res.status(404).json({ error: 'Employee not found' })
-    await Account.findByIdAndDelete(employee.account._id || employee.account)
-    await Employee.findByIdAndDelete(req.params.employeeId)
+    const company = req.body.company
+    await employeeManager.deleteEmployeeByCompany(req.params.employeeId, company)
     res.status(204).send()
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -214,14 +167,8 @@ router.delete('/employees/:employeeId', async (req, res, next) => {
 
 router.post('/customers/:customerId/reset-password', async (req, res, next) => {
   try {
-    const { newPassword } = req.body
-    if (!newPassword) return res.status(400).json({ error: 'New password is required' })
-    const customer = await Customer.findById(req.params.customerId)
-    if (!customer) return res.status(404).json({ error: 'Customer not found' })
-    const account = await Account.findById(customer.account._id || customer.account)
-    if (!account) return res.status(404).json({ error: 'Account not found' })
-    await account.setPassword(newPassword)
-    await account.save()
+    const { newPassword, company } = req.body
+    await customerManager.resetCustomerPasswordByCompany(req.params.customerId, company, newPassword)
     res.status(200).json({ message: 'Password reset successfully' })
   } catch (error) {
     res.status(400).json({ error: error.message })
@@ -230,14 +177,8 @@ router.post('/customers/:customerId/reset-password', async (req, res, next) => {
 
 router.post('/employees/:employeeId/reset-password', async (req, res, next) => {
   try {
-    const { newPassword } = req.body
-    if (!newPassword) return res.status(400).json({ error: 'New password is required' })
-    const employee = await Employee.findById(req.params.employeeId)
-    if (!employee) return res.status(404).json({ error: 'Employee not found' })
-    const account = await Account.findById(employee.account._id || employee.account)
-    if (!account) return res.status(404).json({ error: 'Account not found' })
-    await account.setPassword(newPassword)
-    await account.save()
+    const { newPassword, company } = req.body
+    await employeeManager.resetEmployeePasswordByCompany(req.params.employeeId, company, newPassword)
     res.status(200).json({ message: 'Password reset successfully' })
   } catch (error) {
     res.status(400).json({ error: error.message })
