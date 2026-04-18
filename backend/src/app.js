@@ -1,3 +1,7 @@
+/* eslint-disable import/order */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-return-assign */
+/* eslint-disable global-require */
 const createError = require('http-errors')
 const express = require('express')
 const path = require('path')
