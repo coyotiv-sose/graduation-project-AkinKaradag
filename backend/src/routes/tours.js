@@ -2,7 +2,6 @@ const express = require('express')
 
 const router = express.Router()
 const tourManager = require('../managers/tour-manager')
-const vehicleManager = require('../managers/vehicle-manager')
 
 router.get('/:tourId', async (req, res, next) => {
   try {
