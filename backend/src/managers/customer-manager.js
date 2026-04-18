@@ -5,10 +5,13 @@ const createCustomer = async customerData => {
   const exist = await Account.findOne({ email: customerData.email })
   if (exist) throw new Error('Email already registered')
 
-  const account = await Account.register(new Account({
-    email: customerData.email,
-    role: 'customer',
-  }), customerData.password)
+  const account = await Account.register(
+    new Account({
+      email: customerData.email,
+      role: 'customer',
+    }),
+    customerData.password
+  )
 
   const customer = await Customer.create({
     account: account._id,
