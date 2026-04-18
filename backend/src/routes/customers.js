@@ -30,6 +30,7 @@ router.post('/:customerId/orders', async (req, res, next) => {
   }
 })
 
+// eslint-disable-next-line consistent-return
 router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
   try {
     const { prompt } = req.body
