@@ -5,10 +5,13 @@ const createEmployee = async employeeData => {
   const exist = await Account.findOne({ email: employeeData.email })
   if (exist) throw new Error('Email already registered')
 
-  const account = await Account.register(new Account({
-    email: employeeData.email,
-    role: 'employee',
-  }), employeeData.password)
+  const account = await Account.register(
+    new Account({
+      email: employeeData.email,
+      role: 'employee',
+    }),
+    employeeData.password
+  )
 
   const employee = await Employee.create({
     account: account._id,
@@ -53,9 +56,7 @@ const updateEmployeeByCompany = async (employeeId, companyId, updates) => {
     }
   }
 
-  return Employee.findById(employee._id)
-    .populate('account', 'email')
-    .populate('company', 'companyName')
+  return Employee.findById(employee._id).populate('account', 'email').populate('company', 'companyName')
 }
 
 const deleteEmployeeByCompany = async (employeeId, companyId) => {

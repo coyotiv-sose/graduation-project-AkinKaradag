@@ -1,4 +1,3 @@
-const Customer = require('../models/customer')
 const Order = require('../models/order')
 const { validateCustomerBelongsToCompany } = require('./customer-manager')
 
@@ -15,6 +14,10 @@ const findOrderById = async orderId => {
   const order = await Order.findById(orderId).populate('customer', 'customerName')
   if (!order) throw new Error('Order not found')
   return order
+}
+
+const getOrdersByIdsWithCustomer = async orderIds => {
+  return Order.find({ _id: { $in: orderIds } }).populate('customer', 'customerName')
 }
 
 const getOrders = () => Order.find()
@@ -93,4 +96,5 @@ module.exports = {
   getOrdersByCustomerFromCompany,
   addCargoToOrder,
   getCargosFromOrder,
+  getOrdersByIdsWithCustomer,
 }
