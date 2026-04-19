@@ -18,8 +18,9 @@ export const useTourStore = defineStore('tour', {
             await axios.post(`/companies/${companyId}/tours/${tourId}`, { orderId })
             await this.getAllTours(companyId)
         },
-        async assignVehicleToTour(tourId, vehicleId) {
+        async assignVehicleToTour(tourId, vehicleId, companyId) {
             await axios.put(`/tours/${tourId}/vehicles`, { vehicleId })
+            await this.getAllTours(companyId)
         },
         async updateTour(companyId, tourId, updateData) {
             await axios.put(`/companies/${companyId}/tours/${tourId}`, updateData)

@@ -18,32 +18,25 @@ export default {
 }
 </script>
 
-<template>
-  <section class="kl-card kl-card--flush">
-    <div class="kl-card-header">
-      <div>
-        <h2>Companies</h2>
-        <p class="kl-muted sub">Browse every tenant in the KaraLog network.</p>
-      </div>
-      <span class="kl-badge kl-badge--muted">{{ companies.length }}</span>
-    </div>
 
-    <ul class="company-list">
-      <li v-for="company in companies" :key="company._id">
-        <router-link :to="`/companies/${company._id}`" class="company-item">
-          <div class="company-item__icon">
-            <Building2 :size="18" :stroke-width="1.75" />
-          </div>
-          <div class="company-item__body">
-            <div class="company-item__name">{{ company.companyName }}</div>
-            <div class="company-item__meta">{{ company.city }}</div>
-          </div>
-          <ChevronRight :size="16" :stroke-width="1.75" class="company-item__chev" />
-        </router-link>
-      </li>
-      <li v-if="!companies.length" class="company-empty">No companies registered yet.</li>
-    </ul>
-  </section>
+<template lang="pug">
+section.kl-card.kl-card--flush
+  .kl-card-header
+    div
+      h2 Companies
+      p.kl-muted.sub Browse every tenant in the KaraLog network.
+    span.kl-badge.kl-badge--muted {{ companies.length }}
+
+  ul.company-list
+    li(v-for="company in companies", :key="company._id")
+      router-link.company-item(:to="`/companies/${company._id}`")
+        .company-item__icon
+          Building2(:size="18", :stroke-width="1.75")
+        .company-item__body
+          .company-item__name {{ company.companyName }}
+          .company-item__meta {{ company.city }}
+        ChevronRight.company-item__chev(:size="16", :stroke-width="1.75")
+    li.company-empty(v-if="!companies.length") No companies registered yet.
 </template>
 
 <style scoped>

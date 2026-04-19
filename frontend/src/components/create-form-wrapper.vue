@@ -33,22 +33,15 @@ export default {
 }
 </script>
 
-<template>
-  <form class="kl-card kl-card--padded create-form" @submit.prevent="handleSubmit">
-    <div class="create-form__body">
-      <slot />
-    </div>
-    <div class="create-form__footer">
-      <button
-        type="submit"
-        class="kl-btn kl-btn--primary"
-        :disabled="isLoading"
-      >
-        {{ isLoading ? 'Working...' : submitLabel }}
-      </button>
-    </div>
-    <p v-if="errorMessage" class="kl-alert kl-alert--danger">{{ errorMessage }}</p>
-  </form>
+
+<template lang="pug">
+form.kl-card.kl-card--padded.create-form(@submit.prevent="handleSubmit")
+  .create-form__body
+    slot
+  .create-form__footer
+    button.kl-btn.kl-btn--primary(type="submit", :disabled="isLoading")
+      | {{ isLoading ? 'Working...' : submitLabel }}
+  p.kl-alert.kl-alert--danger(v-if="errorMessage") {{ errorMessage }}
 </template>
 
 <style scoped>

@@ -13,8 +13,8 @@ module.exports = async function (prompt) {
         content: `You are a logistics order assistant. Parse the user's natural language request into a structured JSON order.
 Return ONLY valid JSON with this exact structure (no markdown, no explanation):
 {
-  "origin": "city or address string",
-  "destination": "city or address string",
+  "origin": "Name, city or address string",
+  "destination": "Name, city or address string",
   "deliveryDate": "YYYY-MM-DD",
   "cargos": [
     {

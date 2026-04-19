@@ -74,42 +74,35 @@ export default {
 }
 </script>
 
-<template>
-  <div class="customer-block">
-    <CreateFormWrapper :on-submit="submitCustomer" submit-label="Create customer">
-      <h3>Account info</h3>
-      <input v-model="email" type="email" placeholder="Email" required />
-      <input v-model="password" type="password" placeholder="Password" required />
-      <input v-model="customerName" placeholder="Customer name" required />
 
-      <h3>Billing info</h3>
-      <input v-model="billingInfo.label" placeholder="Label (e.g. HQ)" />
-      <input v-model="billingInfo.customerName" placeholder="Billing name" />
-      <input v-model="billingInfo.address" placeholder="Address" />
-      <div class="customer-block__row">
-        <input v-model="billingInfo.postalCode" placeholder="Postal code" />
-        <input v-model="billingInfo.city" placeholder="City" />
-      </div>
-      <input v-model="billingInfo.VATnr" placeholder="VAT number" />
-    </CreateFormWrapper>
+<template lang="pug">
+.customer-block
+  CreateFormWrapper(:on-submit="submitCustomer", submit-label="Create customer")
+    h3 Account info
+    input(v-model="email", type="email", placeholder="Email", required)
+    input(v-model="password", type="password", placeholder="Password", required)
+    input(v-model="customerName", placeholder="Customer name", required)
 
-    <section class="kl-card kl-card--flush">
-      <div class="kl-card-header">
-        <h2>Customers</h2>
-        <span class="kl-badge kl-badge--muted">{{ customers.length }}</span>
-      </div>
-      <ul class="list">
-        <li v-for="customer in customers" :key="customer._id" class="list-item">
-          <div class="avatar">{{ initials(customer.customerName) }}</div>
-          <div class="list-item__info">
-            <div class="list-item__name">{{ customer.customerName }}</div>
-            <div class="list-item__meta">{{ customer.account.email }}</div>
-          </div>
-        </li>
-        <li v-if="!customers.length" class="list__empty">No customers yet.</li>
-      </ul>
-    </section>
-  </div>
+    h3 Billing info
+    input(v-model="billingInfo.label", placeholder="Label (e.g. HQ)")
+    input(v-model="billingInfo.customerName", placeholder="Billing name")
+    input(v-model="billingInfo.address", placeholder="Address")
+    .customer-block__row
+      input(v-model="billingInfo.postalCode", placeholder="Postal code")
+      input(v-model="billingInfo.city", placeholder="City")
+    input(v-model="billingInfo.VATnr", placeholder="VAT number")
+
+  section.kl-card.kl-card--flush
+    .kl-card-header
+      h2 Customers
+      span.kl-badge.kl-badge--muted {{ customers.length }}
+    ul.list
+      li.list-item(v-for="customer in customers", :key="customer._id")
+        .avatar {{ initials(customer.customerName) }}
+        .list-item__info
+          .list-item__name {{ customer.customerName }}
+          .list-item__meta {{ customer.account.email }}
+      li.list__empty(v-if="!customers.length") No customers yet.
 </template>
 
 <style scoped>
