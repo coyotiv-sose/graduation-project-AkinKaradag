@@ -103,56 +103,44 @@ export default {
 }
 </script>
 
-<template>
-  <aside class="app-sidebar" aria-label="Primary navigation">
-    <div class="brand">
-      <router-link to="/" class="brand-link" :title="'KaraLog'">
-        <span class="brand-mark" aria-hidden="true">K</span>
-        <span class="brand-text">KaraLog</span>
-      </router-link>
-    </div>
 
-    <nav class="nav">
-      <router-link
-        v-for="item in navItems"
-        :key="item.to + item.label"
-        :to="item.to"
-        class="nav-item"
-        :title="item.label"
-      >
-        <component :is="item.icon" class="nav-icon" :size="20" :stroke-width="1.75" />
-        <span class="nav-label">{{ item.label }}</span>
-      </router-link>
-    </nav>
+<template lang="pug">
+aside.app-sidebar(aria-label="Primary navigation")
+  .brand
+    router-link.brand-link(:to="'/'", :title="'KaraLog'")
+      span.brand-mark(aria-hidden="true") K
+      span.brand-text KaraLog
 
-    <div class="footer">
-      <div class="footer-controls">
-        <NotificationBell v-if="user" />
-        <ThemeToggle />
-      </div>
+  nav.nav
+    router-link.nav-item(
+      v-for="item in navItems"
+      :key="item.to + item.label"
+      :to="item.to"
+      :title="item.label"
+    )
+      component.nav-icon(:is="item.icon", :size="20", :stroke-width="1.75")
+      span.nav-label {{ item.label }}
 
-      <div v-if="user" class="user-card">
-        <div class="user-avatar">{{ initials }}</div>
-        <div class="user-meta">
-          <div class="user-name" :title="displayName">{{ displayName }}</div>
-          <div class="user-role">{{ displayRole }}</div>
-        </div>
-        <button
-          class="logout-btn"
-          type="button"
-          title="Sign out"
-          aria-label="Sign out"
-          @click="handleLogout"
-        >
-          <LogOut :size="16" :stroke-width="1.75" />
-        </button>
-      </div>
-      <router-link v-else to="/login" class="nav-item sign-in" title="Sign in">
-        <LogIn class="nav-icon" :size="20" :stroke-width="1.75" />
-        <span class="nav-label">Sign in</span>
-      </router-link>
-    </div>
-  </aside>
+  .footer
+    .footer-controls
+      NotificationBell(v-if="user")
+      ThemeToggle
+
+    .user-card(v-if="user")
+      .user-avatar {{ initials }}
+      .user-meta
+        .user-name(:title="displayName") {{ displayName }}
+        .user-role {{ displayRole }}
+      button.logout-btn(
+        type="button"
+        title="Sign out"
+        aria-label="Sign out"
+        @click="handleLogout"
+      )
+        LogOut(:size="16", :stroke-width="1.75")
+    router-link.nav-item.sign-in(v-else, to="/login", title="Sign in")
+      LogIn.nav-icon(:size="20", :stroke-width="1.75")
+      span.nav-label Sign in
 </template>
 
 <style scoped>

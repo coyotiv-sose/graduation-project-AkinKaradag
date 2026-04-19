@@ -150,282 +150,196 @@ export default {
 }
 </script>
 
-<template>
-  <div class="dispatcher">
-    <div v-if="errorMessage" class="kl-alert kl-alert--danger">{{ errorMessage }}</div>
 
-    <section class="kpi-row">
-      <div class="kpi">
-        <div class="kpi__icon"><Package :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Pending orders</div>
-          <div class="kpi__value">{{ pendingOrders.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon kpi__icon--info"><Route :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Active tours</div>
-          <div class="kpi__value">{{ startedTours.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon kpi__icon--warn"><Route :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Planned tours</div>
-          <div class="kpi__value">{{ plannedTours.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon kpi__icon--info"><Truck :size="18" :stroke-width="1.75" /></div>
-        <div>
-          <div class="kpi__label">Available fleet</div>
-          <div class="kpi__value">{{ availableVehicles.length }} / {{ vehicles.length }}</div>
-        </div>
-      </div>
-    </section>
+<template lang="pug">
+.dispatcher
+  .kl-alert.kl-alert--danger(v-if="errorMessage") {{ errorMessage }}
 
-    <div class="dispatcher__grid">
-      <!-- LEFT: Pending orders -->
-      <section class="kl-card kl-card--flush panel">
-        <div class="kl-card-header">
-          <div>
-            <h3>Pending orders</h3>
-            <p class="kl-muted panel__sub">Orders awaiting tour assignment</p>
-          </div>
-          <span class="kl-badge kl-badge--warning">{{ pendingOrders.length }}</span>
-        </div>
-        <ul class="panel__list">
-          <li v-for="order in pendingOrders" :key="order._id" class="order-item">
-            <div class="order-item__row">
-              <span class="order-item__id">#{{ order._id.slice(-5) }}</span>
-              <span :class="orderBadgeClass(order.state)">{{ order.state }}</span>
-            </div>
-            <div class="order-item__route">
-              {{ order.origin }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ order.destination }}
-            </div>
-            <div class="order-item__meta">
-              <span>{{ order.cargos.length }} cargo(s)</span>
-              <span>&middot;</span>
-              <span>{{ formatDate(order.deliveryDate) }}</span>
-            </div>
-            <div class="order-item__actions">
-              <router-link :to="`/orders/${order._id}`" class="kl-btn kl-btn--outline kl-btn--sm">
-                Details
-              </router-link>
-              <button
-                type="button"
-                class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                title="Delete"
-                @click="deleteOrder(order._id)"
-              >
-                <Trash2 :size="14" :stroke-width="1.75" />
-              </button>
-            </div>
-          </li>
-          <li v-if="!pendingOrders.length" class="panel__empty">No pending orders.</li>
-        </ul>
+  section.kpi-row
+    .kpi
+      .kpi__icon
+        Package(:size="18", :stroke-width="1.75")
+      div
+        .kpi__label Pending orders
+        .kpi__value {{ pendingOrders.length }}
+    .kpi
+      .kpi__icon.kpi__icon--info
+        Route(:size="18", :stroke-width="1.75")
+      div
+        .kpi__label Active tours
+        .kpi__value {{ startedTours.length }}
+    .kpi
+      .kpi__icon.kpi__icon--warn
+        Route(:size="18", :stroke-width="1.75")
+      div
+        .kpi__label Planned tours
+        .kpi__value {{ plannedTours.length }}
+    .kpi
+      .kpi__icon.kpi__icon--info
+        Truck(:size="18", :stroke-width="1.75")
+      div
+        .kpi__label Available fleet
+        .kpi__value {{ availableVehicles.length }} / {{ vehicles.length }}
 
-        <template v-if="inProcessOrders.length">
-          <div class="panel__subheader">In process</div>
-          <ul class="panel__list">
-            <li v-for="order in inProcessOrders" :key="order._id" class="order-item order-item--active">
-              <div class="order-item__row">
-                <span class="order-item__id">#{{ order._id.slice(-5) }}</span>
-                <span :class="orderBadgeClass(order.state)">{{ order.state }}</span>
-              </div>
-              <div class="order-item__route">
-                {{ order.origin }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ order.destination }}
-              </div>
-              <div class="order-item__meta">
-                <span>{{ order.cargos.length }} cargo(s)</span>
-                <span>&middot;</span>
-                <span>{{ formatDate(order.deliveryDate) }}</span>
-              </div>
-            </li>
-          </ul>
-        </template>
-      </section>
+  .dispatcher__grid
+    // LEFT: Pending orders
+    section.kl-card.kl-card--flush.panel
+      .kl-card-header
+        div
+          h3 Pending orders
+          p.kl-muted.panel__sub Orders awaiting tour assignment
+        span.kl-badge.kl-badge--warning {{ pendingOrders.length }}
+      ul.panel__list
+        li.order-item(v-for="order in pendingOrders", :key="order._id")
+          .order-item__row
+            span.order-item__id #{{ order._id.slice(-5) }}
+            span(:class="orderBadgeClass(order.state)") {{ order.state }}
+          .order-item__route
+            | {{ order.origin }}
+            ChevronRight(:size="14", :stroke-width="1.75")
+            | {{ order.destination }}
+          .order-item__meta
+            span {{ order.cargos.length }} cargo(s)
+            span &middot;
+            span {{ formatDate(order.deliveryDate) }}
+          .order-item__actions
+            router-link.kl-btn.kl-btn--outline.kl-btn--sm(:to="`/orders/${order._id}`") Details
+            button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(type="button", title="Delete", @click="deleteOrder(order._id)")
+              Trash2(:size="14", :stroke-width="1.75")
+        li.panel__empty(v-if="!pendingOrders.length") No pending orders.
 
-      <!-- RIGHT: Fleet -->
-      <section class="kl-card kl-card--flush panel">
-        <div class="kl-card-header">
-          <div>
-            <h3>Active fleet</h3>
-            <p class="kl-muted panel__sub">Vehicle states across your company</p>
-          </div>
-          <router-link :to="`/companies/${companyId}/vehicles`" class="kl-btn kl-btn--ghost kl-btn--sm">
-            Manage
-          </router-link>
-        </div>
-        <ul class="panel__list">
-          <li v-for="vehicle in vehicles" :key="vehicle._id" class="vehicle-item">
-            <div class="vehicle-item__row">
-              <div class="vehicle-item__head">
-                <span class="vehicle-item__name">{{ vehicleName(vehicle) }}</span>
-                <span class="vehicle-item__meta">
-                  {{ vehicle.brand }} {{ vehicle.model }} &middot; {{ vehicle.payLoad }} kg
-                </span>
-              </div>
-              <span :class="vehicleBadgeClass(vehicle.state)">{{ vehicle.state }}</span>
-            </div>
-          </li>
-          <li v-if="!vehicles.length" class="panel__empty">No vehicles registered.</li>
-        </ul>
-      </section>
-    </div>
+      template(v-if="inProcessOrders.length")
+        .panel__subheader In process
+        ul.panel__list
+          li.order-item.order-item--active(v-for="order in inProcessOrders", :key="order._id")
+            .order-item__row
+              span.order-item__id #{{ order._id.slice(-5) }}
+              span(:class="orderBadgeClass(order.state)") {{ order.state }}
+            .order-item__route
+              | {{ order.origin }}
+              ChevronRight(:size="14", :stroke-width="1.75")
+              | {{ order.destination }}
+            .order-item__meta
+              span {{ order.cargos.length }} cargo(s)
+              span &middot;
+              span {{ formatDate(order.deliveryDate) }}
 
-    <!-- BOTTOM: Tours -->
-    <section class="kl-card kl-card--flush panel">
-      <div class="kl-card-header">
-        <div>
-          <h3>Tours</h3>
-          <p class="kl-muted panel__sub">Plan, assign and start delivery tours</p>
-        </div>
-        <button type="button" class="kl-btn kl-btn--primary kl-btn--sm" @click="showTourForm = !showTourForm">
-          <Plus :size="14" :stroke-width="2" />
-          {{ showTourForm ? 'Cancel' : 'New tour' }}
-        </button>
-      </div>
+    // RIGHT: Fleet
+    section.kl-card.kl-card--flush.panel
+      .kl-card-header
+        div
+          h3 Active fleet
+          p.kl-muted.panel__sub Vehicle states across your company
+        router-link.kl-btn.kl-btn--ghost.kl-btn--sm(:to="`/companies/${companyId}/vehicles`") Manage
+      ul.panel__list
+        li.vehicle-item(v-for="vehicle in vehicles", :key="vehicle._id")
+          .vehicle-item__row
+            .vehicle-item__head
+              span.vehicle-item__name {{ vehicleName(vehicle) }}
+              span.vehicle-item__meta {{ vehicle.brand }} {{ vehicle.model }} &middot; {{ vehicle.payLoad }} kg
+            span(:class="vehicleBadgeClass(vehicle.state)") {{ vehicle.state }}
+        li.panel__empty(v-if="!vehicles.length") No vehicles registered.
 
-      <div v-if="showTourForm" class="inline-form">
-        <form class="tour-form" @submit.prevent="handleCreateTour">
-          <div class="kl-field">
-            <label class="kl-label">Date</label>
-            <input v-model="tourForm.date" class="kl-input" type="date" required />
-          </div>
-          <div class="kl-field">
-            <label class="kl-label">Start location</label>
-            <input v-model="tourForm.startLocation" class="kl-input" placeholder="Depot" required />
-          </div>
-          <div class="kl-field">
-            <label class="kl-label">End location</label>
-            <input v-model="tourForm.endLocation" class="kl-input" placeholder="Destination" required />
-          </div>
-          <button type="submit" class="kl-btn kl-btn--primary">Create tour</button>
-        </form>
-      </div>
+  // BOTTOM: Tours
+  section.kl-card.kl-card--flush.panel
+    .kl-card-header
+      div
+        h3 Tours
+        p.kl-muted.panel__sub Plan, assign and start delivery tours
+      button.kl-btn.kl-btn--primary.kl-btn--sm(type="button", @click="showTourForm = !showTourForm")
+        Plus(:size="14", :stroke-width="2")
+        | {{ showTourForm ? 'Cancel' : 'New tour' }}
 
-      <template v-if="plannedTours.length">
-        <div class="panel__subheader">Planned</div>
-        <ul class="panel__list panel__list--tours">
-          <li v-for="tour in plannedTours" :key="tour._id" class="tour-item">
-            <div class="tour-item__head">
-              <div class="tour-item__route">
-                {{ tour.startLocation }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ tour.endLocation }}
-              </div>
-              <span :class="tourBadgeClass(tour.state)">{{ tour.state }}</span>
-            </div>
-            <div class="tour-item__meta">
-              <span>{{ formatDate(tour.date) }}</span>
-              <span>&middot;</span>
-              <span v-if="tour.vehicle">Vehicle: {{ vehicleName(tour.vehicle) }}</span>
-              <span v-else>No vehicle assigned</span>
-            </div>
-            <div v-if="tour.orders && tour.orders.length" class="tour-item__orders">
-              <div class="tour-item__orders-label">Orders</div>
-              <div v-for="order in tour.orders" :key="order._id" class="mini-order">
-                {{ order.origin }} <ChevronRight :size="12" :stroke-width="1.75" /> {{ order.destination }}
-              </div>
-            </div>
-            <div class="tour-item__actions">
-              <button type="button" class="kl-btn kl-btn--outline kl-btn--sm" @click="openAssignOrder(tour._id)">
-                <Plus :size="14" :stroke-width="2" /> Add order
-              </button>
-              <select
-                v-if="!tour.vehicle && availableVehicles.length"
-                class="kl-select kl-input--sm"
-                @change="handleAssignVehicle(tour._id, $event.target.value); $event.target.value=''"
-              >
-                <option value="" disabled selected>Assign vehicle</option>
-                <option v-for="v in availableVehicles" :key="v._id" :value="v._id">
-                  {{ vehicleName(v) }}
-                </option>
-              </select>
-              <button
-                v-if="tour.vehicle && tour.orders && tour.orders.length"
-                type="button"
-                class="kl-btn kl-btn--primary kl-btn--sm"
-                @click="updateTourState(tour._id, 'STARTED')"
-              >
-                Start tour
-              </button>
-            </div>
-          </li>
-        </ul>
-      </template>
+    .inline-form(v-if="showTourForm")
+      form.tour-form(@submit.prevent="handleCreateTour")
+        .kl-field
+          label.kl-label Date
+          input.kl-input(v-model="tourForm.date", type="date", required)
+        .kl-field
+          label.kl-label Start location
+          input.kl-input(v-model="tourForm.startLocation", placeholder="Depot", required)
+        .kl-field
+          label.kl-label End location
+          input.kl-input(v-model="tourForm.endLocation", placeholder="Destination", required)
+        button.kl-btn.kl-btn--primary(type="submit") Create tour
 
-      <template v-if="startedTours.length">
-        <div class="panel__subheader">Active</div>
-        <ul class="panel__list panel__list--tours">
-          <li v-for="tour in startedTours" :key="tour._id" class="tour-item tour-item--active">
-            <div class="tour-item__head">
-              <div class="tour-item__route">
-                {{ tour.startLocation }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ tour.endLocation }}
-              </div>
-              <span :class="tourBadgeClass(tour.state)">{{ tour.state }}</span>
-            </div>
-            <div class="tour-item__meta">
-              <span>{{ formatDate(tour.date) }}</span>
-              <span v-if="tour.vehicle">&middot;</span>
-              <span v-if="tour.vehicle">Vehicle: {{ vehicleName(tour.vehicle) }}</span>
-            </div>
-            <div v-if="tour.orders && tour.orders.length" class="tour-item__orders">
-              <div class="tour-item__orders-label">Orders</div>
-              <div v-for="order in tour.orders" :key="order._id" class="mini-order">
-                {{ order.origin }} <ChevronRight :size="12" :stroke-width="1.75" /> {{ order.destination }}
-                <span class="mini-order__state">&middot; {{ order.state }}</span>
-              </div>
-            </div>
-            <div class="tour-item__actions">
-              <button
-                type="button"
-                class="kl-btn kl-btn--outline kl-btn--sm"
-                @click="updateTourState(tour._id, 'FINISHED')"
-              >
-                Finish tour
-              </button>
-            </div>
-          </li>
-        </ul>
-      </template>
+    template(v-if="plannedTours.length")
+      .panel__subheader Planned
+      ul.panel__list.panel__list--tours
+        li.tour-item(v-for="tour in plannedTours", :key="tour._id")
+          .tour-item__head
+            .tour-item__route
+              | {{ tour.startLocation }}
+              ChevronRight(:size="14", :stroke-width="1.75")
+              | {{ tour.endLocation }}
+            span(:class="tourBadgeClass(tour.state)") {{ tour.state }}
+          .tour-item__meta
+            span {{ formatDate(tour.date) }}
+            span &middot;
+            span(v-if="tour.vehicle") Vehicle: {{ vehicleName(tour.vehicle) }}
+            span(v-else) No vehicle assigned
+          .tour-item__orders(v-if="tour.orders && tour.orders.length")
+            .tour-item__orders-label Orders
+            div.mini-order(v-for="order in tour.orders", :key="order._id")
+              | {{ order.origin }}
+              ChevronRight(:size="12", :stroke-width="1.75")
+              | {{ order.destination }}
+          .tour-item__actions
+            button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="openAssignOrder(tour._id)")
+              Plus(:size="14", :stroke-width="2") Add order
+            select.kl-select.kl-input--sm(
+              v-if="!tour.vehicle && availableVehicles.length"
+              @change="handleAssignVehicle(tour._id, $event.target.value); $event.target.value=''"
+            )
+              option(value="", disabled, selected) Assign vehicle
+              option(v-for="v in availableVehicles", :key="v._id", :value="v._id") {{ vehicleName(v) }}
+            button.kl-btn.kl-btn--primary.kl-btn--sm(
+              v-if="tour.vehicle && tour.orders && tour.orders.length"
+              type="button"
+              @click="updateTourState(tour._id, 'STARTED')"
+            ) Start tour
 
-      <div v-if="!tours.length" class="panel__empty panel__empty--big">No tours yet.</div>
-    </section>
+    template(v-if="startedTours.length")
+      .panel__subheader Active
+      ul.panel__list.panel__list--tours
+        li.tour-item.tour-item--active(v-for="tour in startedTours", :key="tour._id")
+          .tour-item__head
+            .tour-item__route
+              | {{ tour.startLocation }}
+              ChevronRight(:size="14", :stroke-width="1.75")
+              | {{ tour.endLocation }}
+            span(:class="tourBadgeClass(tour.state)") {{ tour.state }}
+          .tour-item__meta
+            span {{ formatDate(tour.date) }}
+            span(v-if="tour.vehicle") &middot;
+            span(v-if="tour.vehicle") Vehicle: {{ vehicleName(tour.vehicle) }}
+          .tour-item__orders(v-if="tour.orders && tour.orders.length")
+            .tour-item__orders-label Orders
+            div.mini-order(v-for="order in tour.orders", :key="order._id")
+              | {{ order.origin }}
+              ChevronRight(:size="12", :stroke-width="1.75")
+              | {{ order.destination }}
+              span.mini-order__state &middot; {{ order.state }}
+          .tour-item__actions
+            button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="updateTourState(tour._id, 'FINISHED')") Finish tour
 
-    <!-- Assign modal -->
-    <div v-if="assignModal.visible" class="kl-modal-overlay" @click.self="assignModal.visible = false">
-      <div class="kl-modal">
-        <div class="kl-modal-header">
-          <h3>Assign order</h3>
-        </div>
-        <div class="kl-modal-body">
-          <div class="kl-field">
-            <label class="kl-label">Select an order</label>
-            <select v-model="assignModal.orderId" class="kl-select">
-              <option disabled value="">Select an order</option>
-              <option v-for="order in pendingOrders" :key="order._id" :value="order._id">
-                {{ order.origin }} -> {{ order.destination }} ({{ formatDate(order.deliveryDate) }})
-              </option>
-            </select>
-          </div>
-        </div>
-        <div class="kl-modal-footer">
-          <button type="button" class="kl-btn kl-btn--ghost" @click="assignModal.visible = false">
-            Cancel
-          </button>
-          <button
-            type="button"
-            class="kl-btn kl-btn--primary"
-            :disabled="!assignModal.orderId"
-            @click="assignOrderToTour"
-          >
-            Assign
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+    .panel__empty.panel__empty--big(v-if="!tours.length") No tours yet.
+
+  // Assign modal
+  .kl-modal-overlay(v-if="assignModal.visible", @click.self="assignModal.visible = false")
+    .kl-modal
+      .kl-modal-header
+        h3 Assign order
+      .kl-modal-body
+        .kl-field
+          label.kl-label Select an order
+          select.kl-select(v-model="assignModal.orderId")
+            option(disabled, value="") Select an order
+            option(v-for="order in pendingOrders", :key="order._id", :value="order._id")
+              | {{ order.origin }} -> {{ order.destination }} ({{ formatDate(order.deliveryDate) }})
+      .kl-modal-footer
+        button.kl-btn.kl-btn--ghost(type="button", @click="assignModal.visible = false") Cancel
+        button.kl-btn.kl-btn--primary(type="button", :disabled="!assignModal.orderId", @click="assignOrderToTour") Assign
 </template>
 
 <style scoped>

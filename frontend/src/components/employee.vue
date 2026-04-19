@@ -50,32 +50,26 @@ export default {
 }
 </script>
 
-<template>
-  <div class="employee-block">
-    <CreateFormWrapper :on-submit="submitEmployee" submit-label="Create employee">
-      <h3>Account info</h3>
-      <input v-model="email" type="email" placeholder="Email" required />
-      <input v-model="password" type="password" placeholder="Password" required />
-      <input v-model="name" placeholder="Employee name" required />
-    </CreateFormWrapper>
 
-    <section class="kl-card kl-card--flush">
-      <div class="kl-card-header">
-        <h2>Employees</h2>
-        <span class="kl-badge kl-badge--muted">{{ employees.length }}</span>
-      </div>
-      <ul class="list">
-        <li v-for="employee in employees" :key="employee._id" class="list-item">
-          <div class="avatar">{{ initials(employee.name) }}</div>
-          <div class="list-item__info">
-            <div class="list-item__name">{{ employee.name }}</div>
-            <div class="list-item__meta">{{ employee.profile }}</div>
-          </div>
-        </li>
-        <li v-if="!employees.length" class="list__empty">No employees yet.</li>
-      </ul>
-    </section>
-  </div>
+<template lang="pug">
+.employee-block
+  CreateFormWrapper(:on-submit="submitEmployee", submit-label="Create employee")
+    h3 Account info
+    input(v-model="email", type="email", placeholder="Email", required)
+    input(v-model="password", type="password", placeholder="Password", required)
+    input(v-model="name", placeholder="Employee name", required)
+
+  section.kl-card.kl-card--flush
+    .kl-card-header
+      h2 Employees
+      span.kl-badge.kl-badge--muted {{ employees.length }}
+    ul.list
+      li.list-item(v-for="employee in employees", :key="employee._id")
+        .avatar {{ initials(employee.name) }}
+        .list-item__info
+          .list-item__name {{ employee.name }}
+          .list-item__meta {{ employee.profile }}
+      li.list__empty(v-if="!employees.length") No employees yet.
 </template>
 
 <style scoped>
