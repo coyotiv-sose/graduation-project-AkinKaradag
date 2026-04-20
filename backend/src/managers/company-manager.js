@@ -1,6 +1,6 @@
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
-const Company = require('../models/company')
+const Company = require('../models/logistic-company')
 
 const createCompany = async companyData => {
   const company = await Company.create(companyData)
