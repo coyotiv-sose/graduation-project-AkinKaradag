@@ -3,6 +3,11 @@ const Order = require('../models/order')
 const Vehicle = require('../models/vehicle')
 
 const createTour = async tourData => {
+  if (tourData.vehicle) {
+    const vehicle = await Vehicle.findById(tourData.vehicle)
+    if (!vehicle) throw new Error('Vehicle not found')
+    if (vehicle.state !== 'AVAILABLE') throw new Error('Vehicle is not available')
+  }
   return Tour.create(tourData)
 }
 
