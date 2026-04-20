@@ -153,331 +153,214 @@ export default {
 }
 </script>
 
-<template>
-  <div v-if="isAdmin" class="admin">
-    <PageHeader
-      title="Admin dashboard"
-      subtitle="Manage companies, customers and transport orders across the KaraLog network."
-    />
 
-    <section class="kpi-row">
-      <div class="kpi">
-        <div class="kpi__icon"><Building2 :size="18" :stroke-width="1.75" /></div>
-        <div class="kpi__body">
-          <div class="kpi__label">Companies</div>
-          <div class="kpi__value">{{ companies.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon"><Users :size="18" :stroke-width="1.75" /></div>
-        <div class="kpi__body">
-          <div class="kpi__label">Customers</div>
-          <div class="kpi__value">{{ allCustomers.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon"><Package :size="18" :stroke-width="1.75" /></div>
-        <div class="kpi__body">
-          <div class="kpi__label">Total orders</div>
-          <div class="kpi__value">{{ allOrders.length }}</div>
-        </div>
-      </div>
-      <div class="kpi">
-        <div class="kpi__icon kpi__icon--warn"><Package :size="18" :stroke-width="1.75" /></div>
-        <div class="kpi__body">
-          <div class="kpi__label">Active / pending</div>
-          <div class="kpi__value">{{ inProcessOrdersCount }} / {{ pendingOrdersCount }}</div>
-        </div>
-      </div>
-    </section>
-
-    <div v-if="error" class="kl-alert kl-alert--danger">{{ error }}</div>
-    <div v-if="info" class="kl-alert kl-alert--success">{{ info }}</div>
-
-    <div class="kl-tabs" role="tablist">
-      <button
-        type="button"
-        class="kl-tab"
-        :class="{ 'kl-tab--active': activeTab === 'companies' }"
-        @click="activeTab = 'companies'"
-      >
-        Companies <span class="kl-tab-count">{{ companies.length }}</span>
-      </button>
-      <button
-        type="button"
-        class="kl-tab"
-        :class="{ 'kl-tab--active': activeTab === 'customers' }"
-        @click="activeTab = 'customers'"
-      >
-        Customers <span class="kl-tab-count">{{ allCustomers.length }}</span>
-      </button>
-      <button
-        type="button"
-        class="kl-tab"
-        :class="{ 'kl-tab--active': activeTab === 'orders' }"
-        @click="activeTab = 'orders'"
-      >
-        Orders <span class="kl-tab-count">{{ allOrders.length }}</span>
-      </button>
-    </div>
-
-    <section v-if="activeTab === 'companies'" class="kl-card kl-card--flush">
-      <div class="kl-card-header">
-        <div>
-          <h2>Companies</h2>
-          <p class="kl-muted section-sub">Operational tenants in the KaraLog network.</p>
-        </div>
-        <button type="button" class="kl-btn kl-btn--primary" @click="openCreateCompany">
-          <Plus :size="16" :stroke-width="2" /> New company
-        </button>
-      </div>
-
-      <div v-if="showCompanyForm" class="inline-form">
-        <form @submit.prevent="submitCompany">
-          <h3 class="inline-form__title">
-            {{ editingCompany ? 'Edit company' : 'New company' }}
-          </h3>
-
-          <div class="kl-form-row" style="--cols: 1">
-            <div class="kl-field">
-              <label class="kl-label">Company name</label>
-              <input v-model="companyForm.companyName" class="kl-input" required />
-            </div>
-            <div class="kl-field">
-              <label class="kl-label">Address</label>
-              <input v-model="companyForm.address" class="kl-input" required />
-            </div>
-          </div>
-
-          <div class="kl-form-row">
-            <div class="kl-field">
-              <label class="kl-label">Postal code</label>
-              <input v-model="companyForm.postalCode" class="kl-input" required />
-            </div>
-            <div class="kl-field">
-              <label class="kl-label">City</label>
-              <input v-model="companyForm.city" class="kl-input" required />
-            </div>
-          </div>
-
-          <template v-if="!editingCompany">
-            <div class="kl-divider" />
-            <p class="kl-muted inline-form__hint">
-              Optional: create an initial dispatcher account for this company.
-            </p>
-            <div class="kl-form-row" style="--cols: 1">
-              <div class="kl-field">
-                <label class="kl-label">Owner name</label>
-                <input v-model="companyForm.ownerName" class="kl-input" />
-              </div>
-            </div>
-            <div class="kl-form-row">
-              <div class="kl-field">
-                <label class="kl-label">Owner email</label>
-                <input v-model="companyForm.ownerEmail" class="kl-input" type="email" />
-              </div>
-              <div class="kl-field">
-                <label class="kl-label">Initial password</label>
-                <input
-                  v-model="companyForm.ownerPassword"
-                  class="kl-input"
-                  type="password"
-                  minlength="6"
-                />
-              </div>
-            </div>
-          </template>
-
-          <div class="inline-form__actions">
-            <button type="submit" class="kl-btn kl-btn--primary">
-              {{ editingCompany ? 'Save' : 'Create' }}
-            </button>
-            <button type="button" class="kl-btn kl-btn--ghost" @click="cancelForm">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="kl-table-wrap">
-        <table class="kl-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Address</th>
-              <th>City</th>
-              <th class="kl-table__actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="company in companies" :key="company._id">
-              <td>
-                <router-link :to="`/companies/${company._id}`">
-                  {{ company.companyName }}
-                </router-link>
-              </td>
-              <td class="kl-muted">{{ company.address }}</td>
-              <td class="kl-muted">{{ company.postalCode }} {{ company.city }}</td>
-              <td class="kl-table__actions">
-                <button
-                  type="button"
-                  class="kl-btn kl-btn--ghost kl-btn--sm"
-                  title="Edit"
-                  @click="openEditCompany(company)"
-                >
-                  <Pencil :size="14" :stroke-width="1.75" />
-                </button>
-                <button
-                  type="button"
-                  class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                  title="Delete"
-                  @click="removeCompany(company._id)"
-                >
-                  <Trash2 :size="14" :stroke-width="1.75" />
-                </button>
-              </td>
-            </tr>
-            <tr v-if="!companies.length">
-              <td colspan="4" class="kl-muted empty-row">No companies yet.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section v-if="activeTab === 'customers'" class="kl-card kl-card--flush">
-      <div class="kl-card-header">
-        <div>
-          <h2>Customers</h2>
-          <p class="kl-muted section-sub">Read-only overview. Edits happen on the company page.</p>
-        </div>
-        <div class="search-input">
-          <Search :size="14" :stroke-width="1.75" class="search-input__icon" />
-          <input
-            v-model="customerSearch"
-            class="kl-input kl-input--sm search-input__control"
-            placeholder="Search name, email or company"
-          />
-        </div>
-      </div>
-
-      <div class="kl-table-wrap">
-        <table class="kl-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Company</th>
-              <th class="kl-table__actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="customer in filteredCustomers" :key="customer._id">
-              <td>{{ customer.customerName }}</td>
-              <td class="kl-muted">{{ customer.account?.email }}</td>
-              <td>
-                <router-link
-                  v-if="customer.company"
-                  :to="{ name: 'companyDetail', params: { companyId: companyIdOf(customer) } }"
-                >
-                  {{ customer.company.companyName || customer.company }}
-                </router-link>
-                <span v-else class="kl-muted">&mdash;</span>
-              </td>
-              <td class="kl-table__actions">
-                <router-link
-                  v-if="companyIdOf(customer)"
-                  class="kl-btn kl-btn--outline kl-btn--sm"
-                  :to="{ name: 'companyDetail', params: { companyId: companyIdOf(customer) } }"
-                >
-                  Open
-                </router-link>
-                <span v-else class="kl-muted">No company</span>
-              </td>
-            </tr>
-            <tr v-if="!filteredCustomers.length">
-              <td colspan="4" class="kl-muted empty-row">No customers match this search.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section v-if="activeTab === 'orders'" class="kl-card kl-card--flush">
-      <div class="kl-card-header">
-        <div>
-          <h2>Orders</h2>
-          <p class="kl-muted section-sub">Read-only overview. Edits happen on the company page.</p>
-        </div>
-      </div>
-
-      <div class="filter-row">
-        <div class="search-input">
-          <Search :size="14" :stroke-width="1.75" class="search-input__icon" />
-          <input
-            v-model="orderSearch"
-            class="kl-input kl-input--sm search-input__control"
-            placeholder="Search origin or destination"
-          />
-        </div>
-        <select v-model="orderCompanyFilter" class="kl-select kl-input--sm">
-          <option value="">All companies</option>
-          <option v-for="c in companies" :key="c._id" :value="c._id">{{ c.companyName }}</option>
-        </select>
-        <select v-model="orderStateFilter" class="kl-select kl-input--sm">
-          <option value="ALL">All states</option>
-          <option value="PENDING">PENDING</option>
-          <option value="IN_PROCESS">IN_PROCESS</option>
-          <option value="DELIVERED">DELIVERED</option>
-        </select>
-      </div>
-
-      <div class="kl-table-wrap">
-        <table class="kl-table">
-          <thead>
-            <tr>
-              <th>Origin</th>
-              <th>Destination</th>
-              <th>Customer</th>
-              <th>Company</th>
-              <th>Delivery</th>
-              <th>Status</th>
-              <th class="kl-table__actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="order in filteredOrders" :key="order._id">
-              <td>{{ order.origin }}</td>
-              <td>{{ order.destination }}</td>
-              <td class="kl-muted">{{ order.customer?.customerName || order.customer }}</td>
-              <td class="kl-muted">{{ order.company?.companyName || '—' }}</td>
-              <td class="kl-muted">{{ formatDate(order.deliveryDate) }}</td>
-              <td>
-                <span :class="orderBadgeClass(order.state)">{{ order.state }}</span>
-              </td>
-              <td class="kl-table__actions">
-                <router-link
-                  v-if="companyIdOf(order)"
-                  class="kl-btn kl-btn--outline kl-btn--sm"
-                  :to="{ name: 'companyDetail', params: { companyId: companyIdOf(order) } }"
-                >
-                  Open
-                </router-link>
-                <span v-else class="kl-muted">No company</span>
-              </td>
-            </tr>
-            <tr v-if="!filteredOrders.length">
-              <td colspan="7" class="kl-muted empty-row">No orders match these filters.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <div v-else class="admin-denied">
-    <div class="kl-alert kl-alert--warning">You do not have admin access.</div>
-  </div>
+<template lang="pug">
+div.admin(v-if="isAdmin")
+  PageHeader(
+    title="Admin dashboard"
+    subtitle="Manage companies, customers and transport orders across the KaraLog network."
+  )
+  section.kpi-row
+    .kpi
+      .kpi__icon
+        Building2(:size="18", :stroke-width="1.75")
+      .kpi__body
+        .kpi__label Companies
+        .kpi__value {{ companies.length }}
+    .kpi
+      .kpi__icon
+        Users(:size="18", :stroke-width="1.75")
+      .kpi__body
+        .kpi__label Customers
+        .kpi__value {{ allCustomers.length }}
+    .kpi
+      .kpi__icon
+        Package(:size="18", :stroke-width="1.75")
+      .kpi__body
+        .kpi__label Total orders
+        .kpi__value {{ allOrders.length }}
+    .kpi
+      .kpi__icon.kpi__icon--warn
+        Package(:size="18", :stroke-width="1.75")
+      .kpi__body
+        .kpi__label Active / pending
+        .kpi__value {{ inProcessOrdersCount }} / {{ pendingOrdersCount }}
+  div.kl-alert.kl-alert--danger(v-if="error") {{ error }}
+  div.kl-alert.kl-alert--success(v-if="info") {{ info }}
+  .kl-tabs(role="tablist")
+    button.kl-tab(
+      type="button"
+      :class="{ 'kl-tab--active': activeTab === 'companies' }"
+      @click="activeTab = 'companies'"
+    )
+      | Companies
+      span.kl-tab-count {{ companies.length }}
+    button.kl-tab(
+      type="button"
+      :class="{ 'kl-tab--active': activeTab === 'customers' }"
+      @click="activeTab = 'customers'"
+    )
+      | Customers
+      span.kl-tab-count {{ allCustomers.length }}
+    button.kl-tab(
+      type="button"
+      :class="{ 'kl-tab--active': activeTab === 'orders' }"
+      @click="activeTab = 'orders'"
+    )
+      | Orders
+      span.kl-tab-count {{ allOrders.length }}
+  section.kl-card.kl-card--flush(v-if="activeTab === 'companies'")
+    .kl-card-header
+      div
+        h2 Companies
+        p.kl-muted.section-sub Operational tenants in the KaraLog network.
+      button.kl-btn.kl-btn--primary(type="button", @click="openCreateCompany")
+        Plus(:size="16", :stroke-width="2")
+        | New company
+    .inline-form(v-if="showCompanyForm")
+      form(@submit.prevent="submitCompany")
+        h3.inline-form__title {{ editingCompany ? 'Edit company' : 'New company' }}
+        .kl-form-row(style="--cols: 1")
+          .kl-field
+            label.kl-label Company name
+            input.kl-input(v-model="companyForm.companyName", required)
+          .kl-field
+            label.kl-label Address
+            input.kl-input(v-model="companyForm.address", required)
+        .kl-form-row
+          .kl-field
+            label.kl-label Postal code
+            input.kl-input(v-model="companyForm.postalCode", required)
+          .kl-field
+            label.kl-label City
+            input.kl-input(v-model="companyForm.city", required)
+        template(v-if="!editingCompany")
+          .kl-divider
+          p.kl-muted.inline-form__hint Optional: create an initial dispatcher account for this company.
+          .kl-form-row(style="--cols: 1")
+            .kl-field
+              label.kl-label Owner name
+              input.kl-input(v-model="companyForm.ownerName")
+          .kl-form-row
+            .kl-field
+              label.kl-label Owner email
+              input.kl-input(v-model="companyForm.ownerEmail", type="email")
+            .kl-field
+              label.kl-label Initial password
+              input.kl-input(v-model="companyForm.ownerPassword", type="password", minlength="6")
+        .inline-form__actions
+          button.kl-btn.kl-btn--primary(type="submit") {{ editingCompany ? 'Save' : 'Create' }}
+          button.kl-btn.kl-btn--ghost(type="button", @click="cancelForm") Cancel
+    .kl-table-wrap
+      table.kl-table
+        thead
+          tr
+            th Name
+            th Address
+            th City
+            th.kl-table__actions Actions
+        tbody
+          tr(v-for="company in companies", :key="company._id")
+            td
+              router-link(:to="`/companies/${company._id}`") {{ company.companyName }}
+            td.kl-muted {{ company.address }}
+            td.kl-muted {{ company.postalCode }} {{ company.city }}
+            td.kl-table__actions
+              button.kl-btn.kl-btn--ghost.kl-btn--sm(type="button", title="Edit", @click="openEditCompany(company)")
+                Pencil(:size="14", :stroke-width="1.75")
+              button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(type="button", title="Delete", @click="removeCompany(company._id)")
+                Trash2(:size="14", :stroke-width="1.75")
+          tr(v-if="!companies.length")
+            td.kl-muted.empty-row(colspan="4") No companies yet.
+  section.kl-card.kl-card--flush(v-if="activeTab === 'customers'")
+    .kl-card-header
+      div
+        h2 Customers
+        p.kl-muted.section-sub Read-only overview. Edits happen on the company page.
+      .search-input
+        Search(:size="14", :stroke-width="1.75", class="search-input__icon")
+        input.kl-input.kl-input--sm.search-input__control(
+          v-model="customerSearch"
+          placeholder="Search name, email or company"
+        )
+    .kl-table-wrap
+      table.kl-table
+        thead
+          tr
+            th Name
+            th Email
+            th Company
+            th.kl-table__actions Actions
+        tbody
+          tr(v-for="customer in filteredCustomers", :key="customer._id")
+            td {{ customer.customerName }}
+            td.kl-muted {{ customer.account?.email }}
+            td
+              router-link(
+                v-if="customer.company"
+                :to="{ name: 'companyDetail', params: { companyId: companyIdOf(customer) } }"
+              ) {{ customer.company.companyName || customer.company }}
+              span.kl-muted(v-else) —
+            td.kl-table__actions
+              router-link(
+                v-if="companyIdOf(customer)"
+                class="kl-btn kl-btn--outline kl-btn--sm"
+                :to="{ name: 'companyDetail', params: { companyId: companyIdOf(customer) } }"
+              ) Open
+              span.kl-muted(v-else) No company
+          tr(v-if="!filteredCustomers.length")
+            td.kl-muted.empty-row(colspan="4") No customers match this search.
+  section.kl-card.kl-card--flush(v-if="activeTab === 'orders'")
+    .kl-card-header
+      div
+        h2 Orders
+        p.kl-muted.section-sub Read-only overview. Edits happen on the company page.
+    .filter-row
+      .search-input
+        Search(:size="14", :stroke-width="1.75", class="search-input__icon")
+        input.kl-input.kl-input--sm.search-input__control(
+          v-model="orderSearch"
+          placeholder="Search origin or destination"
+        )
+      select.kl-select.kl-input--sm(v-model="orderCompanyFilter")
+        option(value="") All companies
+        option(v-for="c in companies", :key="c._id", :value="c._id") {{ c.companyName }}
+      select.kl-select.kl-input--sm(v-model="orderStateFilter")
+        option(value="ALL") All states
+        option(value="PENDING") PENDING
+        option(value="IN_PROCESS") IN_PROCESS
+        option(value="DELIVERED") DELIVERED
+    .kl-table-wrap
+      table.kl-table
+        thead
+          tr
+            th Origin
+            th Destination
+            th Customer
+            th Company
+            th Delivery
+            th Status
+            th.kl-table__actions Actions
+        tbody
+          tr(v-for="order in filteredOrders", :key="order._id")
+            td {{ order.origin }}
+            td {{ order.destination }}
+            td.kl-muted {{ order.customer?.customerName || order.customer }}
+            td.kl-muted {{ order.company?.companyName || '—' }}
+            td.kl-muted {{ formatDate(order.deliveryDate) }}
+            td
+              span(:class="orderBadgeClass(order.state)") {{ order.state }}
+            td.kl-table__actions
+              router-link(
+                v-if="companyIdOf(order)"
+                class="kl-btn kl-btn--outline kl-btn--sm"
+                :to="{ name: 'companyDetail', params: { companyId: companyIdOf(order) } }"
+              ) Open
+              span.kl-muted(v-else) No company
+          tr(v-if="!filteredOrders.length")
+            td.kl-muted.empty-row(colspan="7") No orders match these filters.
+div.admin-denied(v-else)
+  .kl-alert.kl-alert--warning You do not have admin access.
 </template>
 
 <style scoped>

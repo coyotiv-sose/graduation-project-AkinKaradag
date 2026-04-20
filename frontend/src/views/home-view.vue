@@ -18,7 +18,7 @@ export default {
   computed: {
     ...mapState(useCompanyStore, ['companies']),
     ...mapState(useAccountStore, ['isLoggedIn', 'isCustomer', 'isEmployee', 'companyId']),
-    primaryCta() {
+    pageMainButton() {
       if (!this.isLoggedIn) return { to: '/login', label: 'Sign in' }
       if (this.isCustomer) return { to: '/orders/new', label: 'Create order' }
       if (this.isEmployee && this.companyId) return { to: `/companies/${this.companyId}/dispatcher`, label: 'Open dispatcher' }
@@ -34,173 +34,129 @@ export default {
 }
 </script>
 
-<template>
-  <main class="home">
-    <section class="hero">
-      <div class="hero__inner">
-        <div class="hero__copy">
-          <span class="eyebrow">
-            <span class="eyebrow__dot" />
-            Logistics control plane
-          </span>
-          <h1 class="hero__title">
-            Move cargo with
-            <span class="accent">precision.</span>
-          </h1>
-          <p class="hero__subtitle">
-            KaraLog orchestrates transport orders, fleets and dispatching for modern logistics
-            companies — end to end, in one place.
-          </p>
-          <div class="hero__actions">
-            <router-link :to="primaryCta.to" class="kl-btn kl-btn--primary kl-btn--lg">
-              {{ primaryCta.label }}
-              <ArrowRight :size="16" :stroke-width="2" />
-            </router-link>
-            <a
-              v-if="!isLoggedIn"
-              class="kl-btn kl-btn--outline kl-btn--lg"
-              href="mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account."
-            >
-              Request an account
-            </a>
-          </div>
-          <div class="hero__metrics">
-            <div class="metric">
-              <div class="metric__value">24/7</div>
-              <div class="metric__label">Live dispatching</div>
-            </div>
-            <div class="metric">
-              <div class="metric__value">AI</div>
-              <div class="metric__label">Order capture</div>
-            </div>
-            <div class="metric">
-              <div class="metric__value">100%</div>
-              <div class="metric__label">Role-aware access</div>
-            </div>
-          </div>
-        </div>
 
-        <div class="hero__panel" aria-hidden="true">
-          <div class="panel-grid">
-            <div class="panel-card">
-              <div class="panel-card__head">
-                <span class="kl-badge kl-badge--primary">On route</span>
-                <span class="panel-card__id">#ORD-8812</span>
-              </div>
-              <div class="panel-card__title">Basel &rarr; Zurich</div>
-              <div class="panel-card__meta">Capacity</div>
-              <div class="kl-progress">
-                <div class="kl-progress__fill" style="--value: 76%" />
-              </div>
-            </div>
-            <div class="panel-card">
-              <div class="panel-card__head">
-                <span class="kl-badge kl-badge--warning">Pending</span>
-                <span class="panel-card__id">#ORD-9921</span>
-              </div>
-              <div class="panel-card__title">Aarau &rarr; Bern</div>
-              <div class="panel-card__meta">2 pallets &middot; 420 kg</div>
-            </div>
-            <div class="panel-card panel-card--wide">
-              <div class="panel-card__head">
-                <span class="kl-badge kl-badge--info">Active fleet</span>
-              </div>
-              <div class="fleet-row">
-                <div class="fleet-dot" /><span>KN-8821</span><span class="kl-muted">82% cap</span>
-              </div>
-              <div class="fleet-row">
-                <div class="fleet-dot fleet-dot--warn" /><span>KN-4402</span><span class="kl-muted">delayed</span>
-              </div>
-              <div class="fleet-row">
-                <div class="fleet-dot fleet-dot--muted" /><span>KN-9011</span><span class="kl-muted">idle</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="services" class="section">
-      <header class="section__head">
-        <span class="eyebrow"><span class="eyebrow__dot" />Core infrastructure</span>
-        <h2>Everything your dispatch team needs.</h2>
-        <p>A unified toolkit for customers, dispatchers and admins — from quote to delivery.</p>
-      </header>
-      <div class="features">
-        <article class="feature-card">
-          <div class="feature-card__icon"><Truck :size="20" :stroke-width="1.75" /></div>
-          <h3>Transport orders</h3>
-          <p>Structured pickups and deliveries with billing info, cargo details and live status.</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-card__icon"><Gauge :size="20" :stroke-width="1.75" /></div>
-          <h3>Fleet &amp; tours</h3>
-          <p>Assign vehicles, plan tours and keep capacity visible across your whole company.</p>
-        </article>
-        <article class="feature-card feature-card--accent">
-          <div class="feature-card__icon"><Sparkles :size="20" :stroke-width="1.75" /></div>
-          <h3>AI order capture</h3>
-          <p>Describe a shipment in plain language and get a structured order ready to dispatch.</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-card__icon"><Route :size="20" :stroke-width="1.75" /></div>
-          <h3>Real-time updates</h3>
-          <p>Socket-powered state changes so dispatchers and customers stay in sync.</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-card__icon"><Shield :size="20" :stroke-width="1.75" /></div>
-          <h3>Role-aware access</h3>
-          <p>Admin, dispatcher and customer flows are separated with clean, enforced permissions.</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-card__icon"><Leaf :size="20" :stroke-width="1.75" /></div>
-          <h3>Built to scale</h3>
-          <p>Multi-company by design. Ready to grow with your logistics operations.</p>
-        </article>
-      </div>
-    </section>
-
-    <section id="about" class="section section--tight">
-      <header class="section__head section__head--centered">
-        <span class="eyebrow"><span class="eyebrow__dot" />About</span>
-        <h2>Who we are.</h2>
-        <p>
-          KaraLog is a logistics platform that simplifies transport operations for companies of
-          every size. We handle customers, employees, orders, vehicles and tours from a single
-          dashboard — so you can focus on moving cargo, not wrangling spreadsheets.
-        </p>
-      </header>
-    </section>
-
-    <section v-if="companies.length" class="section section--tight">
-      <header class="section__head">
-        <span class="eyebrow"><span class="eyebrow__dot" />Partners</span>
-        <h2>Trusted by logistics teams.</h2>
-      </header>
-      <ul class="partners">
-        <li v-for="company in companies" :key="company._id" class="partner">
-          <span class="partner__name">{{ company.companyName }}</span>
-          <span class="partner__city">{{ company.city }}</span>
-        </li>
-      </ul>
-    </section>
-
-    <section id="contact" class="section">
-      <div class="cta">
-        <div>
-          <h2>Ready to dispatch smarter?</h2>
-          <p class="kl-muted">Get in touch and we&rsquo;ll set up your company account.</p>
-        </div>
-        <a
-          class="kl-btn kl-btn--primary kl-btn--lg"
-          href="mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account."
-        >
-          Contact us
-          <ArrowRight :size="16" :stroke-width="2" />
-        </a>
-      </div>
-    </section>
-  </main>
+<template lang="pug">
+main.home
+  section.hero
+    .hero__inner
+      .hero__copy
+        span.eyebrow
+          span.eyebrow__dot
+          | Logistics control plane
+        h1.hero__title
+          | Move cargo with
+          span.accent precision.
+        p.hero__subtitle
+          | KaraLog orchestrates transport orders, fleets and dispatching for modern logistics companies — end to end, in one place.
+        .hero__actions
+          router-link.kl-btn.kl-btn--primary.kl-btn--lg(:to="pageMainButton.to")
+            | {{ pageMainButton.label }}
+            ArrowRight(:size="16", :stroke-width="2")
+          a.kl-btn.kl-btn--outline.kl-btn--lg(v-if="!isLoggedIn", href="mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.") Request an account
+        .hero__metrics
+          .metric
+            .metric__value 24/7
+            .metric__label Live dispatching
+          .metric
+            .metric__value AI
+            .metric__label Order capture
+          .metric
+            .metric__value 100%
+            .metric__label Role-aware access
+      .hero__panel(aria-hidden="true")
+        .panel-grid
+          .panel-card
+            .panel-card__head
+              span.kl-badge.kl-badge--primary On route
+              span.panel-card__id #ORD-8812
+            .panel-card__title Basel → Zurich
+            .panel-card__meta Capacity
+            .kl-progress
+              .kl-progress__fill(style="--value: 76%")
+          .panel-card
+            .panel-card__head
+              span.kl-badge.kl-badge--warning Pending
+              span.panel-card__id #ORD-9921
+            .panel-card__title Aarau → Bern
+            .panel-card__meta 2 pallets · 420 kg
+          .panel-card.panel-card--wide
+            .panel-card__head
+              span.kl-badge.kl-badge--info Active fleet
+            .fleet-row
+              .fleet-dot
+              span KN-8821
+              span.kl-muted 82% cap
+            .fleet-row
+              .fleet-dot.fleet-dot--warn
+              span KN-4402
+              span.kl-muted delayed
+            .fleet-row
+              .fleet-dot.fleet-dot--muted
+              span KN-9011
+              span.kl-muted idle
+  section#services.section
+    header.section__head
+      span.eyebrow
+        span.eyebrow__dot
+        | Core infrastructure
+      h2 Everything your dispatch team needs.
+      p A unified toolkit for customers, dispatchers and admins — from quote to delivery.
+    .features
+      article.feature-card
+        .feature-card__icon
+          Truck(:size="20", :stroke-width="1.75")
+        h3 Transport orders
+        p Structured pickups and deliveries with billing info, cargo details and live status.
+      article.feature-card
+        .feature-card__icon
+          Gauge(:size="20", :stroke-width="1.75")
+        h3 Fleet & tours
+        p Assign vehicles, plan tours and keep capacity visible across your whole company.
+      article.feature-card.feature-card--accent
+        .feature-card__icon
+          Sparkles(:size="20", :stroke-width="1.75")
+        h3 AI order capture
+        p Describe a shipment in plain language and get a structured order ready to dispatch.
+      article.feature-card
+        .feature-card__icon
+          Route(:size="20", :stroke-width="1.75")
+        h3 Real-time updates
+        p Socket-powered state changes so dispatchers and customers stay in sync.
+      article.feature-card
+        .feature-card__icon
+          Shield(:size="20", :stroke-width="1.75")
+        h3 Role-aware access
+        p Admin, dispatcher and customer flows are separated with clean, enforced permissions.
+      article.feature-card
+        .feature-card__icon
+          Leaf(:size="20", :stroke-width="1.75")
+        h3 Built to scale
+        p Multi-company by design. Ready to grow with your logistics operations.
+  section#about.section.section--tight
+    header.section__head.section__head--centered
+      span.eyebrow
+        span.eyebrow__dot
+        | About
+      h2 Who we are.
+      p KaraLog is a logistics platform that simplifies transport operations for companies of every size. We handle customers, employees, orders, vehicles and tours from a single dashboard — so you can focus on moving cargo, not wrangling spreadsheets.
+  section.section.section--tight(v-if="companies.length")
+    header.section__head
+      span.eyebrow
+        span.eyebrow__dot
+        | Partners
+      h2 Trusted by logistics teams.
+    ul.partners
+      li.partner(v-for="company in companies", :key="company._id")
+        span.partner__name {{ company.companyName }}
+        span.partner__city {{ company.city }}
+  section#contact.section
+    .cta
+      div
+        h2 Ready to dispatch smarter?
+        p.kl-muted Get in touch and we’ll set up your company account.
+      a.kl-btn.kl-btn--primary.kl-btn--lg(href="mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.")
+        | Contact us
+        ArrowRight(:size="16", :stroke-width="2")
 </template>
 
 <style scoped>

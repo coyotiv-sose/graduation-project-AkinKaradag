@@ -136,292 +136,200 @@ export default {
 }
 </script>
 
-<template>
-  <div class="order-create">
-    <PageHeader
-      title="Create a transport order"
-      subtitle="Enter pickup, delivery and cargo details, or describe the shipment to our AI assistant."
-      back-to="/orders"
-      back-label="Back to orders"
-    />
 
-    <div class="order-create__grid">
-      <!-- FORM -->
-      <form class="form-col" @submit.prevent="submitOrder">
-        <section class="kl-card kl-card--padded form-section">
-          <header class="form-section__head">
-            <div class="form-section__icon form-section__icon--origin">
-              <MapPin :size="16" :stroke-width="1.75" />
-            </div>
-            <div>
-              <h3>Pickup origin</h3>
-              <p class="kl-muted">Where is the shipment being collected from?</p>
-            </div>
-          </header>
+<template lang="pug">
+.order-create
+  PageHeader(
+    title="Create a transport order"
+    subtitle="Enter pickup, delivery and cargo details, or describe the shipment to our AI assistant."
+    back-to="/orders"
+    back-label="Back to orders"
+  )
+  .order-create__grid
+    //- FORM
+    form.form-col(@submit.prevent="submitOrder")
+      section.kl-card.kl-card--padded.form-section
+        header.form-section__head
+          .form-section__icon.form-section__icon--origin
+            MapPin(:size="16", :stroke-width="1.75")
+          div
+            h3 Pickup origin
+            p.kl-muted Where is the shipment being collected from?
+        .kl-form-row(style="--cols: 1")
+          .kl-field
+            label.kl-label Name
+            input.kl-input(v-model="origin.name" placeholder="Company or person name" required)
+        .kl-form-row(style="--cols: 1fr 100px")
+          .kl-field
+            label.kl-label Street
+            input.kl-input(v-model="origin.street" placeholder="Street name" required)
+          .kl-field
+            label.kl-label Nr.
+            input.kl-input(v-model="origin.number" placeholder="12a" required)
+        .kl-form-row(style="--cols: 120px 1fr")
+          .kl-field
+            label.kl-label Postal
+            input.kl-input(v-model="origin.postalCode" placeholder="4000" required)
+          .kl-field
+            label.kl-label City
+            input.kl-input(v-model="origin.city" placeholder="Basel" required)
 
-          <div class="kl-form-row" style="--cols: 1">
-            <div class="kl-field">
-              <label class="kl-label">Name</label>
-              <input v-model="origin.name" class="kl-input" placeholder="Company or person name" required />
-            </div>
-          </div>
-          <div class="kl-form-row" style="--cols: 1fr 100px">
-            <div class="kl-field">
-              <label class="kl-label">Street</label>
-              <input v-model="origin.street" class="kl-input" placeholder="Street name" required />
-            </div>
-            <div class="kl-field">
-              <label class="kl-label">Nr.</label>
-              <input v-model="origin.number" class="kl-input" placeholder="12a" required />
-            </div>
-          </div>
-          <div class="kl-form-row" style="--cols: 120px 1fr">
-            <div class="kl-field">
-              <label class="kl-label">Postal</label>
-              <input v-model="origin.postalCode" class="kl-input" placeholder="4000" required />
-            </div>
-            <div class="kl-field">
-              <label class="kl-label">City</label>
-              <input v-model="origin.city" class="kl-input" placeholder="Basel" required />
-            </div>
-          </div>
-        </section>
+      section.kl-card.kl-card--padded.form-section
+        header.form-section__head
+          .form-section__icon.form-section__icon--destination
+            Flag(:size="16", :stroke-width="1.75")
+          div
+            h3 Delivery destination
+            p.kl-muted Where is the shipment going?
+        .kl-form-row(style="--cols: 1")
+          .kl-field
+            label.kl-label Name
+            input.kl-input(v-model="destination.name" placeholder="Company or person name" required)
+        .kl-form-row(style="--cols: 1fr 100px")
+          .kl-field
+            label.kl-label Street
+            input.kl-input(v-model="destination.street" placeholder="Street name" required)
+          .kl-field
+            label.kl-label Nr.
+            input.kl-input(v-model="destination.number" placeholder="5" required)
+        .kl-form-row(style="--cols: 120px 1fr")
+          .kl-field
+            label.kl-label Postal
+            input.kl-input(v-model="destination.postalCode" placeholder="5000" required)
+          .kl-field
+            label.kl-label City
+            input.kl-input(v-model="destination.city" placeholder="Aarau" required)
 
-        <section class="kl-card kl-card--padded form-section">
-          <header class="form-section__head">
-            <div class="form-section__icon form-section__icon--destination">
-              <Flag :size="16" :stroke-width="1.75" />
-            </div>
-            <div>
-              <h3>Delivery destination</h3>
-              <p class="kl-muted">Where is the shipment going?</p>
-            </div>
-          </header>
+      section.kl-card.kl-card--padded.form-section
+        header.form-section__head
+          .form-section__icon.form-section__icon--origin
+            Package(:size="16", :stroke-width="1.75")
+          div
+            h3 Scheduling & cargo
+            p.kl-muted Delivery window and shipment contents.
+        .kl-form-row(style="--cols: 1fr 1fr")
+          .kl-field
+            label.kl-label Delivery date
+            input.kl-input(type="date" v-model="deliveryDate" required)
+        .cargo-section(:class="{ 'cargo-section--disabled': !addressesComplete }")
+          p.hint(v-if="!addressesComplete")
+            | Fill in all address fields and the delivery date to add cargo details.
+          template(v-if="addressesComplete")
+            div.cargo-entry(v-for="(cargo, index) in cargos" :key="index")
+              .cargo-entry__head
+                span Cargo {{ index + 1 }}
+                button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(
+                  v-if="cargos.length > 1"
+                  type="button"
+                  title="Remove cargo"
+                  @click="removeCargo(index)"
+                )
+                  Trash2(:size="14", :stroke-width="1.75")
+              .kl-form-row(style="--cols: 1fr 1fr 1fr")
+                .kl-field
+                  label.kl-label Type
+                  select.kl-select(v-model="cargo.loadCarrierType")
+                    option Pallet
+                    option Box
+                    option Container
+                    option Envelope
+                    option Other
+                .kl-field
+                  label.kl-label Quantity
+                  input.kl-input(type="number" v-model.number="cargo.quantity" min="1" required)
+                .kl-field
+                  label.kl-label Weight (kg)
+                  input.kl-input(type="number" v-model.number="cargo.weight" min="0" required)
+              .kl-form-row(style="--cols: 1fr 1fr 1fr")
+                .kl-field
+                  label.kl-label Width (cm)
+                  input.kl-input(type="number" v-model.number="cargo.dimensions.width" min="0")
+                .kl-field
+                  label.kl-label Length (cm)
+                  input.kl-input(type="number" v-model.number="cargo.dimensions.length" min="0")
+                .kl-field
+                  label.kl-label Height (cm)
+                  input.kl-input(type="number" v-model.number="cargo.dimensions.height" min="0")
+            button.kl-btn.kl-btn--outline(type="button" @click="addCargo")
+              Plus(:size="14", :stroke-width="2")
+              |  Add another cargo
+        .kl-form-row(style="--cols: 1")
+          .kl-field
+            label.kl-label Note (optional)
+            textarea.kl-textarea(v-model="note" rows="3" placeholder="Additional notes...")
+      p.kl-alert.kl-alert--danger(v-if="errorMessage") {{ errorMessage }}
+      p.kl-alert.kl-alert--success(v-if="successMessage") {{ successMessage }}
+      .form-submit
+        button.kl-btn.kl-btn--primary.kl-btn--lg(
+          type="submit"
+          :disabled="isSubmitting || !addressesComplete"
+        )
+          | {{ isSubmitting ? 'Creating...' : 'Submit order' }}
 
-          <div class="kl-form-row" style="--cols: 1">
-            <div class="kl-field">
-              <label class="kl-label">Name</label>
-              <input v-model="destination.name" class="kl-input" placeholder="Company or person name" required />
-            </div>
-          </div>
-          <div class="kl-form-row" style="--cols: 1fr 100px">
-            <div class="kl-field">
-              <label class="kl-label">Street</label>
-              <input v-model="destination.street" class="kl-input" placeholder="Street name" required />
-            </div>
-            <div class="kl-field">
-              <label class="kl-label">Nr.</label>
-              <input v-model="destination.number" class="kl-input" placeholder="5" required />
-            </div>
-          </div>
-          <div class="kl-form-row" style="--cols: 120px 1fr">
-            <div class="kl-field">
-              <label class="kl-label">Postal</label>
-              <input v-model="destination.postalCode" class="kl-input" placeholder="5000" required />
-            </div>
-            <div class="kl-field">
-              <label class="kl-label">City</label>
-              <input v-model="destination.city" class="kl-input" placeholder="Aarau" required />
-            </div>
-          </div>
-        </section>
-
-        <section class="kl-card kl-card--padded form-section">
-          <header class="form-section__head">
-            <div class="form-section__icon form-section__icon--origin">
-              <Package :size="16" :stroke-width="1.75" />
-            </div>
-            <div>
-              <h3>Scheduling &amp; cargo</h3>
-              <p class="kl-muted">Delivery window and shipment contents.</p>
-            </div>
-          </header>
-
-          <div class="kl-form-row" style="--cols: 1fr 1fr">
-            <div class="kl-field">
-              <label class="kl-label">Delivery date</label>
-              <input v-model="deliveryDate" class="kl-input" type="date" required />
-            </div>
-          </div>
-
-          <div class="cargo-section" :class="{ 'cargo-section--disabled': !addressesComplete }">
-            <p v-if="!addressesComplete" class="hint">
-              Fill in all address fields and the delivery date to add cargo details.
-            </p>
-
-            <template v-if="addressesComplete">
-              <div
-                v-for="(cargo, index) in cargos"
-                :key="index"
-                class="cargo-entry"
-              >
-                <div class="cargo-entry__head">
-                  <span>Cargo {{ index + 1 }}</span>
-                  <button
-                    v-if="cargos.length > 1"
-                    type="button"
-                    class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                    title="Remove cargo"
-                    @click="removeCargo(index)"
-                  >
-                    <Trash2 :size="14" :stroke-width="1.75" />
-                  </button>
-                </div>
-
-                <div class="kl-form-row" style="--cols: 1fr 1fr 1fr">
-                  <div class="kl-field">
-                    <label class="kl-label">Type</label>
-                    <select v-model="cargo.loadCarrierType" class="kl-select">
-                      <option>Pallet</option>
-                      <option>Box</option>
-                      <option>Container</option>
-                      <option>Envelope</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <div class="kl-field">
-                    <label class="kl-label">Quantity</label>
-                    <input v-model.number="cargo.quantity" class="kl-input" type="number" min="1" required />
-                  </div>
-                  <div class="kl-field">
-                    <label class="kl-label">Weight (kg)</label>
-                    <input v-model.number="cargo.weight" class="kl-input" type="number" min="0" required />
-                  </div>
-                </div>
-
-                <div class="kl-form-row" style="--cols: 1fr 1fr 1fr">
-                  <div class="kl-field">
-                    <label class="kl-label">Width (cm)</label>
-                    <input v-model.number="cargo.dimensions.width" class="kl-input" type="number" min="0" />
-                  </div>
-                  <div class="kl-field">
-                    <label class="kl-label">Length (cm)</label>
-                    <input v-model.number="cargo.dimensions.length" class="kl-input" type="number" min="0" />
-                  </div>
-                  <div class="kl-field">
-                    <label class="kl-label">Height (cm)</label>
-                    <input v-model.number="cargo.dimensions.height" class="kl-input" type="number" min="0" />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                class="kl-btn kl-btn--outline"
-                @click="addCargo"
-              >
-                <Plus :size="14" :stroke-width="2" /> Add another cargo
-              </button>
-            </template>
-          </div>
-
-          <div class="kl-form-row" style="--cols: 1">
-            <div class="kl-field">
-              <label class="kl-label">Note (optional)</label>
-              <textarea v-model="note" class="kl-textarea" rows="3" placeholder="Additional notes..." />
-            </div>
-          </div>
-        </section>
-
-        <p v-if="errorMessage" class="kl-alert kl-alert--danger">{{ errorMessage }}</p>
-        <p v-if="successMessage" class="kl-alert kl-alert--success">{{ successMessage }}</p>
-
-        <div class="form-submit">
-          <button
-            type="submit"
-            class="kl-btn kl-btn--primary kl-btn--lg"
-            :disabled="isSubmitting || !addressesComplete"
-          >
-            {{ isSubmitting ? 'Creating...' : 'Submit order' }}
-          </button>
-        </div>
-      </form>
-
-      <!-- SUMMARY -->
-      <aside class="summary-col">
-        <div class="kl-card kl-card--padded summary">
-          <h3>Order summary</h3>
-          <p class="kl-muted summary__sub">Live preview based on your inputs.</p>
-
-          <div class="summary-row">
-            <span class="summary-row__label">Origin</span>
-            <span class="summary-row__value">{{ shortAddress(origin) }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="summary-row__label">Destination</span>
-            <span class="summary-row__value">{{ shortAddress(destination) }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="summary-row__label">Delivery</span>
-            <span class="summary-row__value">{{ formattedDeliveryDate }}</span>
-          </div>
-
-          <div class="kl-divider" />
-
-          <div class="summary-stats">
-            <div>
-              <div class="summary-stats__label">Cargo items</div>
-              <div class="summary-stats__value">{{ cargos.length }}</div>
-            </div>
-            <div>
-              <div class="summary-stats__label">Total units</div>
-              <div class="summary-stats__value">{{ totalUnits }}</div>
-            </div>
-            <div>
-              <div class="summary-stats__label">Total weight</div>
-              <div class="summary-stats__value">{{ totalWeight }} kg</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="kl-card kl-card--padded ai-section">
-          <div class="ai-section__head">
-            <div class="ai-section__icon">
-              <Sparkles :size="16" :stroke-width="1.75" />
-            </div>
-            <div>
-              <h3>Create with AI</h3>
-              <p class="kl-muted">Describe your shipment in plain language.</p>
-            </div>
-          </div>
-          <textarea
-            v-model="prompt"
-            class="kl-textarea"
-            rows="4"
-            placeholder="e.g. &quot;Ship 3 pallets of electronics from Berlin to Munich by next Friday, each pallet ~200kg&quot;"
-            :disabled="isGenerating"
-          />
-          <button
-            type="button"
-            class="kl-btn kl-btn--primary kl-btn--block"
-            :disabled="isGenerating || !prompt.trim()"
-            @click="generateOrder"
-          >
-            {{ isGenerating ? 'Generating...' : 'Create order with AI' }}
-          </button>
-          <p v-if="aiError" class="kl-alert kl-alert--danger">{{ aiError }}</p>
-
-          <div v-if="generatedOrder" class="generated-order">
-            <div class="generated-order__head">
-              <h4>Order created</h4>
-              <span class="kl-badge kl-badge--primary">{{ generatedOrder.state }}</span>
-            </div>
-            <p><strong>Origin:</strong> {{ generatedOrder.origin }}</p>
-            <p><strong>Destination:</strong> {{ generatedOrder.destination }}</p>
-            <p><strong>Delivery:</strong> {{ formatDate(generatedOrder.deliveryDate) }}</p>
-            <div class="kl-divider" />
-            <h5>Cargos</h5>
-            <div v-for="(cargo, idx) in generatedOrder.cargos" :key="idx" class="generated-cargo">
-              <p>{{ cargo.quantity }}x {{ cargo.loadCarrierType }} — {{ cargo.weight }} kg</p>
-              <p class="kl-muted small">
-                {{ cargo.dimensions.width }} × {{ cargo.dimensions.length }} × {{ cargo.dimensions.height }} cm
-              </p>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </div>
+    //- SUMMARY
+    aside.summary-col
+      .kl-card.kl-card--padded.summary
+        h3 Order summary
+        p.kl-muted.summary__sub Live preview based on your inputs.
+        .summary-row
+          span.summary-row__label Origin
+          span.summary-row__value {{ shortAddress(origin) }}
+        .summary-row
+          span.summary-row__label Destination
+          span.summary-row__value {{ shortAddress(destination) }}
+        .summary-row
+          span.summary-row__label Delivery
+          span.summary-row__value {{ formattedDeliveryDate }}
+        .kl-divider
+        .summary-stats
+          div
+            .summary-stats__label Cargo items
+            .summary-stats__value {{ cargos.length }}
+          div
+            .summary-stats__label Total units
+            .summary-stats__value {{ totalUnits }}
+          div
+            .summary-stats__label Total weight
+            .summary-stats__value {{ totalWeight }} kg
+      .kl-card.kl-card--padded.ai-section
+        .ai-section__head
+          .ai-section__icon
+            Sparkles(:size="16", :stroke-width="1.75")
+          div
+            h3 Create with AI
+            p.kl-muted Describe your shipment in plain language.
+        textarea.kl-textarea(
+          v-model="prompt"
+          rows="4"
+          placeholder='e.g. "Ship 3 pallets of electronics from Berlin to Munich by next Friday, each pallet ~200kg"'
+          :disabled="isGenerating"
+        )
+        button.kl-btn.kl-btn--primary.kl-btn--block(
+          type="button"
+          :disabled="isGenerating || !prompt.trim()"
+          @click="generateOrder"
+        )
+          | {{ isGenerating ? 'Generating...' : 'Create order with AI' }}
+        p.kl-alert.kl-alert--danger(v-if="aiError") {{ aiError }}
+        div.generated-order(v-if="generatedOrder")
+          .generated-order__head
+            h4 Order created
+            span.kl-badge.kl-badge--primary {{ generatedOrder.state }}
+          p
+            strong Origin:
+            |  {{ generatedOrder.origin }}
+          p
+            strong Destination:
+            |  {{ generatedOrder.destination }}
+          p
+            strong Delivery:
+            |  {{ formatDate(generatedOrder.deliveryDate) }}
+          .kl-divider
+          h5 Cargos
+          div.generated-cargo(v-for="(cargo, idx) in generatedOrder.cargos" :key="idx")
+            p {{ cargo.quantity }}x {{ cargo.loadCarrierType }} — {{ cargo.weight }} kg
+            p.kl-muted.small
+              | {{ cargo.dimensions.width }} × {{ cargo.dimensions.length }} × {{ cargo.dimensions.height }} cm
 </template>
 
 <style scoped>

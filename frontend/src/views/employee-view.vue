@@ -13,18 +13,17 @@ export default {
 }
 </script>
 
-<template>
-  <div class="employee-view">
-    <PageHeader
-      title="Manage employees"
-      subtitle="Add dispatchers and staff to this company."
-      :back-to="`/companies/${companyId}`"
-      back-label="Back to company"
-    />
-    <Suspense>
-      <Employee :company-id="companyId" />
-    </Suspense>
-  </div>
+
+<template lang="pug">
+div.employee-view
+  PageHeader(
+    title="Manage employees"
+    subtitle="Add dispatchers and staff to this company."
+    :back-to="`/companies/${companyId}`"
+    back-label="Back to company"
+  )
+  Suspense
+    Employee(:company-id="companyId")
 </template>
 
 <style scoped>

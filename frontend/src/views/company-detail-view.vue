@@ -322,380 +322,206 @@ export default {
 }
 </script>
 
-<template>
-  <div v-if="company" class="company-detail">
-    <PageHeader
-      :title="company.companyName"
-      :subtitle="`${company.address}, ${company.postalCode} ${company.city}`"
-      :back-to="backTarget.to"
-      :back-label="backTarget.label"
-    >
-      <template #actions>
-        <router-link
-          :to="`/companies/${companyId}/dispatcher`"
-          class="kl-btn kl-btn--outline"
-        >
-          <Route :size="14" :stroke-width="1.75" /> Dispatcher
-        </router-link>
-        <router-link
-          :to="`/companies/${companyId}/vehicles`"
-          class="kl-btn kl-btn--outline"
-        >
-          <Truck :size="14" :stroke-width="1.75" /> Vehicles
-        </router-link>
-      </template>
-    </PageHeader>
 
-    <div v-if="error" class="kl-alert kl-alert--danger">{{ error }}</div>
-    <div v-if="success" class="kl-alert kl-alert--success">{{ success }}</div>
-
-    <!-- Customers -->
-    <section class="kl-card kl-card--flush section">
-      <div class="kl-card-header">
-        <div>
-          <h2>Customers</h2>
-          <p class="kl-muted section__sub">Customers belonging to this company.</p>
-        </div>
-        <router-link :to="`/companies/${companyId}/customers`" class="kl-btn kl-btn--primary kl-btn--sm">
-          <Plus :size="14" :stroke-width="2" /> Add customer
-        </router-link>
-      </div>
-
-      <ul class="list">
-        <li v-for="customer in customers" :key="customer._id" class="list-item">
-          <div class="list-item__main">
-            <div class="avatar">{{ initials(customer.customerName) }}</div>
-            <div class="list-item__info">
-              <div class="list-item__name">{{ customer.customerName }}</div>
-              <div class="list-item__meta">{{ customer.account?.email }}</div>
-            </div>
-            <div v-if="canManage" class="list-item__actions">
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm"
-                title="Edit"
-                @click="openEditCustomer(customer)"
-              >
-                <Pencil :size="14" :stroke-width="1.75" />
-              </button>
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm"
-                title="Reset password"
-                @click="openResetPassword('customer', customer._id)"
-              >
-                <Key :size="14" :stroke-width="1.75" />
-              </button>
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                title="Delete"
-                @click="removeCustomer(customer._id)"
-              >
-                <Trash2 :size="14" :stroke-width="1.75" />
-              </button>
-            </div>
-          </div>
-
-          <div v-if="canManage && isResetOpen('customer', customer._id)" class="inline-panel">
-            <form class="inline-panel__row" @submit.prevent="submitResetPassword">
-              <div class="kl-field flex-grow">
-                <label class="kl-label">New password</label>
-                <input
-                  v-model="newPassword"
-                  class="kl-input"
-                  type="password"
-                  required
-                  minlength="6"
-                />
-              </div>
-              <div class="inline-panel__actions">
-                <button type="submit" class="kl-btn kl-btn--primary">Save</button>
-                <button type="button" class="kl-btn kl-btn--ghost" @click="cancelResetPassword">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div v-if="canManage && editingCustomerId === customer._id" class="inline-panel">
-            <form @submit.prevent="submitCustomer">
-              <div class="kl-form-row">
-                <div class="kl-field">
-                  <label class="kl-label">Name</label>
-                  <input v-model="customerForm.customerName" class="kl-input" required />
-                </div>
-                <div class="kl-field">
-                  <label class="kl-label">Email</label>
-                  <input v-model="customerForm.email" class="kl-input" type="email" required />
-                </div>
-              </div>
-              <div class="kl-form-row" style="margin-top: 0.85rem">
-                <div v-if="isAdmin" class="kl-field">
-                  <label class="kl-label">Company</label>
-                  <select v-model="customerForm.company" class="kl-select" required>
-                    <option v-for="c in companies" :key="c._id" :value="c._id">
-                      {{ c.companyName }}
-                    </option>
-                  </select>
-                </div>
-                <div class="kl-field">
-                  <label class="kl-label">Profile</label>
-                  <input v-model="customerForm.profile" class="kl-input" />
-                </div>
-              </div>
-
-              <div class="billing-head">
-                <h4>Billing info</h4>
-                <button type="button" class="kl-btn kl-btn--outline kl-btn--sm" @click="addBillingItem">
-                  <Plus :size="14" :stroke-width="2" /> Add billing
-                </button>
-              </div>
-
-              <div
-                v-for="(item, index) in customerForm.billingInfo"
-                :key="index"
-                class="billing-card"
-              >
-                <div class="kl-form-row">
-                  <div class="kl-field">
-                    <label class="kl-label">Label</label>
-                    <input v-model="item.label" class="kl-input" />
-                  </div>
-                  <div class="kl-field">
-                    <label class="kl-label">Billing name</label>
-                    <input v-model="item.customerName" class="kl-input" required />
-                  </div>
-                </div>
-                <div class="kl-form-row" style="margin-top: 0.85rem">
-                  <div class="kl-field">
-                    <label class="kl-label">Address</label>
-                    <input v-model="item.address" class="kl-input" required />
-                  </div>
-                </div>
-                <div class="kl-form-row" style="--cols: 1fr 1fr 1fr; margin-top: 0.85rem">
-                  <div class="kl-field">
-                    <label class="kl-label">Postal code</label>
-                    <input v-model="item.postalCode" class="kl-input" required />
-                  </div>
-                  <div class="kl-field">
-                    <label class="kl-label">City</label>
-                    <input v-model="item.city" class="kl-input" required />
-                  </div>
-                  <div class="kl-field">
-                    <label class="kl-label">VAT nr</label>
-                    <input v-model="item.VATnr" class="kl-input" />
-                  </div>
-                </div>
-                <div class="billing-actions">
-                  <button
-                    type="button"
-                    class="kl-btn kl-btn--outline kl-btn--sm"
-                    :disabled="item.isDefault"
-                    @click="setDefaultBillingItem(index)"
-                  >
-                    {{ item.isDefault ? 'Default' : 'Set as default' }}
-                  </button>
-                  <button
-                    type="button"
-                    class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                    @click="removeBillingItem(index)"
-                  >
-                    <Trash2 :size="14" :stroke-width="1.75" /> Remove
-                  </button>
-                </div>
-              </div>
-
-              <div class="inline-panel__actions">
-                <button type="submit" class="kl-btn kl-btn--primary">Save</button>
-                <button type="button" class="kl-btn kl-btn--ghost" @click="cancelEditCustomer">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </li>
-        <li v-if="!customers.length" class="list__empty">No customers yet.</li>
-      </ul>
-    </section>
-
-    <!-- Employees -->
-    <section class="kl-card kl-card--flush section">
-      <div class="kl-card-header">
-        <div>
-          <h2>Employees</h2>
-          <p class="kl-muted section__sub">Dispatchers and company staff.</p>
-        </div>
-        <router-link :to="`/companies/${companyId}/employees`" class="kl-btn kl-btn--primary kl-btn--sm">
-          <Plus :size="14" :stroke-width="2" /> Add employee
-        </router-link>
-      </div>
-
-      <ul class="list">
-        <li v-for="employee in employees" :key="employee._id" class="list-item">
-          <div class="list-item__main">
-            <div class="avatar">{{ initials(employee.name) }}</div>
-            <div class="list-item__info">
-              <div class="list-item__name">{{ employee.name }}</div>
-              <div class="list-item__meta">{{ employee.profile }}</div>
-            </div>
-            <div v-if="canManage" class="list-item__actions">
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm"
-                title="Edit"
-                @click="openEditEmployee(employee)"
-              >
-                <Pencil :size="14" :stroke-width="1.75" />
-              </button>
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm"
-                title="Reset password"
-                @click="openResetPassword('employee', employee._id)"
-              >
-                <Key :size="14" :stroke-width="1.75" />
-              </button>
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                title="Delete"
-                @click="removeEmployee(employee._id)"
-              >
-                <Trash2 :size="14" :stroke-width="1.75" />
-              </button>
-            </div>
-          </div>
-
-          <div v-if="canManage && isResetOpen('employee', employee._id)" class="inline-panel">
-            <form class="inline-panel__row" @submit.prevent="submitResetPassword">
-              <div class="kl-field flex-grow">
-                <label class="kl-label">New password</label>
-                <input
-                  v-model="newPassword"
-                  class="kl-input"
-                  type="password"
-                  required
-                  minlength="6"
-                />
-              </div>
-              <div class="inline-panel__actions">
-                <button type="submit" class="kl-btn kl-btn--primary">Save</button>
-                <button type="button" class="kl-btn kl-btn--ghost" @click="cancelResetPassword">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div v-if="canManage && editingEmployeeId === employee._id" class="inline-panel">
-            <form @submit.prevent="submitEmployee">
-              <div class="kl-form-row">
-                <div class="kl-field">
-                  <label class="kl-label">Name</label>
-                  <input v-model="employeeForm.name" class="kl-input" required />
-                </div>
-                <div class="kl-field">
-                  <label class="kl-label">Email</label>
-                  <input v-model="employeeForm.email" class="kl-input" type="email" required />
-                </div>
-              </div>
-              <div class="kl-form-row" style="margin-top: 0.85rem; --cols: 1">
-                <div class="kl-field">
-                  <label class="kl-label">Profile</label>
-                  <input v-model="employeeForm.profile" class="kl-input" />
-                </div>
-              </div>
-              <div class="inline-panel__actions">
-                <button type="submit" class="kl-btn kl-btn--primary">Save</button>
-                <button type="button" class="kl-btn kl-btn--ghost" @click="cancelEditEmployee">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </li>
-        <li v-if="!employees.length" class="list__empty">No employees yet.</li>
-      </ul>
-    </section>
-
-    <!-- Orders (admin-only) -->
-    <section v-if="isAdmin" class="kl-card kl-card--flush section">
-      <div class="kl-card-header">
-        <div>
-          <h2>Orders</h2>
-          <p class="kl-muted section__sub">All transport orders for this company.</p>
-        </div>
-        <span class="kl-badge kl-badge--muted">{{ companyOrders.length }}</span>
-      </div>
-
-      <ul v-if="companyOrders.length" class="list">
-        <li v-for="order in companyOrders" :key="order._id" class="list-item">
-          <div class="list-item__main order-main">
-            <div class="order-main__route">
-              <span class="order-main__arrow">{{ order.origin }} <ChevronRight :size="14" :stroke-width="1.75" /> {{ order.destination }}</span>
-              <div class="order-main__meta">
-                <span>{{ order.customer?.customerName || '' }}</span>
-                <span>&middot;</span>
-                <span>{{ formatDate(order.deliveryDate) }}</span>
-              </div>
-            </div>
-            <span :class="orderBadgeClass(order.state)">{{ order.state }}</span>
-            <div class="list-item__actions">
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm"
-                title="Edit"
-                @click="openEditOrder(order)"
-              >
-                <Pencil :size="14" :stroke-width="1.75" />
-              </button>
-              <button
-                class="kl-btn kl-btn--ghost kl-btn--sm danger-icon"
-                title="Delete"
-                @click="removeOrder(order._id)"
-              >
-                <Trash2 :size="14" :stroke-width="1.75" />
-              </button>
-            </div>
-          </div>
-
-          <div v-if="editingOrderId === order._id" class="inline-panel">
-            <form @submit.prevent="submitOrder">
-              <div class="kl-form-row">
-                <div class="kl-field">
-                  <label class="kl-label">Origin</label>
-                  <input v-model="orderForm.origin" class="kl-input" required />
-                </div>
-                <div class="kl-field">
-                  <label class="kl-label">Destination</label>
-                  <input v-model="orderForm.destination" class="kl-input" required />
-                </div>
-              </div>
-              <div class="kl-form-row" style="margin-top: 0.85rem">
-                <div class="kl-field">
-                  <label class="kl-label">Delivery date</label>
-                  <input v-model="orderForm.deliveryDate" class="kl-input" type="date" required />
-                </div>
-                <div class="kl-field">
-                  <label class="kl-label">Status</label>
-                  <select v-model="orderForm.state" class="kl-select">
-                    <option value="PENDING">PENDING</option>
-                    <option value="IN_PROCESS">IN_PROCESS</option>
-                    <option value="DELIVERED">DELIVERED</option>
-                  </select>
-                </div>
-              </div>
-              <div class="inline-panel__actions">
-                <button type="submit" class="kl-btn kl-btn--primary">Save</button>
-                <button type="button" class="kl-btn kl-btn--ghost" @click="cancelEditOrder">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </li>
-      </ul>
-      <div v-else class="list__empty">No orders for this company yet.</div>
-    </section>
-  </div>
-
-  <div v-else class="loading-wrap">
-    <PageHeader title="Company" subtitle="Loading..." />
-  </div>
+<template lang="pug">
+div.company-detail(v-if="company")
+  PageHeader(
+    :title="company.companyName"
+    :subtitle="`${company.address}, ${company.postalCode} ${company.city}`"
+    :back-to="backTarget.to"
+    :back-label="backTarget.label"
+  )
+    template(#actions)
+      router-link.kl-btn.kl-btn--outline(:to="`/companies/${companyId}/dispatcher`")
+        Route(:size="14", :stroke-width="1.75")
+        | Dispatcher
+      router-link.kl-btn.kl-btn--outline(:to="`/companies/${companyId}/vehicles`")
+        Truck(:size="14", :stroke-width="1.75")
+        | Vehicles
+  div.kl-alert.kl-alert--danger(v-if="error") {{ error }}
+  div.kl-alert.kl-alert--success(v-if="success") {{ success }}
+  // Customers
+  section.kl-card.kl-card--flush.section
+    .kl-card-header
+      div
+        h2 Customers
+        p.kl-muted.section__sub Customers belonging to this company.
+      router-link.kl-btn.kl-btn--primary.kl-btn--sm(:to="`/companies/${companyId}/customers`")
+        Plus(:size="14", :stroke-width="2")
+        | Add customer
+    ul.list
+      li.list-item(v-for="customer in customers", :key="customer._id")
+        .list-item__main
+          .avatar {{ initials(customer.customerName) }}
+          .list-item__info
+            .list-item__name {{ customer.customerName }}
+            .list-item__meta {{ customer.account?.email }}
+          .list-item__actions(v-if="canManage")
+            button.kl-btn.kl-btn--ghost.kl-btn--sm(title="Edit", @click="openEditCustomer(customer)")
+              Pencil(:size="14", :stroke-width="1.75")
+            button.kl-btn.kl-btn--ghost.kl-btn--sm(title="Reset password", @click="openResetPassword('customer', customer._id)")
+              Key(:size="14", :stroke-width="1.75")
+            button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(title="Delete", @click="removeCustomer(customer._id)")
+              Trash2(:size="14", :stroke-width="1.75")
+        .inline-panel(v-if="canManage && isResetOpen('customer', customer._id)")
+          form.inline-panel__row(@submit.prevent="submitResetPassword")
+            .kl-field.flex-grow
+              label.kl-label New password
+              input.kl-input(v-model="newPassword", type="password", required, minlength="6")
+            .inline-panel__actions
+              button.kl-btn.kl-btn--primary(type="submit") Save
+              button.kl-btn.kl-btn--ghost(type="button", @click="cancelResetPassword") Cancel
+        .inline-panel(v-if="canManage && editingCustomerId === customer._id")
+          form(@submit.prevent="submitCustomer")
+            .kl-form-row
+              .kl-field
+                label.kl-label Name
+                input.kl-input(v-model="customerForm.customerName", required)
+              .kl-field
+                label.kl-label Email
+                input.kl-input(v-model="customerForm.email", type="email", required)
+            .kl-form-row(style="margin-top: 0.85rem")
+              .kl-field(v-if="isAdmin")
+                label.kl-label Company
+                select.kl-select(v-model="customerForm.company", required)
+                  option(v-for="c in companies", :key="c._id", :value="c._id") {{ c.companyName }}
+              .kl-field
+                label.kl-label Profile
+                input.kl-input(v-model="customerForm.profile")
+            .billing-head
+              h4 Billing info
+              button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="addBillingItem")
+                Plus(:size="14", :stroke-width="2")
+                | Add billing
+            div.billing-card(v-for="(item, index) in customerForm.billingInfo", :key="index")
+              .kl-form-row
+                .kl-field
+                  label.kl-label Label
+                  input.kl-input(v-model="item.label")
+                .kl-field
+                  label.kl-label Billing name
+                  input.kl-input(v-model="item.customerName", required)
+              .kl-form-row(style="margin-top: 0.85rem")
+                .kl-field
+                  label.kl-label Address
+                  input.kl-input(v-model="item.address", required)
+              .kl-form-row(style="--cols: 1fr 1fr 1fr; margin-top: 0.85rem")
+                .kl-field
+                  label.kl-label Postal code
+                  input.kl-input(v-model="item.postalCode", required)
+                .kl-field
+                  label.kl-label City
+                  input.kl-input(v-model="item.city", required)
+                .kl-field
+                  label.kl-label VAT nr
+                  input.kl-input(v-model="item.VATnr")
+              .billing-actions
+                button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", :disabled="item.isDefault", @click="setDefaultBillingItem(index)") {{ item.isDefault ? 'Default' : 'Set as default' }}
+                button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(type="button", @click="removeBillingItem(index)")
+                  Trash2(:size="14", :stroke-width="1.75")
+                  | Remove
+            .inline-panel__actions
+              button.kl-btn.kl-btn--primary(type="submit") Save
+              button.kl-btn.kl-btn--ghost(type="button", @click="cancelEditCustomer") Cancel
+      li.list__empty(v-if="!customers.length") No customers yet.
+  // Employees
+  section.kl-card.kl-card--flush.section
+    .kl-card-header
+      div
+        h2 Employees
+        p.kl-muted.section__sub Dispatchers and company staff.
+      router-link.kl-btn.kl-btn--primary.kl-btn--sm(:to="`/companies/${companyId}/employees`")
+        Plus(:size="14", :stroke-width="2")
+        | Add employee
+    ul.list
+      li.list-item(v-for="employee in employees", :key="employee._id")
+        .list-item__main
+          .avatar {{ initials(employee.name) }}
+          .list-item__info
+            .list-item__name {{ employee.name }}
+            .list-item__meta {{ employee.profile }}
+          .list-item__actions(v-if="canManage")
+            button.kl-btn.kl-btn--ghost.kl-btn--sm(title="Edit", @click="openEditEmployee(employee)")
+              Pencil(:size="14", :stroke-width="1.75")
+            button.kl-btn.kl-btn--ghost.kl-btn--sm(title="Reset password", @click="openResetPassword('employee', employee._id)")
+              Key(:size="14", :stroke-width="1.75")
+            button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(title="Delete", @click="removeEmployee(employee._id)")
+              Trash2(:size="14", :stroke-width="1.75")
+        .inline-panel(v-if="canManage && isResetOpen('employee', employee._id)")
+          form.inline-panel__row(@submit.prevent="submitResetPassword")
+            .kl-field.flex-grow
+              label.kl-label New password
+              input.kl-input(v-model="newPassword", type="password", required, minlength="6")
+            .inline-panel__actions
+              button.kl-btn.kl-btn--primary(type="submit") Save
+              button.kl-btn.kl-btn--ghost(type="button", @click="cancelResetPassword") Cancel
+        .inline-panel(v-if="canManage && editingEmployeeId === employee._id")
+          form(@submit.prevent="submitEmployee")
+            .kl-form-row
+              .kl-field
+                label.kl-label Name
+                input.kl-input(v-model="employeeForm.name", required)
+              .kl-field
+                label.kl-label Email
+                input.kl-input(v-model="employeeForm.email", type="email", required)
+            .kl-form-row(style="margin-top: 0.85rem; --cols: 1")
+              .kl-field
+                label.kl-label Profile
+                input.kl-input(v-model="employeeForm.profile")
+            .inline-panel__actions
+              button.kl-btn.kl-btn--primary(type="submit") Save
+              button.kl-btn.kl-btn--ghost(type="button", @click="cancelEditEmployee") Cancel
+      li.list__empty(v-if="!employees.length") No employees yet.
+  // Orders (admin-only)
+  section.kl-card.kl-card--flush.section(v-if="isAdmin")
+    .kl-card-header
+      div
+        h2 Orders
+        p.kl-muted.section__sub All transport orders for this company.
+      span.kl-badge.kl-badge--muted {{ companyOrders.length }}
+    ul.list(v-if="companyOrders.length")
+      li.list-item(v-for="order in companyOrders", :key="order._id")
+        .list-item__main.order-main
+          .order-main__route
+            span.order-main__arrow
+              | {{ order.origin }}
+              ChevronRight(:size="14", :stroke-width="1.75")
+              | {{ order.destination }}
+            .order-main__meta
+              span {{ order.customer?.customerName || '' }}
+              span &middot;
+              span {{ formatDate(order.deliveryDate) }}
+          span(:class="orderBadgeClass(order.state)") {{ order.state }}
+          .list-item__actions
+            button.kl-btn.kl-btn--ghost.kl-btn--sm(title="Edit", @click="openEditOrder(order)")
+              Pencil(:size="14", :stroke-width="1.75")
+            button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(title="Delete", @click="removeOrder(order._id)")
+              Trash2(:size="14", :stroke-width="1.75")
+        .inline-panel(v-if="editingOrderId === order._id")
+          form(@submit.prevent="submitOrder")
+            .kl-form-row
+              .kl-field
+                label.kl-label Origin
+                input.kl-input(v-model="orderForm.origin", required)
+              .kl-field
+                label.kl-label Destination
+                input.kl-input(v-model="orderForm.destination", required)
+            .kl-form-row(style="margin-top: 0.85rem")
+              .kl-field
+                label.kl-label Delivery date
+                input.kl-input(v-model="orderForm.deliveryDate", type="date", required)
+              .kl-field
+                label.kl-label Status
+                select.kl-select(v-model="orderForm.state")
+                  option(value="PENDING") PENDING
+                  option(value="IN_PROCESS") IN_PROCESS
+                  option(value="DELIVERED") DELIVERED
+            .inline-panel__actions
+              button.kl-btn.kl-btn--primary(type="submit") Save
+              button.kl-btn.kl-btn--ghost(type="button", @click="cancelEditOrder") Cancel
+    div.list__empty(v-else) No orders for this company yet.
+div.loading-wrap(v-else)
+  PageHeader(title="Company", subtitle="Loading...")
 </template>
 
 <style scoped>

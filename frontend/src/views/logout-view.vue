@@ -14,13 +14,12 @@ export default {
 }
 </script>
 
-<template>
-  <main class="logout">
-    <div class="logout__card">
-      <div class="logout__spinner" aria-hidden="true" />
-      <p>Signing you out...</p>
-    </div>
-  </main>
+
+<template lang="pug">
+main.logout
+  .logout__card
+    .logout__spinner(aria-hidden="true")
+    p Signing you out...
 </template>
 
 <style scoped>

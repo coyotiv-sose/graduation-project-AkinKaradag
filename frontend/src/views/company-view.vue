@@ -8,16 +8,15 @@ export default {
 }
 </script>
 
-<template>
-  <div class="company-view">
-    <PageHeader
-      title="Companies"
-      subtitle="Every logistics operator on the KaraLog platform."
-    />
-    <Suspense>
-      <Company />
-    </Suspense>
-  </div>
+
+<template lang="pug">
+div.company-view
+  PageHeader(
+    title="Companies"
+    subtitle="Every logistics operator on the KaraLog platform."
+  )
+  Suspense
+    Company
 </template>
 
 <style scoped>

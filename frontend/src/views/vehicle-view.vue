@@ -13,18 +13,16 @@ export default {
 }
 </script>
 
-<template>
-  <div class="vehicle-view">
-    <PageHeader
+<template lang="pug">
+  .vehicle-view
+    PageHeader(
       title="Manage vehicles"
       subtitle="Add vehicles to your fleet and adjust their state."
       :back-to="`/companies/${companyId}`"
       back-label="Back to company"
-    />
-    <Suspense>
-      <VehicleManagement :company-id="companyId" />
-    </Suspense>
-  </div>
+    )
+    Suspense
+      VehicleManagement(:company-id="companyId")
 </template>
 
 <style scoped>
