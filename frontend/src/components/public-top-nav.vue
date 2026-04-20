@@ -12,31 +12,23 @@ export default {
 }
 </script>
 
-<template>
-  <header class="public-nav">
-    <div class="public-nav__inner">
-      <router-link to="/" class="public-nav__brand">
-        <span class="brand-mark" aria-hidden="true">K</span>
-        <span class="brand-text">KaraLog</span>
-      </router-link>
 
-      <nav class="public-nav__links">
-        <a href="#services">Services</a>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
-      </nav>
-
-      <div class="public-nav__actions">
-        <ThemeToggle />
-        <router-link v-if="!user" to="/login" class="kl-btn kl-btn--outline kl-btn--sm">
-          Sign in
-        </router-link>
-        <router-link v-else to="/" class="kl-btn kl-btn--primary kl-btn--sm">
-          Open app
-        </router-link>
-      </div>
-    </div>
-  </header>
+<template lang="pug">
+header.public-nav
+  .public-nav__inner
+    router-link.public-nav__brand(to="/")
+      span.brand-mark(aria-hidden="true") K
+      span.brand-text KaraLog
+    nav.public-nav__links
+      a(href="#services") Services
+      a(href="#about") About
+      a(href="#contact") Contact
+    .public-nav__actions
+      ThemeToggle
+      router-link.kl-btn.kl-btn--outline.kl-btn--sm(v-if="!user", to="/login")
+        | Sign in
+      router-link.kl-btn.kl-btn--primary.kl-btn--sm(v-else, to="/")
+        | Open app
 </template>
 
 <style scoped>

@@ -64,58 +64,40 @@ export default {
 }
 </script>
 
-<template>
-  <div class="vehicle-block">
-    <CreateFormWrapper :on-submit="submitVehicle" submit-label="Add vehicle">
-      <h3>New vehicle</h3>
-      <input v-model="name" placeholder="Vehicle name (optional)" />
-      <div class="vehicle-block__row">
-        <input v-model="brand" placeholder="Brand" required />
-        <input v-model="model" placeholder="Model" required />
-      </div>
-      <div class="vehicle-block__row">
-        <input v-model.number="year" type="number" placeholder="Year" required />
-        <input v-model="payLoad" type="number" placeholder="Payload (kg)" required />
-      </div>
-    </CreateFormWrapper>
 
-    <section class="kl-card kl-card--flush">
-      <div class="kl-card-header">
-        <h2>Vehicles</h2>
-        <span class="kl-badge kl-badge--muted">{{ vehicles.length }}</span>
-      </div>
-
-      <ul class="list">
-        <li v-for="vehicle in vehicles" :key="vehicle._id" class="vehicle-item">
-          <div class="vehicle-item__icon">
-            <Truck :size="18" :stroke-width="1.75" />
-          </div>
-          <div class="vehicle-item__info">
-            <div class="vehicle-item__head">
-              <span class="vehicle-item__name">{{ vehicleName(vehicle) }}</span>
-              <span :class="vehicleBadgeClass(vehicle.state)">{{ vehicle.state }}</span>
-            </div>
-            <div class="vehicle-item__meta">
-              {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }}) &middot; {{ vehicle.payLoad }} kg
-            </div>
-          </div>
-          <select
-            class="kl-select kl-input--sm vehicle-item__state"
-            :value="vehicle.state"
-            @change="updateState(vehicle._id, $event.target.value)"
-          >
-            <option value="AVAILABLE">Available</option>
-            <option value="IN_GARAGE">In garage</option>
-            <option value="DAMAGED">Damaged</option>
-            <option value="PARKED">Parked</option>
-            <option value="SOLD">Sold</option>
-            <option value="OTHER_REASON">Other</option>
-          </select>
-        </li>
-        <li v-if="!vehicles.length" class="list__empty">No vehicles yet.</li>
-      </ul>
-    </section>
-  </div>
+<template lang="pug">
+div.vehicle-block
+  CreateFormWrapper(:on-submit="submitVehicle", submit-label="Add vehicle")
+    h3 New vehicle
+    input(v-model="name", placeholder="Vehicle name (optional)")
+    .vehicle-block__row
+      input(v-model="brand", placeholder="Brand", required)
+      input(v-model="model", placeholder="Model", required)
+    .vehicle-block__row
+      input(v-model.number="year", type="number", placeholder="Year", required)
+      input(v-model="payLoad", type="number", placeholder="Payload (kg)", required)
+  section.kl-card.kl-card--flush
+    .kl-card-header
+      h2 Vehicles
+      span.kl-badge.kl-badge--muted {{ vehicles.length }}
+    ul.list
+      li.vehicle-item(v-for="vehicle in vehicles", :key="vehicle._id")
+        .vehicle-item__icon
+          Truck(:size="18", :stroke-width="1.75")
+        .vehicle-item__info
+          .vehicle-item__head
+            span.vehicle-item__name {{ vehicleName(vehicle) }}
+            span(:class="vehicleBadgeClass(vehicle.state)") {{ vehicle.state }}
+          .vehicle-item__meta
+            | {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }}) · {{ vehicle.payLoad }} kg
+        select.kl-select.kl-input--sm.vehicle-item__state(:value="vehicle.state", @change="updateState(vehicle._id, $event.target.value)")
+          option(value="AVAILABLE") Available
+          option(value="IN_GARAGE") In garage
+          option(value="DAMAGED") Damaged
+          option(value="PARKED") Parked
+          option(value="SOLD") Sold
+          option(value="OTHER_REASON") Other
+      li.list__empty(v-if="!vehicles.length") No vehicles yet.
 </template>
 
 <style scoped>
