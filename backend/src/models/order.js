@@ -11,6 +11,7 @@ const orderSchema = new mongoose.Schema({
   state: { type: String, enum: ['PENDING', 'IN_PROCESS', 'DELIVERED'], default: 'PENDING' },
   cargos: [cargoSchema],
   billingInfo: { type: billingInfoSchema, required: true },
+  note: { type: String, default: '' },
 })
 
 orderSchema.methods.addCargo = function (cargo) {
