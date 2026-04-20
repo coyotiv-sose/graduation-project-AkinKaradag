@@ -20,28 +20,21 @@ export default {
   },
   async mounted() {
     await this.fetchUser()
-    if (this.user) {
-      this.connect()
-    }
   },
 }
 </script>
 
-<template>
-  <div :class="['app-shell', isPublicLayout ? 'app-shell--public' : 'app-shell--app']">
-    <template v-if="isPublicLayout">
-      <PublicTopNav />
-      <router-view />
-    </template>
-    <template v-else>
-      <AppSidebar />
-      <main class="app-main">
-        <div class="app-main__inner">
-          <router-view />
-        </div>
-      </main>
-    </template>
-  </div>
+
+<template lang="pug">
+  .app-shell(:class="[isPublicLayout ? 'app-shell--public' : 'app-shell--app']")
+    template(v-if="isPublicLayout")
+      PublicTopNav
+      router-view
+    template(v-else)
+      AppSidebar
+      main.app-main
+        .app-main__inner
+          router-view
 </template>
 
 <style scoped>
