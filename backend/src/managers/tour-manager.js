@@ -56,6 +56,12 @@ const updateTour = async (tourId, updateData) => {
     return tour.endTour()
   }
 
+  if (updateData.state === 'CANCELLED') {
+    await Order.updateMany({ _id: { $in: orderIds }, state: 'IN_PROCESS' }, { $set: { state: 'PENDING' } })
+    tour.state = 'CANCELLED'
+    return tour.save()
+  }
+
   Object.assign(tour, updateData)
   return tour.save()
 }
