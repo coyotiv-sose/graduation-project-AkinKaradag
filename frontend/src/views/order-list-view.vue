@@ -67,7 +67,7 @@ export default {
           @click="$router.push(`/orders/${order._id}`)"
         )
           td
-            span.order-id #{{ order._id.slice(-5) }}
+            span.order-id {{ '#' + order._id.slice(-5) }}
           td
             span.order-route
               | {{ order.origin }}
