@@ -259,11 +259,16 @@ router.post('/:companyId/tours/:tourId', async (req, res, next) => {
 
 router.put('/:companyId/tours/:tourId', async (req, res, next) => {
   try {
-    // Fetch the current tour to check its state
     const currentTour = await tourManager.findTourById(req.params.tourId)
     if (!currentTour) return res.status(404).json({ error: 'Tour not found' })
-    if (currentTour.state === 'STARTED' || currentTour.state === 'FINISHED') {
-      return res.status(400).json({ error: 'Cannot update a tour that is started or finished' })
+
+    const nextState = req.body.state
+    const isTerminal = currentTour.state === 'FINISHED' || currentTour.state === 'CANCELLED'
+    if (isTerminal) {
+      return res.status(400).json({ error: `Cannot update a tour that is ${currentTour.state.toLowerCase()}` })
+    }
+    if (currentTour.state === 'STARTED' && nextState && !['FINISHED', 'CANCELLED'].includes(nextState)) {
+      return res.status(400).json({ error: 'A started tour can only be finished or cancelled' })
     }
 
     const tour = await tourManager.updateTour(req.params.tourId, req.body)
