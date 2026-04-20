@@ -9,14 +9,13 @@ export const useOrderStore = defineStore('order', {
     error: '',
   }),
   actions: {
-    async generateOrderFromPrompt(customerId, prompt) {
+    async generateOrderFromPrompt(customerId, prompt, billingInfo = null) {
       this.isGenerating = true
       this.error = ''
       this.lastGeneratedOrder = null
       try {
-        const { data } = await axios.post(`/customers/${customerId}/orders/ai-generate`, {
-          prompt,
-        })
+        const payload = billingInfo ? { prompt, billingInfo } : { prompt }
+        const { data } = await axios.post(`/customers/${customerId}/orders/ai-generate`, payload)
         this.lastGeneratedOrder = data
         return data
       } catch (e) {
