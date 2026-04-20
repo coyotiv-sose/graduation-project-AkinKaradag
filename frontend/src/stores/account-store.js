@@ -18,25 +18,29 @@ export const useAccountStore = defineStore('account', {
     },
     actions: {
         async fetchUser() {
+            const socketStore = useSocketStore()
             try {
                 const { data } = await axios.get('/accounts/session')
                 if (data && data._id) {
                     this.profile = data.profile || null
                     this.user = data
+                    if (!socketStore.isConnected) {
+                        socketStore.connect()
+                    }
                 } else {
                     this.user = null
                     this.profile = null
+                    socketStore.disconnect()
                 }
             } catch {
                 this.user = null
                 this.profile = null
+                socketStore.disconnect()
             }
         },
         async login(email, password) {
             await axios.post('/accounts/session', { email, password })
             await this.fetchUser()
-            const socketStore = useSocketStore()
-            socketStore.connect()
         },
         async register(payload) {
             await axios.post('/accounts', payload)
