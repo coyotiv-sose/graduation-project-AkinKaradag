@@ -131,7 +131,7 @@ export default {
             .kl-muted.tiny-label Transport status
             .detail-main__state
               span(:class="orderBadgeClass") {{ order.state }}
-          .detail-id #{{ order._id.slice(-5) }}
+          .detail-id {{ '#' + order._id.slice(-5) }}
         .route
           .route__point
             .route__dot
