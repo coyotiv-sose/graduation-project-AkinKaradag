@@ -108,148 +108,98 @@ export default {
 }
 </script>
 
-<template>
-  <div class="order-detail">
-    <PageHeader
-      :title="order ? `Order #${order._id.slice(-5)}` : 'Order'"
-      subtitle="Live transport order details."
-      back-to="/orders"
-      back-label="Back to orders"
-    >
-      <template v-if="order && !editing && order.state === 'PENDING'" #actions>
-        <button type="button" class="kl-btn kl-btn--outline" @click="startEdit">
-          <Pencil :size="14" :stroke-width="1.75" /> Edit order
-        </button>
-      </template>
-    </PageHeader>
 
-    <div v-if="errorMessage" class="kl-alert kl-alert--danger">{{ errorMessage }}</div>
-
-    <template v-if="order">
-      <div class="detail-grid">
-        <!-- Route & status card -->
-        <section class="kl-card kl-card--padded detail-main">
-          <div class="detail-main__head">
-            <div>
-              <div class="kl-muted tiny-label">Transport status</div>
-              <div class="detail-main__state">
-                <span :class="orderBadgeClass">{{ order.state }}</span>
-              </div>
-            </div>
-            <div class="detail-id">#{{ order._id.slice(-5) }}</div>
-          </div>
-
-          <div class="route">
-            <div class="route__point">
-              <div class="route__dot" />
-              <div>
-                <div class="route__label">Origin</div>
-                <div class="route__value">{{ order.origin }}</div>
-              </div>
-            </div>
-            <div class="route__line" aria-hidden="true">
-              <ChevronRight :size="18" :stroke-width="1.75" />
-            </div>
-            <div class="route__point route__point--end">
-              <div class="route__dot route__dot--end" />
-              <div>
-                <div class="route__label">Destination</div>
-                <div class="route__value">{{ order.destination }}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="info-grid">
-            <div>
-              <div class="tiny-label">Delivery date</div>
-              <div class="info-value">{{ formatDate(order.deliveryDate) }}</div>
-            </div>
-            <div>
-              <div class="tiny-label">Cargo items</div>
-              <div class="info-value">{{ order.cargos.length }}</div>
-            </div>
-            <div>
-              <div class="tiny-label">Total weight</div>
-              <div class="info-value">{{ totalWeight }} kg</div>
-            </div>
-            <div v-if="order.customer">
-              <div class="tiny-label">Customer</div>
-              <div class="info-value">{{ order.customer.customerName || order.customer }}</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Cargo -->
-        <section class="kl-card kl-card--flush">
-          <div class="kl-card-header">
-            <h3>Cargo ({{ order.cargos.length }})</h3>
-          </div>
-          <div class="cargo-list">
-            <div
-              v-for="(cargo, idx) in order.cargos"
-              :key="idx"
-              class="cargo-card"
-            >
-              <div class="cargo-card__head">
-                <span class="cargo-card__title">{{ cargo.quantity }}x {{ cargo.loadCarrierType }}</span>
-                <span class="cargo-card__weight">{{ cargo.weight }} kg</span>
-              </div>
-              <div class="cargo-card__meta">
-                Dimensions: {{ cargo.dimensions.width }} × {{ cargo.dimensions.length }} ×
-                {{ cargo.dimensions.height }} cm
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Billing -->
-        <section v-if="order.billingInfo" class="kl-card kl-card--padded">
-          <h3 class="section-h3">Billing info</h3>
-          <p class="info-value">{{ order.billingInfo.customerName }}</p>
-          <p class="kl-muted billing-line">
-            {{ order.billingInfo.address }},
-            {{ order.billingInfo.postalCode }} {{ order.billingInfo.city }}
-          </p>
-        </section>
-
-        <!-- Edit form -->
-        <section v-if="editing" class="kl-card kl-card--padded">
-          <h3 class="section-h3">Edit order</h3>
-          <form class="edit-form" @submit.prevent="saveEdit">
-            <div class="kl-field">
-              <label class="kl-label">Origin</label>
-              <input v-model="editForm.origin" class="kl-input" />
-            </div>
-            <div class="kl-field">
-              <label class="kl-label">Destination</label>
-              <input v-model="editForm.destination" class="kl-input" />
-            </div>
-            <div class="kl-form-row">
-              <div class="kl-field">
-                <label class="kl-label">Delivery date</label>
-                <input v-model="editForm.deliveryDate" class="kl-input" type="date" />
-              </div>
-              <div class="kl-field">
-                <label class="kl-label">Status</label>
-                <select v-model="editForm.state" class="kl-select">
-                  <option value="PENDING">PENDING</option>
-                  <option value="IN_PROCESS">IN_PROCESS</option>
-                  <option value="DELIVERED">DELIVERED</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="edit-form__actions">
-              <button type="submit" class="kl-btn kl-btn--primary">Save changes</button>
-              <button type="button" class="kl-btn kl-btn--ghost" @click="cancelEdit">Cancel</button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </template>
-
-    <p v-else-if="!errorMessage" class="kl-muted loading">Loading order...</p>
-  </div>
+<template lang="pug">
+.order-detail
+  PageHeader(
+    :title="order ? `Order #${order._id.slice(-5)}` : 'Order'"
+    subtitle="Live transport order details."
+    back-to="/orders"
+    back-label="Back to orders"
+  )
+    template(v-if="order && !editing && order.state === 'PENDING'" #actions)
+      button.kl-btn.kl-btn--outline(type="button" @click="startEdit")
+        Pencil(:size="14", :stroke-width="1.75")
+        |  Edit order
+  div.kl-alert.kl-alert--danger(v-if="errorMessage") {{ errorMessage }}
+  template(v-if="order")
+    .detail-grid
+      //- Route & status card
+      section.kl-card.kl-card--padded.detail-main
+        .detail-main__head
+          div
+            .kl-muted.tiny-label Transport status
+            .detail-main__state
+              span(:class="orderBadgeClass") {{ order.state }}
+          .detail-id #{{ order._id.slice(-5) }}
+        .route
+          .route__point
+            .route__dot
+            div
+              .route__label Origin
+              .route__value {{ order.origin }}
+          .route__line(aria-hidden="true")
+            ChevronRight(:size="18", :stroke-width="1.75")
+          .route__point.route__point--end
+            .route__dot.route__dot--end
+            div
+              .route__label Destination
+              .route__value {{ order.destination }}
+        .info-grid
+          div
+            .tiny-label Delivery date
+            .info-value {{ formatDate(order.deliveryDate) }}
+          div
+            .tiny-label Cargo items
+            .info-value {{ order.cargos.length }}
+          div
+            .tiny-label Total weight
+            .info-value {{ totalWeight }} kg
+          div(v-if="order.customer")
+            .tiny-label Customer
+            .info-value {{ order.customer.customerName || order.customer }}
+      //- Cargo
+      section.kl-card.kl-card--flush
+        .kl-card-header
+          h3 Cargo ({{ order.cargos.length }})
+        .cargo-list
+          div.cargo-card(v-for="(cargo, idx) in order.cargos" :key="idx")
+            .cargo-card__head
+              span.cargo-card__title {{ cargo.quantity }}x {{ cargo.loadCarrierType }}
+              span.cargo-card__weight {{ cargo.weight }} kg
+            .cargo-card__meta
+              | Dimensions: {{ cargo.dimensions.width }} × {{ cargo.dimensions.length }} × {{ cargo.dimensions.height }} cm
+      //- Billing
+      section.kl-card.kl-card--padded(v-if="order.billingInfo")
+        h3.section-h3 Billing info
+        p.info-value {{ order.billingInfo.customerName }}
+        p.kl-muted.billing-line
+          | {{ order.billingInfo.address }},
+          |  {{ order.billingInfo.postalCode }} {{ order.billingInfo.city }}
+      //- Edit form
+      section.kl-card.kl-card--padded(v-if="editing")
+        h3.section-h3 Edit order
+        form.edit-form(@submit.prevent="saveEdit")
+          .kl-field
+            label.kl-label Origin
+            input.kl-input(v-model="editForm.origin")
+          .kl-field
+            label.kl-label Destination
+            input.kl-input(v-model="editForm.destination")
+          .kl-form-row
+            .kl-field
+              label.kl-label Delivery date
+              input.kl-input(type="date" v-model="editForm.deliveryDate")
+            .kl-field
+              label.kl-label Status
+              select.kl-select(v-model="editForm.state")
+                option(value="PENDING") PENDING
+                option(value="IN_PROCESS") IN_PROCESS
+                option(value="DELIVERED") DELIVERED
+          .edit-form__actions
+            button.kl-btn.kl-btn--primary(type="submit") Save changes
+            button.kl-btn.kl-btn--ghost(type="button" @click="cancelEdit") Cancel
+  p.kl-muted.loading(v-else-if="!errorMessage") Loading order...
 </template>
 
 <style scoped>

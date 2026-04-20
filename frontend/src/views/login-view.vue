@@ -32,99 +32,71 @@ export default {
 }
 </script>
 
-<template>
-  <main class="auth">
-    <section class="auth__form">
-      <div class="auth__form-inner">
-        <span class="auth__eyebrow">
-          <span class="auth__eyebrow-dot" />
-          KaraLog dispatcher hub
-        </span>
-        <h1 class="auth__title">Welcome back.</h1>
-        <p class="auth__subtitle">
-          Sign in to access your orders, fleet and dispatching tools.
-        </p>
 
-        <form class="auth__fields" @submit.prevent="handleLogin">
-          <div class="kl-field">
-            <label class="kl-label" for="email">Email</label>
-            <div class="auth__input">
-              <Mail :size="16" :stroke-width="1.75" class="auth__input-icon" />
-              <input
-                id="email"
-                v-model="email"
-                class="kl-input auth__input-control"
-                type="email"
-                placeholder="name@company.com"
-                autocomplete="email"
-                required
-              />
-            </div>
-          </div>
+<template lang="pug">
+main.auth
+  section.auth__form
+    .auth__form-inner
+      span.auth__eyebrow
+        span.auth__eyebrow-dot
+        | KaraLog dispatcher hub
+      h1.auth__title Welcome back.
+      p.auth__subtitle
+        | Sign in to access your orders, fleet and dispatching tools.
 
-          <div class="kl-field">
-            <label class="kl-label" for="password">Password</label>
-            <div class="auth__input">
-              <Lock :size="16" :stroke-width="1.75" class="auth__input-icon" />
-              <input
-                id="password"
-                v-model="password"
-                class="kl-input auth__input-control"
-                type="password"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-                required
-              />
-            </div>
-          </div>
+      form.auth__fields(@submit.prevent="handleLogin")
+        .kl-field
+          label.kl-label(for="email") Email
+          .auth__input
+            Mail(:size="16", :stroke-width="1.75", class="auth__input-icon")
+            input#email.kl-input.auth__input-control(
+              v-model="email"
+              type="email"
+              placeholder="name@company.com"
+              autocomplete="email"
+              required
+            )
+        .kl-field
+          label.kl-label(for="password") Password
+          .auth__input
+            Lock(:size="16", :stroke-width="1.75", class="auth__input-icon")
+            input#password.kl-input.auth__input-control(
+              v-model="password"
+              type="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            )
+        p.kl-alert.kl-alert--danger(v-if="error") {{ error }}
+        button.kl-btn.kl-btn--primary.kl-btn--lg.kl-btn--block(
+          type="submit"
+          :disabled="isSubmitting"
+        )
+          | {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
+          ArrowRight(:size="16", :stroke-width="2")
 
-          <p v-if="error" class="kl-alert kl-alert--danger">{{ error }}</p>
+      p.auth__hint
+        | No account yet?
+        a(href="mailto:akin@karalog.com?subject=Account%20Request") Request access →
 
-          <button
-            type="submit"
-            class="kl-btn kl-btn--primary kl-btn--lg kl-btn--block"
-            :disabled="isSubmitting"
-          >
-            {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
-            <ArrowRight :size="16" :stroke-width="2" />
-          </button>
-        </form>
-
-        <p class="auth__hint">
-          No account yet?
-          <a href="mailto:akin@karalog.com?subject=Account%20Request">Request access &rarr;</a>
-        </p>
-      </div>
-    </section>
-
-    <aside class="auth__panel" aria-hidden="true">
-      <div class="auth__panel-inner">
-        <div class="auth__brand">
-          <span class="brand-mark">K</span>
-          <span class="brand-text">KaraLog</span>
-        </div>
-        <blockquote class="auth__quote">
-          &ldquo;Dispatching, orders and fleet tracking in one control plane.&rdquo;
-        </blockquote>
-        <div class="auth__panel-cards">
-          <div class="panel-card">
-            <div class="panel-card__label">Live capacity</div>
-            <div class="kl-progress">
-              <div class="kl-progress__fill" style="--value: 78%" />
-            </div>
-          </div>
-          <div class="panel-card">
-            <div class="panel-card__label">Active routes</div>
-            <div class="panel-card__value">24</div>
-          </div>
-          <div class="panel-card">
-            <div class="panel-card__label">On-time rate</div>
-            <div class="panel-card__value">98%</div>
-          </div>
-        </div>
-      </div>
-    </aside>
-  </main>
+  aside.auth__panel(aria-hidden="true")
+    .auth__panel-inner
+      .auth__brand
+        span.brand-mark K
+        span.brand-text KaraLog
+      blockquote.auth__quote
+        | “Dispatching, orders and fleet tracking in one control plane.”
+      .auth__panel-cards
+        .panel-card
+          .panel-card__label Live capacity
+          .kl-progress
+            .kl-progress__fill(style="--value: 78%")
+        .panel-card
+          .panel-card__label Active routes
+          .panel-card__value 24
+        .panel-card
+          .panel-card__label On-time rate
+          .panel-card__value 98%
 </template>
 
 <style scoped>

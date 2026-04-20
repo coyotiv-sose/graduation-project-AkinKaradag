@@ -13,18 +13,17 @@ export default {
 }
 </script>
 
-<template>
-  <div class="customer-dashboard">
-    <PageHeader
-      title="Manage customers"
-      subtitle="Add customers to this company and view their accounts."
-      :back-to="`/companies/${companyId}`"
-      back-label="Back to company"
-    />
-    <Suspense>
-      <Customer :company-id="companyId" />
-    </Suspense>
-  </div>
+
+<template lang="pug">
+div.customer-dashboard
+  PageHeader(
+    title="Manage customers"
+    subtitle="Add customers to this company and view their accounts."
+    :back-to="`/companies/${companyId}`"
+    back-label="Back to company"
+  )
+  Suspense
+    Customer(:company-id="companyId")
 </template>
 
 <style scoped>

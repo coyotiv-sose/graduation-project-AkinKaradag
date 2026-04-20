@@ -97,7 +97,7 @@ main
     h2 Describe your order
     textarea(
       v-model='prompt'
-      placeholder='e.g. "Ship 3 pallets of electronics from Berlin to Munich by next Friday, each pallet weighs about 200kg"'
+      placeholder='e.g. "Ship 3 pallets of electronics from Berlin (full address and customer name) to Munich (full address and customer name) by next Friday, each pallet weighs about 200kg"'
       rows='4'
       :disabled='isGenerating'
     )
