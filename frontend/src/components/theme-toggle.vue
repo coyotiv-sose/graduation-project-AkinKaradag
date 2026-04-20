@@ -15,23 +15,20 @@ export default {
 }
 </script>
 
-<template>
-  <button
-    type="button"
-    class="theme-toggle"
-    :class="{ 'theme-toggle--dark': isDark }"
-    :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-    :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-    @click="toggleTheme"
-  >
-    <span class="theme-toggle__icon theme-toggle__icon--sun">
-      <Sun :size="14" :stroke-width="2" />
-    </span>
-    <span class="theme-toggle__icon theme-toggle__icon--moon">
-      <Moon :size="14" :stroke-width="2" />
-    </span>
-    <span class="theme-toggle__thumb" />
-  </button>
+
+<template lang="pug">
+button.theme-toggle(
+  type="button"
+  :class="{ 'theme-toggle--dark': isDark }"
+  :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+  :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+  @click="toggleTheme"
+)
+  span.theme-toggle__icon.theme-toggle__icon--sun
+    Sun(:size="14", :stroke-width="2")
+  span.theme-toggle__icon.theme-toggle__icon--moon
+    Moon(:size="14", :stroke-width="2")
+  span.theme-toggle__thumb
 </template>
 
 <style scoped>

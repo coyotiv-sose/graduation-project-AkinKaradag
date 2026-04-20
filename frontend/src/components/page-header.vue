@@ -10,23 +10,19 @@ export default {
 }
 </script>
 
-<template>
-  <header class="page-header">
-    <div class="page-header__top">
-      <router-link v-if="backTo" :to="backTo" class="page-header__back">
-        <span aria-hidden="true">&larr;</span> {{ backLabel }}
-      </router-link>
-    </div>
-    <div class="page-header__row">
-      <div class="page-header__text">
-        <h1 class="page-header__title">{{ title }}</h1>
-        <p v-if="subtitle" class="page-header__subtitle">{{ subtitle }}</p>
-      </div>
-      <div v-if="$slots.actions" class="page-header__actions">
-        <slot name="actions" />
-      </div>
-    </div>
-  </header>
+
+<template lang="pug">
+header.page-header
+  .page-header__top
+    router-link.page-header__back(v-if="backTo", :to="backTo")
+      span(aria-hidden="true") &larr;
+      |  {{ backLabel }}
+  .page-header__row
+    .page-header__text
+      h1.page-header__title {{ title }}
+      p.page-header__subtitle(v-if="subtitle") {{ subtitle }}
+    .page-header__actions(v-if="$slots.actions")
+      slot(name="actions")
 </template>
 
 <style scoped>

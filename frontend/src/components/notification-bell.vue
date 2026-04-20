@@ -53,57 +53,42 @@ export default {
 }
 </script>
 
-<template>
-  <div class="notification-bell" ref="bellWrapper">
-    <button
-      type="button"
-      class="bell-button"
-      :class="{ 'bell-button--active': isOpen }"
-      aria-label="Notifications"
-      @click="toggle"
-    >
-      <Bell :size="18" :stroke-width="1.75" />
-      <span v-if="hasUnread" class="badge">{{ displayCount }}</span>
-    </button>
 
-    <Transition name="dropdown">
-      <div v-if="isOpen" class="dropdown-panel">
-        <div class="dropdown-header">
-          <span class="dropdown-title">Notifications</span>
-          <div v-if="notifications.length" class="dropdown-actions">
-            <button type="button" class="action-btn" title="Mark all read" @click="markAllAsRead">
-              <Check :size="14" :stroke-width="2" />
-            </button>
-            <button type="button" class="action-btn" title="Clear all" @click="clearAll">
-              <Trash2 :size="14" :stroke-width="2" />
-            </button>
-          </div>
-        </div>
-        <div class="dropdown-body">
-          <div v-if="!notifications.length" class="empty-state">
-            <BellOff :size="28" :stroke-width="1.5" />
-            <span>No notifications yet</span>
-          </div>
-          <div v-else class="notification-list">
-            <div
-              v-for="n in notifications"
-              :key="n.id"
-              class="notification-item"
-              :class="{ unread: !n.read, [n.type]: true }"
-              @click="handleClickNotification(n)"
-            >
-              <span v-if="!n.read" class="notification-dot"></span>
-              <div class="notification-content">
-                <div class="notification-title">{{ n.title }}</div>
-                <div class="notification-message">{{ n.message }}</div>
-                <div class="notification-time">{{ formatTime(n.createdAt) }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </div>
+<template lang="pug">
+div.notification-bell(ref="bellWrapper")
+  button.bell-button(
+    type="button"
+    :class="{ 'bell-button--active': isOpen }"
+    aria-label="Notifications"
+    @click="toggle"
+  )
+    Bell(:size="18", :stroke-width="1.75")
+    span.badge(v-if="hasUnread") {{ displayCount }}
+  Transition(name="dropdown")
+    div.dropdown-panel(v-if="isOpen")
+      div.dropdown-header
+        span.dropdown-title Notifications
+        div.dropdown-actions(v-if="notifications.length")
+          button.action-btn(type="button", title="Mark all read", @click="markAllAsRead")
+            Check(:size="14", :stroke-width="2")
+          button.action-btn(type="button", title="Clear all", @click="clearAll")
+            Trash2(:size="14", :stroke-width="2")
+      div.dropdown-body
+        div.empty-state(v-if="!notifications.length")
+          BellOff(:size="28", :stroke-width="1.5")
+          span No notifications yet
+        div.notification-list(v-else)
+          div.notification-item(
+            v-for="n in notifications"
+            :key="n.id"
+            :class="{ unread: !n.read, [n.type]: true }"
+            @click="handleClickNotification(n)"
+          )
+            span.notification-dot(v-if="!n.read")
+            div.notification-content
+              div.notification-title {{ n.title }}
+              div.notification-message {{ n.message }}
+              div.notification-time {{ formatTime(n.createdAt) }}
 </template>
 
 <style scoped>
