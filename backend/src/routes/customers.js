@@ -33,7 +33,7 @@ router.post('/:customerId/orders', async (req, res, next) => {
 // eslint-disable-next-line consistent-return
 router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
   try {
-    const { prompt } = req.body
+    const { prompt, billingInfo: providedBillingInfo } = req.body
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' })
     }
@@ -42,7 +42,10 @@ router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
 
     const orderData = await generateOrder(prompt)
 
-    const billingInfo = customer.billingInfo?.find(b => b.isDefault) || customer.billingInfo?.[0]
+    const billingInfo =
+      providedBillingInfo ||
+      customer.billingInfo?.find(b => b.isDefault) ||
+      customer.billingInfo?.[0]
     if (!billingInfo) {
       return res.status(400).json({ error: 'Customer has no billing info' })
     }
