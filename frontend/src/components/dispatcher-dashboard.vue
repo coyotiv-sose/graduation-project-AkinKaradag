@@ -192,7 +192,7 @@ export default {
       ul.panel__list
         li.order-item(v-for="order in pendingOrders", :key="order._id")
           .order-item__row
-            span.order-item__id #{{ order._id.slice(-5) }}
+            span.order-item__id {{ '#' + order._id.slice(-5) }}
             span(:class="orderBadgeClass(order.state)") {{ order.state }}
           .order-item__route
             | {{ order.origin }}
@@ -213,7 +213,7 @@ export default {
         ul.panel__list
           li.order-item.order-item--active(v-for="order in inProcessOrders", :key="order._id")
             .order-item__row
-              span.order-item__id #{{ order._id.slice(-5) }}
+              span.order-item__id {{ '#' + order._id.slice(-5) }}
               span(:class="orderBadgeClass(order.state)") {{ order.state }}
             .order-item__route
               | {{ order.origin }}
