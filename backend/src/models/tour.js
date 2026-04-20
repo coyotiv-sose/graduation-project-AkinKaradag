@@ -6,8 +6,8 @@ const tourSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'LogisticCompany', required: true },
   vehicle: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', default: null, autopopulate: true },
   date: { type: Date, required: true },
-  startLocation: { type: String, required: true },
-  endLocation: { type: String, required: true },
+  startLocation: { type: String, default: '' },
+  endLocation: { type: String, default: '' },
   orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order', autopopulate: true }],
   state: { type: String, enum: ['STARTED', 'PLANNED', 'CANCELLED', 'FINISHED'], default: 'PLANNED' },
 })
