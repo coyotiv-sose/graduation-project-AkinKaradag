@@ -50,6 +50,12 @@ export default {
     plannedTours() {
       return this.tours.filter(t => t.state === 'PLANNED')
     },
+    archivedTours() {
+      return this.tours
+        .filter(t => t.state === 'FINISHED' || t.state === 'CANCELLED')
+        .slice()
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+    },
   },
   methods: {
     ...mapActions(useOrderStore, ['getOrdersByCompany', 'deleteOrderByCompany']),
@@ -170,6 +176,11 @@ export default {
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
       }
+    },
+    async cancelTour(tourId) {
+      const confirmed = window.confirm('Cancel this tour? Any in-process orders will go back to pending.')
+      if (!confirmed) return
+      await this.updateTourState(tourId, 'CANCELLED')
     },
     async deleteOrder(orderId) {
       this.errorMessage = ''
@@ -332,6 +343,7 @@ export default {
                 type="button"
                 @click="updateTourState(tour._id, 'STARTED')"
               ) Start tour
+              button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-text(type="button", @click="cancelTour(tour._id)") Cancel
 
       template(v-if="startedTours.length")
         .panel__subheader Active
@@ -356,6 +368,24 @@ export default {
                 span.mini-order__state &middot; {{ order.state }}
             .tour-item__actions
               button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="updateTourState(tour._id, 'FINISHED')") Finish tour
+              button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-text(type="button", @click="cancelTour(tour._id)") Cancel
+
+      template(v-if="archivedTours.length")
+        .panel__subheader History
+        ul.panel__list.panel__list--tours
+          li.tour-item.tour-item--archived(v-for="tour in archivedTours", :key="tour._id")
+            .tour-item__head
+              .tour-item__route
+                | {{ tourStartLocation(tour) }}
+                ChevronRight(:size="14", :stroke-width="1.75")
+                | {{ tourEndLocation(tour) }}
+              span(:class="tourBadgeClass(tour.state)") {{ tour.state }}
+            .tour-item__meta
+              span {{ formatDate(tour.date) }}
+              span(v-if="tour.vehicle") &middot;
+              span(v-if="tour.vehicle") Vehicle: {{ vehicleName(tour.vehicle) }}
+              span &middot;
+              span {{ tour.orders ? tour.orders.length : 0 }} order(s)
 
       .panel__empty.panel__empty--big(v-if="!tours.length") No tours yet.
 
@@ -666,6 +696,21 @@ export default {
 .danger-icon:hover {
   color: var(--color-danger);
   background: var(--color-danger-soft);
+}
+
+.danger-text {
+  color: var(--color-danger);
+}
+.danger-text:hover {
+  background: var(--color-danger-soft);
+}
+
+.tour-item--archived {
+  opacity: 0.7;
+}
+.tour-item--archived .tour-item__route {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-border);
 }
 
 @media (max-width: 960px) {
