@@ -19,8 +19,7 @@ export default {
       showTourForm: false,
       tourForm: {
         date: '',
-        startLocation: '',
-        endLocation: '',
+        vehicleId: '',
       },
       assignModal: {
         visible: false,
@@ -28,6 +27,7 @@ export default {
         orderId: null,
         vehicleId: null,
       },
+      dragOverTourId: null,
       errorMessage: '',
     }
   },
@@ -93,11 +93,21 @@ export default {
     vehicleName(v) {
       return v.name || `${v.brand} ${v.model}`
     },
+    tourStartLocation(tour) {
+      return tour.orders?.[0]?.origin || tour.startLocation || 'No orders yet'
+    },
+    tourEndLocation(tour) {
+      const last = tour.orders?.length ? tour.orders[tour.orders.length - 1] : null
+      return last?.destination || tour.endLocation || 'No orders yet'
+    },
     async handleCreateTour() {
       this.errorMessage = ''
       try {
-        await this.createTour(this.companyId, this.tourForm)
-        this.tourForm = { date: '', startLocation: '', endLocation: '' }
+        await this.createTour(this.companyId, {
+          date: this.tourForm.date,
+          vehicle: this.tourForm.vehicleId,
+        })
+        this.tourForm = { date: '', vehicleId: '' }
         this.showTourForm = false
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
@@ -119,7 +129,34 @@ export default {
     async handleAssignVehicle(tourId, vehicleId) {
       this.errorMessage = ''
       try {
-        await this.assignVehicleToTour(tourId, vehicleId)
+        await this.assignVehicleToTour(tourId, vehicleId, this.companyId)
+        await this.refreshAll()
+      } catch (e) {
+        this.errorMessage = e.response?.data?.error || e.message
+      }
+    },
+    onOrderDragStart(event, orderId) {
+      event.dataTransfer.effectAllowed = 'move'
+      event.dataTransfer.setData('text/plain', orderId)
+    },
+    onTourDragOver(event, tourId) {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'move'
+      this.dragOverTourId = tourId
+    },
+    onTourDragLeave(tourId) {
+      if (this.dragOverTourId === tourId) this.dragOverTourId = null
+    },
+    async onTourDrop(event, tourId) {
+      event.preventDefault()
+      const orderId = event.dataTransfer.getData('text/plain')
+      this.dragOverTourId = null
+      if (!orderId) return
+      const alreadyAssigned = this.tours.some(t => t.orders?.some(o => o._id === orderId))
+      if (alreadyAssigned) return
+      this.errorMessage = ''
+      try {
+        await this.addOrderToTour(this.companyId, tourId, orderId)
         await this.refreshAll()
       } catch (e) {
         this.errorMessage = e.response?.data?.error || e.message
@@ -182,15 +219,20 @@ export default {
         .kpi__value {{ availableVehicles.length }} / {{ vehicles.length }}
 
   .dispatcher__grid
-    // LEFT: Pending orders
+    // LEFT: Pending orders (draggable)
     section.kl-card.kl-card--flush.panel
       .kl-card-header
         div
           h3 Pending orders
-          p.kl-muted.panel__sub Orders awaiting tour assignment
+          p.kl-muted.panel__sub Drag an order onto a tour to assign it
         span.kl-badge.kl-badge--warning {{ pendingOrders.length }}
       ul.panel__list
-        li.order-item(v-for="order in pendingOrders", :key="order._id")
+        li.order-item.order-item--draggable(
+          v-for="order in pendingOrders",
+          :key="order._id",
+          draggable="true",
+          @dragstart="onOrderDragStart($event, order._id)"
+        )
           .order-item__row
             span.order-item__id {{ '#' + order._id.slice(-5) }}
             span(:class="orderBadgeClass(order.state)") {{ order.state }}
@@ -224,106 +266,114 @@ export default {
               span &middot;
               span {{ formatDate(order.deliveryDate) }}
 
-    // RIGHT: Fleet
+    // RIGHT: Tours (drop targets)
     section.kl-card.kl-card--flush.panel
       .kl-card-header
         div
-          h3 Active fleet
-          p.kl-muted.panel__sub Vehicle states across your company
-        router-link.kl-btn.kl-btn--ghost.kl-btn--sm(:to="`/companies/${companyId}/vehicles`") Manage
-      ul.panel__list
-        li.vehicle-item(v-for="vehicle in vehicles", :key="vehicle._id")
-          .vehicle-item__row
-            .vehicle-item__head
-              span.vehicle-item__name {{ vehicleName(vehicle) }}
-              span.vehicle-item__meta {{ vehicle.brand }} {{ vehicle.model }} &middot; {{ vehicle.payLoad }} kg
-            span(:class="vehicleBadgeClass(vehicle.state)") {{ vehicle.state }}
-        li.panel__empty(v-if="!vehicles.length") No vehicles registered.
+          h3 Tours
+          p.kl-muted.panel__sub Plan, assign and start delivery tours
+        button.kl-btn.kl-btn--primary.kl-btn--sm(type="button", @click="showTourForm = !showTourForm")
+          Plus(:size="14", :stroke-width="2")
+          | {{ showTourForm ? 'Cancel' : 'New tour' }}
 
-  // BOTTOM: Tours
+      .inline-form(v-if="showTourForm")
+        form.tour-form(@submit.prevent="handleCreateTour")
+          .kl-field
+            label.kl-label Vehicle
+            select.kl-select(v-model="tourForm.vehicleId", required)
+              option(value="", disabled) Select a vehicle
+              option(v-for="v in availableVehicles", :key="v._id", :value="v._id") {{ vehicleName(v) }}
+          .kl-field
+            label.kl-label Date
+            input.kl-input(v-model="tourForm.date", type="date", required)
+          button.kl-btn.kl-btn--primary(type="submit", :disabled="!tourForm.vehicleId || !tourForm.date") Create tour
+        p.kl-muted.tour-form__hint(v-if="!availableVehicles.length") No available vehicles. Add or free up a vehicle to create a tour.
+
+      template(v-if="plannedTours.length")
+        .panel__subheader Planned
+        ul.panel__list.panel__list--tours
+          li.tour-item(
+            v-for="tour in plannedTours",
+            :key="tour._id",
+            :class="{ 'tour-item--drop': dragOverTourId === tour._id }",
+            @dragover="onTourDragOver($event, tour._id)",
+            @dragleave="onTourDragLeave(tour._id)",
+            @drop="onTourDrop($event, tour._id)"
+          )
+            .tour-item__head
+              .tour-item__route
+                | {{ tourStartLocation(tour) }}
+                ChevronRight(:size="14", :stroke-width="1.75")
+                | {{ tourEndLocation(tour) }}
+              span(:class="tourBadgeClass(tour.state)") {{ tour.state }}
+            .tour-item__meta
+              span {{ formatDate(tour.date) }}
+              span &middot;
+              span(v-if="tour.vehicle") Vehicle: {{ vehicleName(tour.vehicle) }}
+              span(v-else) No vehicle assigned
+            .tour-item__orders(v-if="tour.orders && tour.orders.length")
+              .tour-item__orders-label Orders
+              div.mini-order(v-for="order in tour.orders", :key="order._id")
+                | {{ order.origin }}
+                ChevronRight(:size="12", :stroke-width="1.75")
+                | {{ order.destination }}
+            .tour-item__dropzone(v-else) Drop an order here
+            .tour-item__actions
+              button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="openAssignOrder(tour._id)")
+                Plus(:size="14", :stroke-width="2") Add order
+              select.kl-select.kl-input--sm(
+                v-if="!tour.vehicle && availableVehicles.length"
+                @change="handleAssignVehicle(tour._id, $event.target.value); $event.target.value=''"
+              )
+                option(value="", disabled, selected) Assign vehicle
+                option(v-for="v in availableVehicles", :key="v._id", :value="v._id") {{ vehicleName(v) }}
+              button.kl-btn.kl-btn--primary.kl-btn--sm(
+                v-if="tour.vehicle && tour.orders && tour.orders.length"
+                type="button"
+                @click="updateTourState(tour._id, 'STARTED')"
+              ) Start tour
+
+      template(v-if="startedTours.length")
+        .panel__subheader Active
+        ul.panel__list.panel__list--tours
+          li.tour-item.tour-item--active(v-for="tour in startedTours", :key="tour._id")
+            .tour-item__head
+              .tour-item__route
+                | {{ tourStartLocation(tour) }}
+                ChevronRight(:size="14", :stroke-width="1.75")
+                | {{ tourEndLocation(tour) }}
+              span(:class="tourBadgeClass(tour.state)") {{ tour.state }}
+            .tour-item__meta
+              span {{ formatDate(tour.date) }}
+              span(v-if="tour.vehicle") &middot;
+              span(v-if="tour.vehicle") Vehicle: {{ vehicleName(tour.vehicle) }}
+            .tour-item__orders(v-if="tour.orders && tour.orders.length")
+              .tour-item__orders-label Orders
+              div.mini-order(v-for="order in tour.orders", :key="order._id")
+                | {{ order.origin }}
+                ChevronRight(:size="12", :stroke-width="1.75")
+                | {{ order.destination }}
+                span.mini-order__state &middot; {{ order.state }}
+            .tour-item__actions
+              button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="updateTourState(tour._id, 'FINISHED')") Finish tour
+
+      .panel__empty.panel__empty--big(v-if="!tours.length") No tours yet.
+
+  // BOTTOM: Fleet
   section.kl-card.kl-card--flush.panel
     .kl-card-header
       div
-        h3 Tours
-        p.kl-muted.panel__sub Plan, assign and start delivery tours
-      button.kl-btn.kl-btn--primary.kl-btn--sm(type="button", @click="showTourForm = !showTourForm")
-        Plus(:size="14", :stroke-width="2")
-        | {{ showTourForm ? 'Cancel' : 'New tour' }}
-
-    .inline-form(v-if="showTourForm")
-      form.tour-form(@submit.prevent="handleCreateTour")
-        .kl-field
-          label.kl-label Date
-          input.kl-input(v-model="tourForm.date", type="date", required)
-        .kl-field
-          label.kl-label Start location
-          input.kl-input(v-model="tourForm.startLocation", placeholder="Depot", required)
-        .kl-field
-          label.kl-label End location
-          input.kl-input(v-model="tourForm.endLocation", placeholder="Destination", required)
-        button.kl-btn.kl-btn--primary(type="submit") Create tour
-
-    template(v-if="plannedTours.length")
-      .panel__subheader Planned
-      ul.panel__list.panel__list--tours
-        li.tour-item(v-for="tour in plannedTours", :key="tour._id")
-          .tour-item__head
-            .tour-item__route
-              | {{ tour.startLocation }}
-              ChevronRight(:size="14", :stroke-width="1.75")
-              | {{ tour.endLocation }}
-            span(:class="tourBadgeClass(tour.state)") {{ tour.state }}
-          .tour-item__meta
-            span {{ formatDate(tour.date) }}
-            span &middot;
-            span(v-if="tour.vehicle") Vehicle: {{ vehicleName(tour.vehicle) }}
-            span(v-else) No vehicle assigned
-          .tour-item__orders(v-if="tour.orders && tour.orders.length")
-            .tour-item__orders-label Orders
-            div.mini-order(v-for="order in tour.orders", :key="order._id")
-              | {{ order.origin }}
-              ChevronRight(:size="12", :stroke-width="1.75")
-              | {{ order.destination }}
-          .tour-item__actions
-            button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="openAssignOrder(tour._id)")
-              Plus(:size="14", :stroke-width="2") Add order
-            select.kl-select.kl-input--sm(
-              v-if="!tour.vehicle && availableVehicles.length"
-              @change="handleAssignVehicle(tour._id, $event.target.value); $event.target.value=''"
-            )
-              option(value="", disabled, selected) Assign vehicle
-              option(v-for="v in availableVehicles", :key="v._id", :value="v._id") {{ vehicleName(v) }}
-            button.kl-btn.kl-btn--primary.kl-btn--sm(
-              v-if="tour.vehicle && tour.orders && tour.orders.length"
-              type="button"
-              @click="updateTourState(tour._id, 'STARTED')"
-            ) Start tour
-
-    template(v-if="startedTours.length")
-      .panel__subheader Active
-      ul.panel__list.panel__list--tours
-        li.tour-item.tour-item--active(v-for="tour in startedTours", :key="tour._id")
-          .tour-item__head
-            .tour-item__route
-              | {{ tour.startLocation }}
-              ChevronRight(:size="14", :stroke-width="1.75")
-              | {{ tour.endLocation }}
-            span(:class="tourBadgeClass(tour.state)") {{ tour.state }}
-          .tour-item__meta
-            span {{ formatDate(tour.date) }}
-            span(v-if="tour.vehicle") &middot;
-            span(v-if="tour.vehicle") Vehicle: {{ vehicleName(tour.vehicle) }}
-          .tour-item__orders(v-if="tour.orders && tour.orders.length")
-            .tour-item__orders-label Orders
-            div.mini-order(v-for="order in tour.orders", :key="order._id")
-              | {{ order.origin }}
-              ChevronRight(:size="12", :stroke-width="1.75")
-              | {{ order.destination }}
-              span.mini-order__state &middot; {{ order.state }}
-          .tour-item__actions
-            button.kl-btn.kl-btn--outline.kl-btn--sm(type="button", @click="updateTourState(tour._id, 'FINISHED')") Finish tour
-
-    .panel__empty.panel__empty--big(v-if="!tours.length") No tours yet.
+        h3 Active fleet
+        p.kl-muted.panel__sub Vehicle states across your company
+      router-link.kl-btn.kl-btn--ghost.kl-btn--sm(:to="`/companies/${companyId}/vehicles`") Manage
+    ul.panel__list.panel__list--fleet
+      li.vehicle-item(v-for="vehicle in vehicles", :key="vehicle._id")
+        .vehicle-item__row
+          .vehicle-item__head
+            span.vehicle-item__name {{ vehicleName(vehicle) }}
+            span.vehicle-item__meta {{ vehicle.brand }} {{ vehicle.model }} &middot; {{ vehicle.payLoad }} kg
+          span(:class="vehicleBadgeClass(vehicle.state)") {{ vehicle.state }}
+      li.panel__empty(v-if="!vehicles.length") No vehicles registered.
 
   // Assign modal
   .kl-modal-overlay(v-if="assignModal.visible", @click.self="assignModal.visible = false")
@@ -561,9 +611,56 @@ export default {
 
 .tour-form {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   gap: 0.85rem;
   align-items: end;
+}
+
+.tour-form__hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+}
+
+.order-item--draggable {
+  cursor: grab;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.order-item--draggable:hover {
+  background: var(--color-background-subtle);
+}
+.order-item--draggable:active {
+  cursor: grabbing;
+}
+
+.tour-item {
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.tour-item--drop {
+  background: var(--color-primary-softer);
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.tour-item__dropzone {
+  margin-top: 0.3rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.panel__list--fleet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0;
+}
+.panel__list--fleet .vehicle-item {
+  border-right: 1px solid var(--color-border);
+}
+.panel__list--fleet .vehicle-item:last-child {
+  border-right: none;
 }
 
 .danger-icon:hover {
