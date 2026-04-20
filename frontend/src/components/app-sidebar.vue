@@ -87,6 +87,7 @@ export default {
       if (this.isAdmin) {
         items.push(
           { to: '/admin', label: 'Admin', icon: 'ShieldCheck' },
+          { to: '/orders/new', label: 'New order', icon: 'PlusCircle' },
           { to: '/companies', label: 'Companies', icon: 'Building2' },
         )
       }
