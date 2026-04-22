@@ -24,7 +24,7 @@ section.kl-card.kl-card--flush
   .kl-card-header
     div
       h2 Companies
-      p.kl-muted.sub Browse every tenant in the KaraLog network.
+      p.kl-muted.sub Browse every tenant in the RouteWerk network.
     span.kl-badge.kl-badge--muted {{ companies.length }}
 
   ul.company-list

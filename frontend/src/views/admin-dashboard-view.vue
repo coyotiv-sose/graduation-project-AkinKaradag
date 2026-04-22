@@ -158,7 +158,7 @@ export default {
 div.admin(v-if="isAdmin")
   PageHeader(
     title="Admin dashboard"
-    subtitle="Manage companies, customers and transport orders across the KaraLog network."
+    subtitle="Manage companies, customers and transport orders across the RouteWerk network."
   )
   section.kpi-row
     .kpi
@@ -213,7 +213,7 @@ div.admin(v-if="isAdmin")
     .kl-card-header
       div
         h2 Companies
-        p.kl-muted.section-sub Operational tenants in the KaraLog network.
+        p.kl-muted.section-sub Operational tenants in the RouteWerk network.
       button.kl-btn.kl-btn--primary(type="button", @click="openCreateCompany")
         Plus(:size="16", :stroke-width="2")
         | New company

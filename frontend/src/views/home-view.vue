@@ -47,12 +47,12 @@ main.home
           | Move cargo with
           span.accent precision.
         p.hero__subtitle
-          | KaraLog orchestrates transport orders, fleets and dispatching for modern logistics companies — end to end, in one place.
+          | RouteWerk orchestrates transport orders, fleets and dispatching for modern logistics companies — end to end, in one place.
         .hero__actions
           router-link.kl-btn.kl-btn--primary.kl-btn--lg(:to="pageMainButton.to")
             | {{ pageMainButton.label }}
             ArrowRight(:size="16", :stroke-width="2")
-          a.kl-btn.kl-btn--outline.kl-btn--lg(v-if="!isLoggedIn", href="mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.") Request an account
+          a.kl-btn.kl-btn--outline.kl-btn--lg(v-if="!isLoggedIn", href="mailto:akin@routewerk.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.") Request an account
         .hero__metrics
           .metric
             .metric__value 24/7
@@ -138,7 +138,7 @@ main.home
         span.eyebrow__dot
         | About
       h2 Who we are.
-      p KaraLog is a logistics platform that simplifies transport operations for companies of every size. We handle customers, employees, orders, vehicles and tours from a single dashboard — so you can focus on moving cargo, not wrangling spreadsheets.
+      p RouteWerk is a logistics platform that simplifies transport operations for companies of every size. We handle customers, employees, orders, vehicles and tours from a single dashboard — so you can focus on moving cargo, not wrangling spreadsheets.
   section.section.section--tight(v-if="companies.length")
     header.section__head
       span.eyebrow
@@ -154,7 +154,7 @@ main.home
       div
         h2 Ready to dispatch smarter?
         p.kl-muted Get in touch and we’ll set up your company account.
-      a.kl-btn.kl-btn--primary.kl-btn--lg(href="mailto:akin@karalog.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.")
+      a.kl-btn.kl-btn--primary.kl-btn--lg(href="mailto:akin@routewerk.com?subject=Account%20Request&body=Hello%2C%20I%20would%20like%20to%20request%20an%20account.")
         | Contact us
         ArrowRight(:size="16", :stroke-width="2")
 </template>

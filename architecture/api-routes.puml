@@ -4,7 +4,7 @@ skinparam packageStyle rectangle
 skinparam objectAttributeIconSize 0
 hide empty methods
 
-title KaraLog – REST API Endpoints
+title RouteWerk – REST API Endpoints
 
 package "/accounts" as acc <<Routes>> {
   object "POST /" as acc_register {

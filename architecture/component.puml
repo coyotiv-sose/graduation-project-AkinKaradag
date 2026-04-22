@@ -3,7 +3,7 @@
 skinparam componentStyle uml2
 skinparam linetype ortho
 
-title KaraLog – Component / Deployment Overview
+title RouteWerk – Component / Deployment Overview
 
 cloud "Client Browser" as browser {
   [Vue 3 SPA\n(Vite + Pinia)] as frontend

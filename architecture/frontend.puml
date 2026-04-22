@@ -3,7 +3,7 @@
 skinparam componentStyle uml2
 skinparam linetype ortho
 
-title KaraLog – Frontend (Vue 3) Architecture
+title RouteWerk – Frontend (Vue 3) Architecture
 
 package "Vue 3 Application" as app {
 

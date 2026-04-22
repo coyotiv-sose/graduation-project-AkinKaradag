@@ -18,7 +18,7 @@ header.public-nav
   .public-nav__inner
     router-link.public-nav__brand(to="/")
       span.brand-mark(aria-hidden="true") K
-      span.brand-text KaraLog
+      span.brand-text RouteWerk
     nav.public-nav__links
       a(href="#services") Services
       a(href="#about") About
