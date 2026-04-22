@@ -109,7 +109,7 @@ export default {
 aside.app-sidebar(aria-label="Primary navigation")
   .brand
     router-link.brand-link(:to="'/'", :title="'RouteWerk'")
-      span.brand-mark(aria-hidden="true") K
+      span.brand-mark(aria-hidden="true") R
       span.brand-text RouteWerk
 
   nav.nav
