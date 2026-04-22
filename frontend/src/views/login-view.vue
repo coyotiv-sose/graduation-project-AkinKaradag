@@ -39,7 +39,7 @@ main.auth
     .auth__form-inner
       span.auth__eyebrow
         span.auth__eyebrow-dot
-        | KaraLog dispatcher hub
+        | RouteWerk dispatcher hub
       h1.auth__title Welcome back.
       p.auth__subtitle
         | Sign in to access your orders, fleet and dispatching tools.
@@ -77,13 +77,13 @@ main.auth
 
       p.auth__hint
         | No account yet?
-        a(href="mailto:akin@karalog.com?subject=Account%20Request") Request access →
+        a(href="mailto:akin@routewerk.com?subject=Account%20Request") Request access →
 
   aside.auth__panel(aria-hidden="true")
     .auth__panel-inner
       .auth__brand
-        span.brand-mark K
-        span.brand-text KaraLog
+        span.brand-mark R
+        span.brand-text RouteWerk
       blockquote.auth__quote
         | “Dispatching, orders and fleet tracking in one control plane.”
       .auth__panel-cards

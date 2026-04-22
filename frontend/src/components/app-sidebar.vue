@@ -108,9 +108,9 @@ export default {
 <template lang="pug">
 aside.app-sidebar(aria-label="Primary navigation")
   .brand
-    router-link.brand-link(:to="'/'", :title="'KaraLog'")
+    router-link.brand-link(:to="'/'", :title="'RouteWerk'")
       span.brand-mark(aria-hidden="true") K
-      span.brand-text KaraLog
+      span.brand-text RouteWerk
 
   nav.nav
     router-link.nav-item(

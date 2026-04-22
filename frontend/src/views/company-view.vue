@@ -13,7 +13,7 @@ export default {
 div.company-view
   PageHeader(
     title="Companies"
-    subtitle="Every logistics operator on the KaraLog platform."
+    subtitle="Every logistics operator on the RouteWerk platform."
   )
   Suspense
     Company

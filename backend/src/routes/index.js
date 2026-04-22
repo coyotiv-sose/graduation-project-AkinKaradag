@@ -4,7 +4,7 @@ const router = express.Router()
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'KaraLog' })
+  res.render('index', { title: 'RouteWerk' })
 })
 
 module.exports = router

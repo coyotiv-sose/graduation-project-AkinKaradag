@@ -11,7 +11,7 @@ main.about
       | About
     h1 Logistics, engineered for clarity.
     p
-      | KaraLog is a transport management platform built for modern logistics operations.
+      | RouteWerk is a transport management platform built for modern logistics operations.
       | Dispatchers, customers and administrators share one consistent workspace — from order
       | intake to final delivery.
   section.content
@@ -23,7 +23,7 @@ main.about
     article.content-card
       h2 How we work
       p
-        | KaraLog stays fast and honest. Every feature is built to map to a real operational need
+        | RouteWerk stays fast and honest. Every feature is built to map to a real operational need
         | — no decorative dashboards, no filler data.
 </template>
 

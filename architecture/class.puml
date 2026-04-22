@@ -5,7 +5,7 @@ skinparam linetype ortho
 skinparam packageStyle rectangle
 hide empty methods
 
-title KaraLog – Domain Class Diagram
+title RouteWerk – Domain Class Diagram
 
 ' ──────────────────────────────────────
 '  Enumerations
