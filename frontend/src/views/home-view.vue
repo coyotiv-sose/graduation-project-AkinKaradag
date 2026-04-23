@@ -45,7 +45,7 @@ main.home
           | Logistics control plane
         h1.hero__title
           | Move cargo with
-          span.accent precision.
+          span.accent  precision.
         p.hero__subtitle
           | RouteWerk orchestrates transport orders, fleets and dispatching for modern logistics companies — end to end, in one place.
         .hero__actions
