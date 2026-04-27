@@ -1,16 +1,12 @@
 const { Joi } = require('celebrate')
 
 const { PASSWORD_ALLOWED_REGEX, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } = require('../../lib/password-policy')
-const {
-  objectIdSchema,
-  companyCreateBodySchema,
-  companyUpdateBodySchema,
-  customerUpdateByAdminBodySchema,
-  employeeUpdateByAdminBodySchema,
-  orderUpdateBodySchema,
-  orderDeleteByAdminBodySchema,
-} = require('../../lib/request-validation')
-const { validateParams, validateBody, validateParamsAndBody } = require('./builders')
+const { objectIdSchema } = require('../../lib/validation/primitives')
+const { companyCreateBodySchema, companyUpdateBodySchema } = require('../../lib/validation/schemas/company')
+const { customerUpdateByAdminBodySchema } = require('../../lib/validation/schemas/customer')
+const { employeeUpdateByAdminBodySchema } = require('../../lib/validation/schemas/employee')
+const { orderUpdateBodySchema, orderDeleteByAdminBodySchema } = require('../../lib/validation/schemas/order')
+const { validateParams, validateBody, validateParamsAndBody } = require('../../lib/validation/celebrate-builders')
 
 const adminPasswordResetBodySchema = Joi.object({
   company: objectIdSchema.required(),

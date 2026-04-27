@@ -1,7 +1,7 @@
 const { Joi } = require('celebrate')
 
 const { PASSWORD_ALLOWED_REGEX, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } = require('../../lib/password-policy')
-const { validateBody } = require('./builders')
+const { validateBody } = require('../../lib/validation/celebrate-builders')
 
 const accountRegistrationBodySchema = Joi.object({
   role: Joi.string().valid('customer', 'employee', 'admin').required(),

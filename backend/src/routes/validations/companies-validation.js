@@ -1,19 +1,16 @@
 const { Joi } = require('celebrate')
 
 const { PASSWORD_ALLOWED_REGEX, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } = require('../../lib/password-policy')
+const { customerCreateBodySchema, customerUpdateBodySchema } = require('../../lib/validation/schemas/customer')
+const { employeeCreateBodySchema, employeeUpdateBodySchema } = require('../../lib/validation/schemas/employee')
+const { orderCreateByCompanyBodySchema } = require('../../lib/validation/schemas/order')
+const { vehicleCreateBodySchema, vehicleUpdateBodySchema } = require('../../lib/validation/schemas/vehicle')
 const {
-  customerCreateBodySchema,
-  customerUpdateBodySchema,
-  employeeCreateBodySchema,
-  employeeUpdateBodySchema,
-  orderCreateByCompanyBodySchema,
-  vehicleCreateBodySchema,
-  vehicleUpdateBodySchema,
   tourCreateBodySchema,
   tourUpdateBodySchema,
   tourAddOrderBodySchema,
-} = require('../../lib/request-validation')
-const { validateParams, validateParamsAndBody } = require('./builders')
+} = require('../../lib/validation/schemas/tour')
+const { validateParams, validateParamsAndBody } = require('../../lib/validation/celebrate-builders')
 
 const companyPasswordResetBodySchema = Joi.object({
   newPassword: Joi.string()

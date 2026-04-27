@@ -1,5 +1,6 @@
-const { cargoSchema, orderCreateBodySchema, orderGenerateBodySchema } = require('../../lib/request-validation')
-const { validateParams, validateParamsAndBody } = require('./builders')
+const { cargoSchema } = require('../../lib/validation/schemas/shared')
+const { orderCreateBodySchema, orderGenerateBodySchema } = require('../../lib/validation/schemas/order')
+const { validateParams, validateParamsAndBody } = require('../../lib/validation/celebrate-builders')
 
 const validateCustomerIdParam = validateParams('customerId')
 const validateCustomerOrderParams = validateParams('customerId', 'orderId')
