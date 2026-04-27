@@ -36,6 +36,7 @@ const toursRouter = require('./routes/tours')
 const employeesRouter = require('./routes/employees')
 const accountsRouter = require('./routes/accounts')
 const adminRouter = require('./routes/admin')
+const apiErrorHandler = require('./middlewares/api-error-handler')
 
 const app = express()
 
@@ -43,9 +44,7 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1)
 }
 
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map(origin => origin.trim())
-  : []
+const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(origin => origin.trim()) : []
 
 const corsOptions = {
   origin(origin, callback) {
@@ -106,6 +105,8 @@ app.use(celebrateErrors())
 app.use(function (req, res, next) {
   next(createError(404))
 })
+
+app.use(apiErrorHandler)
 
 // error handler
 app.use(function (err, req, res, next) {

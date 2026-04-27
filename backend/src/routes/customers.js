@@ -4,8 +4,15 @@ const router = express.Router()
 const customerManager = require('../managers/customer-manager')
 const orderManager = require('../managers/order-manager')
 const generateOrder = require('../lib/order-generator')
+const {
+  validateCustomerIdParam,
+  validateCustomerOrderParams,
+  validateCreateCustomerOrder,
+  validateGenerateCustomerOrder,
+  validateAddCargoToOrder,
+} = require('./validations/customers-validation')
 
-router.get('/:customerId', async (req, res, next) => {
+router.get('/:customerId', validateCustomerIdParam, async (req, res, next) => {
   try {
     const customer = await customerManager.getCustomerById(req.params.customerId)
     res.json(customer)
@@ -14,7 +21,7 @@ router.get('/:customerId', async (req, res, next) => {
   }
 })
 
-router.post('/:customerId/orders', async (req, res, next) => {
+router.post('/:customerId/orders', validateCreateCustomerOrder, async (req, res, next) => {
   try {
     const customer = await customerManager.getCustomerById(req.params.customerId)
 
@@ -31,7 +38,7 @@ router.post('/:customerId/orders', async (req, res, next) => {
 })
 
 // eslint-disable-next-line consistent-return
-router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
+router.post('/:customerId/orders/ai-generate', validateGenerateCustomerOrder, async (req, res, next) => {
   try {
     const { prompt, billingInfo: providedBillingInfo } = req.body
     if (!prompt) {
@@ -42,10 +49,7 @@ router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
 
     const orderData = await generateOrder(prompt)
 
-    const billingInfo =
-      providedBillingInfo ||
-      customer.billingInfo?.find(b => b.isDefault) ||
-      customer.billingInfo?.[0]
+    const billingInfo = providedBillingInfo || customer.billingInfo?.find(b => b.isDefault) || customer.billingInfo?.[0]
     if (!billingInfo) {
       return res.status(400).json({ error: 'Customer has no billing info' })
     }
@@ -64,16 +68,16 @@ router.post('/:customerId/orders/ai-generate', async (req, res, next) => {
   }
 })
 
-router.get('/:customerId/orders', async (req, res, next) => {
+router.get('/:customerId/orders', validateCustomerIdParam, async (req, res, next) => {
   try {
     const orders = await orderManager.getOrdersByCustomer(req.params.customerId)
     res.status(200).json(orders)
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    next(error)
   }
 })
 
-router.get('/:customerId/orders/:orderId', async (req, res, next) => {
+router.get('/:customerId/orders/:orderId', validateCustomerOrderParams, async (req, res, next) => {
   try {
     const order = await orderManager.findOrderById(req.params.orderId)
     res.status(200).json(order)
@@ -82,7 +86,7 @@ router.get('/:customerId/orders/:orderId', async (req, res, next) => {
   }
 })
 
-router.delete('/:customerId/orders/:orderId', async (req, res, next) => {
+router.delete('/:customerId/orders/:orderId', validateCustomerOrderParams, async (req, res, next) => {
   try {
     const order = await orderManager.deleteOrderByCustomer(req.params.orderId, req.params.customerId)
     req.app.io
@@ -96,7 +100,7 @@ router.delete('/:customerId/orders/:orderId', async (req, res, next) => {
   }
 })
 
-router.post('/:customerId/orders/:orderId/cargos', async (req, res, next) => {
+router.post('/:customerId/orders/:orderId/cargos', validateAddCargoToOrder, async (req, res, next) => {
   try {
     const addCargo = await orderManager.addCargoToOrder(req.params.orderId, req.body)
     res.status(201).json(addCargo)

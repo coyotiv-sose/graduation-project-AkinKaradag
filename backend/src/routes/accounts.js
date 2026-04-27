@@ -4,13 +4,12 @@ const express = require('express')
 
 const passport = require('passport')
 const rateLimit = require('express-rate-limit')
-const { celebrate, Joi, Segments } = require('celebrate')
+const { validateAccountRegistration, validateLogin } = require('./validations/accounts-validation')
 
 const router = express.Router()
 const customerManager = require('../managers/customer-manager')
 const employeeManager = require('../managers/employee-manager')
 const accountManager = require('../managers/account-manager')
-const { PASSWORD_ALLOWED_REGEX, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } = require('../lib/password-policy')
 
 const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -19,23 +18,6 @@ const loginRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many login attempts. Please try again later.' },
-})
-
-const validateAccountRegistration = celebrate({
-  [Segments.BODY]: Joi.object({
-    role: Joi.string().valid('customer', 'employee', 'admin').required(),
-    email: Joi.string().trim().lowercase().email().required(),
-    password: Joi.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH).pattern(PASSWORD_ALLOWED_REGEX).required(),
-    customerName: Joi.string().trim().min(1),
-    name: Joi.string().trim().min(1),
-  }).unknown(true),
-})
-
-const validateLogin = celebrate({
-  [Segments.BODY]: Joi.object({
-    email: Joi.string().trim().lowercase().email().required(),
-    password: Joi.string().required(),
-  }).required(),
 })
 
 router.get('/session', async (req, res) => {
@@ -90,7 +72,7 @@ router.post('/session', loginRateLimiter, validateLogin, async (req, res, next) 
 
     passport.authenticate('local', async (err, user) => {
       try {
-        if (err) return res.status(500).json({ error: err.message })
+        if (err) return next(err)
 
         if (!user) {
           const isLocked = await accountManager.registerFailedLoginAttempt(account)
@@ -103,10 +85,10 @@ router.post('/session', loginRateLimiter, validateLogin, async (req, res, next) 
         await accountManager.resetFailedLoginAttempts(user)
 
         req.session.regenerate(regenerateErr => {
-          if (regenerateErr) return res.status(500).json({ error: regenerateErr.message })
+          if (regenerateErr) return next(regenerateErr)
 
           req.login(user, loginErr => {
-            if (loginErr) return res.status(500).json({ error: loginErr.message })
+            if (loginErr) return next(loginErr)
             res.json(user)
           })
         })
@@ -119,9 +101,9 @@ router.post('/session', loginRateLimiter, validateLogin, async (req, res, next) 
   }
 })
 
-router.delete('/session', (req, res) => {
+router.delete('/session', (req, res, next) => {
   req.logout(err => {
-    if (err) return res.status(500).json({ error: err.message })
+    if (err) return next(err)
     res.json({ message: 'Logged out' })
   })
 })
