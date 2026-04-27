@@ -142,7 +142,7 @@ const orderCreateByCompanyBodySchema = createBodySchema(
 
 const orderGenerateBodySchema = Joi.object({
   prompt: nonEmptyStringSchema.required(),
-  billingInfo: billingInfoSchema,
+  billingInfo: billingInfoSchema.optional(),
 }).required()
 
 const orderUpdateBodySchema = createUpdateBodySchema({
@@ -179,7 +179,10 @@ const tourBodyFields = {
 
 const tourCreateBodySchema = createBodySchema(tourBodyFields, ['date'])
 
-const tourUpdateBodySchema = createUpdateBodySchema(tourBodyFields)
+const tourUpdateBodySchema = createUpdateBodySchema({
+  ...tourBodyFields,
+  vehicleId: objectIdSchema.allow(null),
+}).oxor('vehicle', 'vehicleId')
 
 const tourAddOrderBodySchema = Joi.object({
   orderId: objectIdSchema.required(),

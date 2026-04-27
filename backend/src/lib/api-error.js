@@ -27,7 +27,7 @@ const classifyApiError = error => {
   const message = error?.message || INTERNAL_SERVER_ERROR_MESSAGE
   let status = resolveStatusFromError(error)
 
-  if (status >= 500 && isProduction() && error?.name === 'CastError') {
+  if (status >= 500 && error?.name === 'CastError') {
     status = 400
     return {
       status,
@@ -35,7 +35,7 @@ const classifyApiError = error => {
     }
   }
 
-  if (status >= 500 && isProduction() && /not found/i.test(message)) {
+  if (status >= 500 && /not found/i.test(message)) {
     status = 404
     return {
       status,

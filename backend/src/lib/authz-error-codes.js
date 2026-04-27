@@ -1,0 +1,8 @@
+const ACTOR_PROFILE_NOT_FOUND_ERROR_CODES = Object.freeze({
+  customer: 'AUTHZ_CUSTOMER_PROFILE_NOT_FOUND',
+  employee: 'AUTHZ_EMPLOYEE_PROFILE_NOT_FOUND',
+})
+
+module.exports = {
+  ACTOR_PROFILE_NOT_FOUND_ERROR_CODES,
+}
