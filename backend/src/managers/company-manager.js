@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
 const Company = require('../models/logistic-company')
+const { DomainError } = require('../lib/domain-error')
 
 const createCompany = async companyData => {
   const company = await Company.create(companyData)
@@ -9,7 +10,7 @@ const createCompany = async companyData => {
 
 const getCompanyById = async companyId => {
   const company = await Company.findById(companyId)
-  if (!company) throw new Error('Company not found')
+  if (!company) throw new DomainError('Company not found', { status: 404 })
   return company
 }
 
@@ -17,7 +18,7 @@ const getAllCompanies = () => Company.find()
 
 const updateCompany = async (companyId, updates) => {
   const company = await Company.findById(companyId)
-  if (!company) throw new Error('Company not found')
+  if (!company) throw new DomainError('Company not found', { status: 404 })
   Object.assign(company, updates)
   await company.save()
   return company
@@ -25,7 +26,7 @@ const updateCompany = async (companyId, updates) => {
 
 const deleteCompany = async companyId => {
   const company = await Company.findById(companyId)
-  if (!company) throw new Error('Company not found')
+  if (!company) throw new DomainError('Company not found', { status: 404 })
   await Company.findByIdAndDelete(companyId)
 }
 

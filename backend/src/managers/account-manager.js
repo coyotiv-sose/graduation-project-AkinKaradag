@@ -1,5 +1,6 @@
 const Account = require('../models/account')
 const { validatePasswordPolicy } = require('../lib/password-policy')
+const { DomainError } = require('../lib/domain-error')
 
 const getAccountByEmail = async email => Account.findOne({ email: String(email || '').toLowerCase() })
 
@@ -7,7 +8,7 @@ const createAdminAccount = async ({ email, password }) => {
   validatePasswordPolicy(password)
 
   const existingAccount = await getAccountByEmail(email)
-  if (existingAccount) throw new Error('Email already registered')
+  if (existingAccount) throw new DomainError('Email already registered', { status: 409 })
 
   const account = await Account.register(
     new Account({

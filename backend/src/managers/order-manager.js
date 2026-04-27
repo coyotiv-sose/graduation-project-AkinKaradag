@@ -1,14 +1,15 @@
 const Order = require('../models/order')
 const { validateCustomerBelongsToCompany } = require('./customer-manager')
+const { DomainError } = require('../lib/domain-error')
+const { pickAllowedFields } = require('../lib/object-utils')
 
 const ORDER_MUTABLE_FIELDS = ['origin', 'destination', 'deliveryDate', 'state', 'cargos', 'billingInfo', 'note']
 
-const pickAllowedFields = (payload, allowedFields) =>
-  Object.fromEntries(Object.entries(payload || {}).filter(([key]) => allowedFields.includes(key)))
+const orderNotFound = () => new DomainError('Order not found', { status: 404 })
 
 const createOrder = async orderData => {
   if (!orderData.cargos || orderData.cargos.length === 0) {
-    throw new Error('Order must contain at least one cargo')
+    throw new DomainError('Order must contain at least one cargo', { status: 400 })
   }
 
   const newOrder = await Order.create(orderData)
@@ -17,7 +18,7 @@ const createOrder = async orderData => {
 
 const findOrderById = async orderId => {
   const order = await Order.findById(orderId).populate('customer', 'customerName')
-  if (!order) throw new Error('Order not found')
+  if (!order) throw orderNotFound()
   return order
 }
 
@@ -39,7 +40,7 @@ const getOrdersByCustomerFromCompany = async (customerId, companyId) => {
 const updateOrder = async (orderId, updateData) => {
   const allowedUpdates = pickAllowedFields(updateData, ORDER_MUTABLE_FIELDS)
   if (!Object.keys(allowedUpdates).length) {
-    throw new Error('No valid order fields to update')
+    throw new DomainError('No valid order fields to update', { status: 400 })
   }
 
   const order = await Order.findOneAndUpdate(
@@ -50,20 +51,20 @@ const updateOrder = async (orderId, updateData) => {
 
   if (!order) {
     const exists = await Order.findById(orderId)
-    if (!exists) throw new Error('Order not found')
-    throw new Error('Order status is not pending')
+    if (!exists) throw orderNotFound()
+    throw new DomainError('Order status is not pending', { status: 409 })
   }
   return order
 }
 
 const deleteOrderByCustomer = async (orderId, customerId) => {
   const order = await Order.findById(orderId)
-  if (!order) throw new Error('Order not found')
+  if (!order) throw orderNotFound()
   if (order.customer.toString() !== customerId) {
-    throw new Error('Not authorized to delete this order')
+    throw new DomainError('Not authorized to delete this order', { status: 403 })
   }
   if (order.state !== 'PENDING') {
-    throw new Error('Order status is not pending')
+    throw new DomainError('Order status is not pending', { status: 409 })
   }
   await Order.findByIdAndDelete(orderId)
   return order
@@ -71,12 +72,12 @@ const deleteOrderByCustomer = async (orderId, customerId) => {
 
 const deleteOrderByCompany = async (orderId, companyId) => {
   const order = await Order.findById(orderId)
-  if (!order) throw new Error('Order not found')
+  if (!order) throw orderNotFound()
   if (order.company.toString() !== companyId) {
-    throw new Error('Not authorized to delete this order')
+    throw new DomainError('Not authorized to delete this order', { status: 403 })
   }
   if (order.state === 'DELIVERED') {
-    throw new Error('Delivered orders cannot be deleted')
+    throw new DomainError('Delivered orders cannot be deleted', { status: 409 })
   }
   await Order.findByIdAndDelete(orderId)
   return order
@@ -84,13 +85,13 @@ const deleteOrderByCompany = async (orderId, companyId) => {
 
 const addCargoToOrder = async (orderId, cargo) => {
   const order = await Order.findById(orderId)
-  if (!order) throw new Error('Order not found')
+  if (!order) throw orderNotFound()
   return order.addCargo(cargo)
 }
 
 const getCargosFromOrder = async orderId => {
   const order = await Order.findById(orderId)
-  if (!order) throw new Error('Order not found')
+  if (!order) throw orderNotFound()
   return order.getCargos()
 }
 

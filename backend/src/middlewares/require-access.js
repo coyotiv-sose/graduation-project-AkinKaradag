@@ -15,12 +15,13 @@ const {
   isResourceInCompany,
 } = require('../lib/access-control')
 const { ACTOR_PROFILE_NOT_FOUND_ERROR_CODES } = require('../lib/authz-error-codes')
+const { attachErrorStatus, NOT_FOUND_ERROR_PATTERN } = require('../lib/route-error-forwarding')
+const { DomainError } = require('../lib/domain-error')
 
 const ACTOR_SCOPE_KEY = Symbol('actorScope')
 const RESOURCE_CACHE_KEY = Symbol('resourceCache')
 const ACTOR_SCOPE_RESOLUTION_ERROR_CODE = 'AUTHZ_ACTOR_SCOPE_RESOLUTION'
 const ACTOR_PROFILE_NOT_FOUND_CODE_SET = new Set(Object.values(ACTOR_PROFILE_NOT_FOUND_ERROR_CODES))
-const NOT_FOUND_ERROR_PATTERN = /not found/i
 const RESOURCE_LABELS = {
   customer: 'Customer',
   employee: 'Employee',
@@ -29,25 +30,11 @@ const RESOURCE_LABELS = {
   tour: 'Tour',
 }
 
-const forbidden = res => res.status(403).json({ error: 'Forbidden' })
-
-const attachErrorStatus = (error, status) => {
-  if (!error || typeof error !== 'object') return error
-
-  const existingStatus = Number(error.status || error.statusCode)
-  const normalizedError = error
-
-  if (!Number.isInteger(existingStatus)) {
-    normalizedError.status = status
-    normalizedError.statusCode = status
-  }
-
-  return normalizedError
-}
+const forbiddenError = () => new DomainError('Forbidden', { status: 403 })
 
 const createResourceNotFoundError = resourceType => {
   const label = RESOURCE_LABELS[resourceType] || 'Resource'
-  return attachErrorStatus(new Error(`${label} not found`), 404)
+  return new DomainError(`${label} not found`, { status: 404 })
 }
 
 const isActorProfileResolutionError = error => Boolean(error && ACTOR_PROFILE_NOT_FOUND_CODE_SET.has(error.code))
@@ -56,9 +43,7 @@ const normalizeAccessError = error => {
   if (!error) return error
 
   if (error.code === ACTOR_SCOPE_RESOLUTION_ERROR_CODE) {
-    const normalizedError = attachErrorStatus(error, 403)
-    normalizedError.message = 'Forbidden'
-    return normalizedError
+    return new DomainError('Forbidden', { status: 403, code: error.code })
   }
 
   if (error.name === 'CastError') {
@@ -76,8 +61,7 @@ const withAuthzErrorHandling = handler => async (req, res, next) => {
   try {
     return await handler(req, res, next)
   } catch (error) {
-    const normalizedError = normalizeAccessError(error)
-    return next(normalizedError)
+    return next(normalizeAccessError(error))
   }
 }
 
@@ -92,6 +76,7 @@ const getActorScope = async req => {
       employeeManager,
     })
   } catch (error) {
+    // A customer/employee account exists but the linked profile is missing → treat as 403.
     if (isActorProfileResolutionError(error)) {
       error.code = ACTOR_SCOPE_RESOLUTION_ERROR_CODE
       throw attachErrorStatus(error, 403)
@@ -147,15 +132,15 @@ const requireScopedResourceAccess = ({
     if (!resource) throw createResourceNotFoundError(resourceType)
 
     if (!canAccessResource(actorScope, resource)) {
-      return forbidden(res)
+      throw forbiddenError()
     }
 
     if (companyParamName && !isResourceInCompany(resource, req.params[companyParamName])) {
-      return forbidden(res)
+      throw forbiddenError()
     }
 
     if (additionalCheck && !additionalCheck(resource, req)) {
-      return forbidden(res)
+      throw forbiddenError()
     }
 
     storeAuthorizedResource(req, storeKey, resource)
@@ -174,13 +159,14 @@ const requireBodyResourceInCompany = ({
     const targetBodyFields = (Array.isArray(bodyFields) ? bodyFields : [bodyField]).filter(Boolean)
     const resourceId = resolveBodyResourceId(req.body, targetBodyFields)
 
+    // Optional body fields: skip authorization when the field is absent.
     if (!resourceId) return next()
 
     const resource = await loadCachedResource(req, resourceType, resourceId, () => loadResource(resourceId))
     if (!resource) throw createResourceNotFoundError(resourceType)
 
     if (!isResourceInCompany(resource, req.params[companyParamName])) {
-      return forbidden(res)
+      throw forbiddenError()
     }
 
     storeAuthorizedResource(req, storeKey, resource)
@@ -192,7 +178,7 @@ const requireCompanyAccess = (companyParamName = 'companyId') =>
     const actorScope = await getActorScope(req)
 
     if (!canAccessCompany(actorScope, req.params[companyParamName])) {
-      return forbidden(res)
+      throw forbiddenError()
     }
 
     return next()

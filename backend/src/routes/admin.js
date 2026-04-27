@@ -1,5 +1,3 @@
-/* eslint-disable prefer-destructuring */
-/* eslint-disable consistent-return */
 const express = require('express')
 
 const router = express.Router()
@@ -8,19 +6,7 @@ const orderManager = require('../managers/order-manager')
 const customerManager = require('../managers/customer-manager')
 const employeeManager = require('../managers/employee-manager')
 const requireRole = require('../middlewares/require-role')
-const {
-  validateCompanyIdParam,
-  validateAdminCompanyCreate,
-  validateAdminCompanyUpdate,
-  validateAdminCustomerUpdate,
-  validateAdminCustomerDelete,
-  validateAdminOrderUpdate,
-  validateAdminOrderDelete,
-  validateAdminEmployeeUpdate,
-  validateAdminEmployeeDelete,
-  validateAdminCustomerPasswordReset,
-  validateAdminEmployeePasswordReset,
-} = require('./validations/admin-validation')
+const validate = require('./validations/admin-validation')
 
 router.use(requireRole('admin'))
 
@@ -35,7 +21,7 @@ router.get('/companies', async (req, res, next) => {
   }
 })
 
-router.post('/companies', validateAdminCompanyCreate, async (req, res, next) => {
+router.post('/companies', validate.validateAdminCompanyCreate, async (req, res, next) => {
   try {
     const { ownerName, ownerEmail, ownerPassword, ...companyData } = req.body
     const company = await companyManager.createCompany(companyData)
@@ -51,27 +37,26 @@ router.post('/companies', validateAdminCompanyCreate, async (req, res, next) => 
         })
       } catch (ownerError) {
         await companyManager.deleteCompany(company._id)
-        return res.status(400).json({ error: ownerError.message })
+        return next(ownerError)
       }
     }
 
-    res.status(201).json({ company, owner })
+    return res.status(201).json({ company, owner })
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    return next(error)
   }
 })
 
-router.put('/companies/:companyId', validateAdminCompanyUpdate, async (req, res, next) => {
+router.put('/companies/:companyId', validate.validateAdminCompanyUpdate, async (req, res, next) => {
   try {
     const company = await companyManager.updateCompany(req.params.companyId, req.body)
-    if (!company) return res.status(404).json({ error: 'Company not found' })
     res.status(200).json(company)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    next(error)
   }
 })
 
-router.delete('/companies/:companyId', validateCompanyIdParam, async (req, res, next) => {
+router.delete('/companies/:companyId', validate.validateCompanyIdParam, async (req, res, next) => {
   try {
     await companyManager.deleteCompany(req.params.companyId)
     res.status(204).send()
@@ -91,21 +76,19 @@ router.get('/customers', async (req, res, next) => {
   }
 })
 
-router.put('/customers/:customerId', validateAdminCustomerUpdate, async (req, res, next) => {
+router.put('/customers/:customerId', validate.validateAdminCustomerUpdate, async (req, res, next) => {
   try {
-    const company = req.body.company
-    const updates = req.body
-    const updated = await customerManager.updateCustomerByCompany(req.params.customerId, company, updates)
-    if (!updated) return res.status(404).json({ error: 'Customer not found' })
+    const { company } = req.body
+    const updated = await customerManager.updateCustomerByCompany(req.params.customerId, company, req.body)
     res.status(200).json(updated)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    next(error)
   }
 })
 
-router.delete('/customers/:customerId', validateAdminCustomerDelete, async (req, res, next) => {
+router.delete('/customers/:customerId', validate.validateAdminCustomerDelete, async (req, res, next) => {
   try {
-    const company = req.body.company
+    const { company } = req.body
     await customerManager.deleteCustomerByCompany(req.params.customerId, company)
     res.status(204).send()
   } catch (error) {
@@ -124,21 +107,18 @@ router.get('/orders', async (req, res, next) => {
   }
 })
 
-router.put('/orders/:orderId', validateAdminOrderUpdate, async (req, res, next) => {
+router.put('/orders/:orderId', validate.validateAdminOrderUpdate, async (req, res, next) => {
   try {
     const updated = await orderManager.updateOrder(req.params.orderId, req.body)
-    if (!updated) return res.status(404).json({ error: 'Order not found or not pending' })
     res.status(200).json(updated)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    next(error)
   }
 })
 
-router.delete('/orders/:orderId', validateAdminOrderDelete, async (req, res, next) => {
+router.delete('/orders/:orderId', validate.validateAdminOrderDelete, async (req, res, next) => {
   try {
-    // For admin, we assume company context is not required, so just delete by id
-    const deleted = await orderManager.deleteOrderByCompany(req.params.orderId, req.body.company)
-    if (!deleted) return res.status(404).json({ error: 'Order not found' })
+    await orderManager.deleteOrderByCompany(req.params.orderId, req.body.company)
     res.status(204).send()
   } catch (error) {
     next(error)
@@ -156,21 +136,19 @@ router.get('/employees', async (req, res, next) => {
   }
 })
 
-router.put('/employees/:employeeId', validateAdminEmployeeUpdate, async (req, res, next) => {
+router.put('/employees/:employeeId', validate.validateAdminEmployeeUpdate, async (req, res, next) => {
   try {
-    const company = req.body.company
-    const updates = req.body
-    const updated = await employeeManager.updateEmployeeByCompany(req.params.employeeId, company, updates)
-    if (!updated) return res.status(404).json({ error: 'Employee not found' })
+    const { company } = req.body
+    const updated = await employeeManager.updateEmployeeByCompany(req.params.employeeId, company, req.body)
     res.status(200).json(updated)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    next(error)
   }
 })
 
-router.delete('/employees/:employeeId', validateAdminEmployeeDelete, async (req, res, next) => {
+router.delete('/employees/:employeeId', validate.validateAdminEmployeeDelete, async (req, res, next) => {
   try {
-    const company = req.body.company
+    const { company } = req.body
     await employeeManager.deleteEmployeeByCompany(req.params.employeeId, company)
     res.status(204).send()
   } catch (error) {
@@ -178,23 +156,23 @@ router.delete('/employees/:employeeId', validateAdminEmployeeDelete, async (req,
   }
 })
 
-router.post('/customers/:customerId/reset-password', validateAdminCustomerPasswordReset, async (req, res, next) => {
+router.post('/customers/:customerId/reset-password', validate.validateAdminCustomerPasswordReset, async (req, res, next) => {
   try {
     const { newPassword, company } = req.body
     await customerManager.resetCustomerPasswordByCompany(req.params.customerId, company, newPassword)
     res.status(200).json({ message: 'Password reset successfully' })
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    next(error)
   }
 })
 
-router.post('/employees/:employeeId/reset-password', validateAdminEmployeePasswordReset, async (req, res, next) => {
+router.post('/employees/:employeeId/reset-password', validate.validateAdminEmployeePasswordReset, async (req, res, next) => {
   try {
     const { newPassword, company } = req.body
     await employeeManager.resetEmployeePasswordByCompany(req.params.employeeId, company, newPassword)
     res.status(200).json({ message: 'Password reset successfully' })
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    next(error)
   }
 })
 

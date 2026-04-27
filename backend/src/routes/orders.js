@@ -4,7 +4,6 @@ const router = express.Router()
 const orderManager = require('../managers/order-manager')
 const requireRole = require('../middlewares/require-role')
 const { requireOrderAccess } = require('../middlewares/require-access')
-const { forwardRouteError } = require('../lib/route-error-forwarding')
 const { validateOrderIdParam, validateUpdateOrder } = require('./validations/orders-validation')
 
 const orderAccess = requireOrderAccess()
@@ -30,7 +29,7 @@ router.put('/:orderId', validateUpdateOrder, orderAccess, async (req, res, next)
       .emit('order:updated', order)
     return res.status(200).json(order)
   } catch (error) {
-    return forwardRouteError(next, error, 400)
+    return next(error)
   }
 })
 
@@ -39,7 +38,7 @@ router.get('/:orderId/cargos', validateOrderIdParam, orderAccess, async (req, re
     const cargos = await orderManager.getCargosFromOrder(req.params.orderId)
     return res.status(200).json(cargos)
   } catch (error) {
-    return forwardRouteError(next, error, 400)
+    return next(error)
   }
 })
 

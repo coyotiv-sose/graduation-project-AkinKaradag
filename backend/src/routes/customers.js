@@ -3,7 +3,7 @@ const express = require('express')
 const router = express.Router()
 const orderManager = require('../managers/order-manager')
 const generateOrder = require('../lib/order-generator')
-const { forwardRouteError } = require('../lib/route-error-forwarding')
+const { DomainError } = require('../lib/domain-error')
 const requireRole = require('../middlewares/require-role')
 const { requireCustomerAccess, requireOrderAccess } = require('../middlewares/require-access')
 const {
@@ -24,7 +24,7 @@ router.get('/:customerId', validateCustomerIdParam, customerAccess, async (req, 
     const customer = req.authz?.customer
     return res.json(customer)
   } catch (error) {
-    return forwardRouteError(next, error)
+    return next(error)
   }
 })
 
@@ -40,7 +40,7 @@ router.post('/:customerId/orders', validateCreateCustomerOrder, customerAccess, 
     req.app.io.to(`company:${customer.company}`).to(`customer:${customer._id}`).emit('order:created', newOrder)
     return res.status(201).json(newOrder)
   } catch (error) {
-    return forwardRouteError(next, error, 400)
+    return next(error)
   }
 })
 
@@ -51,10 +51,6 @@ router.post(
   async (req, res, next) => {
     try {
       const { prompt, billingInfo: providedBillingInfo } = req.body
-      if (!prompt) {
-        return res.status(400).json({ error: 'Prompt is required' })
-      }
-
       const customer = req.authz?.customer
 
       const orderData = await generateOrder(prompt)
@@ -62,7 +58,7 @@ router.post(
       const billingInfo =
         providedBillingInfo || customer.billingInfo?.find(b => b.isDefault) || customer.billingInfo?.[0]
       if (!billingInfo) {
-        return res.status(400).json({ error: 'Customer has no billing info' })
+        throw new DomainError('Customer has no billing info', { status: 400 })
       }
 
       const newOrder = await orderManager.createOrder({
@@ -75,7 +71,7 @@ router.post(
       req.app.io.to(`company:${customer.company}`).to(`customer:${customer._id}`).emit('order:created', newOrder)
       return res.status(201).json(newOrder)
     } catch (error) {
-      return forwardRouteError(next, error, 400)
+      return next(error)
     }
   }
 )
@@ -94,7 +90,7 @@ router.get('/:customerId/orders/:orderId', validateCustomerOrderParams, customer
     const order = req.authz?.order
     return res.status(200).json(order)
   } catch (error) {
-    return forwardRouteError(next, error, 400)
+    return next(error)
   }
 })
 
@@ -111,7 +107,7 @@ router.delete(
         .emit('order:deleted', { orderId: order._id })
       return res.status(204).send()
     } catch (error) {
-      return forwardRouteError(next, error, 400)
+      return next(error)
     }
   }
 )
@@ -125,7 +121,7 @@ router.post(
       const addCargo = await orderManager.addCargoToOrder(req.params.orderId, req.body)
       return res.status(201).json(addCargo)
     } catch (error) {
-      return forwardRouteError(next, error, 400)
+      return next(error)
     }
   }
 )
