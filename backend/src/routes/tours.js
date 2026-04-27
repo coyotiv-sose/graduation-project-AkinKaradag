@@ -2,26 +2,27 @@ const express = require('express')
 
 const router = express.Router()
 const tourManager = require('../managers/tour-manager')
+const { validateTourIdParam, validateAssignVehicleToTour } = require('./validations/tours-validation')
 
-router.get('/:tourId', async (req, res, next) => {
+router.get('/:tourId', validateTourIdParam, async (req, res, next) => {
   try {
     const tour = await tourManager.findTourById(req.params.tourId)
     res.status(200).json(tour)
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    next(error)
   }
 })
 
-router.get('/:tourId/cargos', async (req, res, next) => {
+router.get('/:tourId/cargos', validateTourIdParam, async (req, res, next) => {
   try {
     const cargos = await tourManager.getCargosByTour(req.params.tourId)
     res.status(200).json(cargos)
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    next(error)
   }
 })
 
-router.put('/:tourId/vehicles', async (req, res, next) => {
+router.put('/:tourId/vehicles', validateAssignVehicleToTour, async (req, res, next) => {
   try {
     const tour = await tourManager.assignVehicleToTour(req.params.tourId, req.body.vehicleId)
     res.status(200).json(tour)

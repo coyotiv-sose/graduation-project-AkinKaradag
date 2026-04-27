@@ -2,17 +2,18 @@ const express = require('express')
 
 const router = express.Router()
 const orderManager = require('../managers/order-manager')
+const { validateOrderIdParam, validateUpdateOrder } = require('./validations/orders-validation')
 
-router.get('/:orderId', async (req, res, next) => {
+router.get('/:orderId', validateOrderIdParam, async (req, res, next) => {
   try {
     const order = await orderManager.findOrderById(req.params.orderId)
     res.status(200).json(order)
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    next(error)
   }
 })
 
-router.put('/:orderId', async (req, res, next) => {
+router.put('/:orderId', validateUpdateOrder, async (req, res, next) => {
   try {
     const order = await orderManager.updateOrder(req.params.orderId, req.body)
     req.app.io
@@ -27,7 +28,7 @@ router.put('/:orderId', async (req, res, next) => {
   }
 })
 
-router.get('/:orderId/cargos', async (req, res, next) => {
+router.get('/:orderId/cargos', validateOrderIdParam, async (req, res, next) => {
   try {
     const cargos = await orderManager.getCargosFromOrder(req.params.orderId)
     res.status(200).json(cargos)
