@@ -10,6 +10,9 @@ const logger = require('morgan')
 const cors = require('cors')
 const session = require('express-session')
 const passport = require('passport')
+const helmet = require('helmet')
+const mongoSanitize = require('express-mongo-sanitize')
+const { errors: celebrateErrors } = require('celebrate')
 
 require('dotenv').config()
 require('./database-connection')
@@ -40,29 +43,43 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1)
 }
 
-const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : []
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(origin => origin.trim())
+  : []
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-)
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true)
+    if (!allowedOrigins.length) return callback(null, true)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    return callback(new Error('Not allowed by CORS'))
+  },
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 
-app.use(logger('dev'))
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
+if (process.env.NODE_ENV !== 'test') {
+  app.use(logger('dev'))
+}
+app.use(helmet())
+app.use(mongoSanitize())
+app.use(express.json({ limit: '10kb' }))
+app.use(express.urlencoded({ extended: false, limit: '10kb' }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 const sessionMiddleware = session({
+  name: 'sid',
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  unset: 'destroy',
   cookie: {
+    httpOnly: true,
     maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -73,14 +90,6 @@ const sessionMiddleware = session({
 app.use(sessionMiddleware)
 app.use(passport.initialize())
 app.use(passport.session())
-app.use((req, res, next) => {
-  const numberOfVisits = req.session.numberOfVisits || 0
-  req.session.numberOfVisits = numberOfVisits + 1
-  req.session.history = req.session.history || []
-  req.session.history.push({ url: req.url, ip: req.ip })
-
-  next()
-})
 
 app.use('/', indexRouter)
 app.use('/customers', customersRouter)
@@ -91,6 +100,7 @@ app.use('/tours', toursRouter)
 app.use('/employees', employeesRouter)
 app.use('/accounts', accountsRouter)
 app.use('/admin', adminRouter)
+app.use(celebrateErrors())
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

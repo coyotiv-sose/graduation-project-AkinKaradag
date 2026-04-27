@@ -1,6 +1,7 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable consistent-return */
 const express = require('express')
+const { celebrate, Joi, Segments } = require('celebrate')
 
 const router = express.Router()
 const companyManager = require('../managers/company-manager')
@@ -8,6 +9,37 @@ const orderManager = require('../managers/order-manager')
 const customerManager = require('../managers/customer-manager')
 const employeeManager = require('../managers/employee-manager')
 const requireRole = require('../middlewares/require-role')
+const { PASSWORD_ALLOWED_REGEX, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } = require('../lib/password-policy')
+
+const objectIdPattern = /^[0-9a-fA-F]{24}$/
+
+const validateAdminCustomerPasswordReset = celebrate({
+  [Segments.PARAMS]: Joi.object({
+    customerId: Joi.string().pattern(objectIdPattern).required(),
+  }).required(),
+  [Segments.BODY]: Joi.object({
+    company: Joi.string().pattern(objectIdPattern).required(),
+    newPassword: Joi.string()
+      .min(PASSWORD_MIN_LENGTH)
+      .max(PASSWORD_MAX_LENGTH)
+      .pattern(PASSWORD_ALLOWED_REGEX)
+      .required(),
+  }).required(),
+})
+
+const validateAdminEmployeePasswordReset = celebrate({
+  [Segments.PARAMS]: Joi.object({
+    employeeId: Joi.string().pattern(objectIdPattern).required(),
+  }).required(),
+  [Segments.BODY]: Joi.object({
+    company: Joi.string().pattern(objectIdPattern).required(),
+    newPassword: Joi.string()
+      .min(PASSWORD_MIN_LENGTH)
+      .max(PASSWORD_MAX_LENGTH)
+      .pattern(PASSWORD_ALLOWED_REGEX)
+      .required(),
+  }).required(),
+})
 
 router.use(requireRole('admin'))
 
@@ -165,7 +197,7 @@ router.delete('/employees/:employeeId', async (req, res, next) => {
   }
 })
 
-router.post('/customers/:customerId/reset-password', async (req, res, next) => {
+router.post('/customers/:customerId/reset-password', validateAdminCustomerPasswordReset, async (req, res, next) => {
   try {
     const { newPassword, company } = req.body
     await customerManager.resetCustomerPasswordByCompany(req.params.customerId, company, newPassword)
@@ -175,7 +207,7 @@ router.post('/customers/:customerId/reset-password', async (req, res, next) => {
   }
 })
 
-router.post('/employees/:employeeId/reset-password', async (req, res, next) => {
+router.post('/employees/:employeeId/reset-password', validateAdminEmployeePasswordReset, async (req, res, next) => {
   try {
     const { newPassword, company } = req.body
     await employeeManager.resetEmployeePasswordByCompany(req.params.employeeId, company, newPassword)
