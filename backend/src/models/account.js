@@ -40,6 +40,8 @@ accountSchema.methods.resetFailedLoginAttempts = async function () {
   await this.save()
 }
 
-accountSchema.plugin(passportLocalMongoose, { usernameField: 'email' })
+// limitAttempts is explicitly disabled so the schema's failedLoginAttempts/lockUntil counter is the
+// single source of truth. The plugin's built-in attempts tracking is intentionally not used.
+accountSchema.plugin(passportLocalMongoose, { usernameField: 'email', limitAttempts: false })
 
 module.exports = mongoose.model('Account', accountSchema)
