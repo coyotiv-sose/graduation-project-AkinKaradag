@@ -208,4 +208,31 @@ describe('Tour', () => {
     expect(response.status).toBe(200)
     expect(response.body.startLocation).toBe('Zürich')
   })
+
+  it('should update tour vehicle by vehicleId on company route', async () => {
+    const response = await request(app)
+      .put(`/companies/${company.body._id}/tours/${tour.body._id}`)
+      .send({ vehicleId: vehicle.body._id })
+
+    expect(response.status).toBe(200)
+    expect(response.body.vehicle).toBe(vehicle.body._id)
+  })
+
+  it('should not assign another company vehicle on company route update', async () => {
+    const secondCompany = await createCompany()
+    const foreignVehicle = await request(app).post(`/companies/${secondCompany.body._id}/vehicles`).send({
+      name: 'Truck2',
+      brand: 'MAN',
+      model: 'TGL',
+      year: 2008,
+      payLoad: 900,
+    })
+
+    const response = await request(app)
+      .put(`/companies/${company.body._id}/tours/${tour.body._id}`)
+      .send({ vehicleId: foreignVehicle.body._id })
+
+    expect(response.status).toBe(403)
+    expect(response.body.error).toBe('Forbidden')
+  })
 })
