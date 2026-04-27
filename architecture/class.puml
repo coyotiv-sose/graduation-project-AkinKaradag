@@ -13,6 +13,7 @@ title RouteWerk – Domain Class Diagram
 enum AccountRole {
   customer
   employee
+  admin
 }
 
 enum OrderState {
@@ -45,8 +46,15 @@ class Account <<Mongoose Model>> {
   _id : ObjectId
   email : String {required, lowercase}
   role : AccountRole {required}
+  failedLoginAttempts : Number = 0
+  lockUntil : Date = null
+  --
+  isLoginLocked() : Boolean
+  registerFailedLoginAttempt() : Boolean
+  resetFailedLoginAttempts() : void
   --
   <i>passport-local-mongoose plugin</i>
+  <i>(limitAttempts disabled)</i>
 }
 
 class LogisticCompany <<Mongoose Model>> {
