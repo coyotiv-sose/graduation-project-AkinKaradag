@@ -3,6 +3,9 @@ const Employee = require('../models/employee')
 const Company = require('../models/logistic-company')
 const { ACTOR_PROFILE_NOT_FOUND_ERROR_CODES } = require('../lib/authz-error-codes')
 const { validatePasswordPolicy } = require('../lib/password-policy')
+const { DomainError } = require('../lib/domain-error')
+
+const employeeNotFound = (message = 'Employee not found') => new DomainError(message, { status: 404 })
 
 const createEmployee = async employeeData => {
   const company = employeeData.company ? await Company.findById(employeeData.company) : null
@@ -12,7 +15,7 @@ const createEmployee = async employeeData => {
   })
 
   const exist = await Account.findOne({ email: employeeData.email })
-  if (exist) throw new Error('Email already registered')
+  if (exist) throw new DomainError('Email already registered', { status: 409 })
 
   const account = await Account.register(
     new Account({
@@ -34,7 +37,7 @@ const createEmployee = async employeeData => {
 
 const getEmployeeById = async employeeId => {
   const employee = await Employee.findById(employeeId)
-  if (!employee) throw new Error('Employee not found')
+  if (!employee) throw employeeNotFound()
   return employee
 }
 
@@ -45,9 +48,10 @@ const getAllEmployees = () => Employee.find()
 const getEmployeeByAccountId = async accountId => {
   const employee = await Employee.findOne({ account: accountId })
   if (!employee) {
-    const error = new Error('Employee not found')
-    error.code = ACTOR_PROFILE_NOT_FOUND_ERROR_CODES.employee
-    throw error
+    throw new DomainError('Employee not found', {
+      status: 404,
+      code: ACTOR_PROFILE_NOT_FOUND_ERROR_CODES.employee,
+    })
   }
   return employee
 }
@@ -55,7 +59,7 @@ const getEmployeeByAccountId = async accountId => {
 const updateEmployeeByCompany = async (employeeId, companyId, updates) => {
   const { name, profile, email } = updates
   const employee = await Employee.findOne({ _id: employeeId, company: companyId })
-  if (!employee) throw new Error('Employee not found in this company')
+  if (!employee) throw employeeNotFound('Employee not found in this company')
 
   if (name !== undefined) employee.name = name
   if (profile !== undefined) employee.profile = profile
@@ -74,22 +78,22 @@ const updateEmployeeByCompany = async (employeeId, companyId, updates) => {
 
 const deleteEmployeeByCompany = async (employeeId, companyId) => {
   const employee = await Employee.findOne({ _id: employeeId, company: companyId })
-  if (!employee) throw new Error('Employee not found in this company')
+  if (!employee) throw employeeNotFound('Employee not found in this company')
   await Account.findByIdAndDelete(employee.account._id || employee.account)
   await Employee.findByIdAndDelete(employeeId)
 }
 
 const resetEmployeePasswordByCompany = async (employeeId, companyId, newPassword) => {
-  if (!newPassword) throw new Error('New password is required')
+  if (!newPassword) throw new DomainError('New password is required', { status: 400 })
   const employee = await Employee.findOne({ _id: employeeId, company: companyId })
-  if (!employee) throw new Error('Employee not found in this company')
+  if (!employee) throw employeeNotFound('Employee not found in this company')
   const company = await Company.findById(companyId)
   validatePasswordPolicy(newPassword, {
     employeeName: employee.name,
     companyName: company?.companyName,
   })
   const account = await Account.findById(employee.account._id || employee.account)
-  if (!account) throw new Error('Account not found')
+  if (!account) throw new DomainError('Account not found', { status: 404 })
   await account.setPassword(newPassword)
   await account.save()
 }

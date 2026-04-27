@@ -1,32 +1,36 @@
 const Tour = require('../models/tour')
 const Order = require('../models/order')
 const Vehicle = require('../models/vehicle')
+const { DomainError } = require('../lib/domain-error')
+const { pickAllowedFields } = require('../lib/object-utils')
 
 const TOUR_MUTABLE_FIELDS = ['date', 'startLocation', 'endLocation', 'state', 'vehicle']
+
+const tourNotFound = () => new DomainError('Tour not found', { status: 404 })
+const vehicleNotFound = () => new DomainError('Vehicle not found', { status: 404 })
+const orderNotFound = () => new DomainError('Order not found', { status: 404 })
+const vehicleNotAvailable = () => new DomainError('Vehicle is not available', { status: 409 })
 
 const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object || {}, key)
 
 const validateStateTransition = (currentState, nextState) => {
   const isTerminal = currentState === 'FINISHED' || currentState === 'CANCELLED'
   if (isTerminal) {
-    throw new Error(`Cannot update a tour that is ${currentState.toLowerCase()}`)
+    throw new DomainError(`Cannot update a tour that is ${currentState.toLowerCase()}`, { status: 409 })
   }
 
   if (currentState === 'STARTED' && nextState && !['FINISHED', 'CANCELLED'].includes(nextState)) {
-    throw new Error('A started tour can only be finished or cancelled')
+    throw new DomainError('A started tour can only be finished or cancelled', { status: 409 })
   }
 }
-
-const pickAllowedFields = (payload, allowedFields) =>
-  Object.fromEntries(Object.entries(payload || {}).filter(([key]) => allowedFields.includes(key)))
 
 const createTour = async tourData => {
   if (tourData.vehicle) {
     const vehicle = await Vehicle.findById(tourData.vehicle)
-    if (!vehicle) throw new Error('Vehicle not found')
-    if (vehicle.state !== 'AVAILABLE') throw new Error('Vehicle is not available')
+    if (!vehicle) throw vehicleNotFound()
+    if (vehicle.state !== 'AVAILABLE') throw vehicleNotAvailable()
     if (tourData.company && vehicle.company.toString() !== tourData.company.toString()) {
-      throw new Error('Vehicle does not belong to this company')
+      throw new DomainError('Vehicle does not belong to this company', { status: 403 })
     }
   }
   return Tour.create(tourData)
@@ -34,7 +38,7 @@ const createTour = async tourData => {
 
 const findTourById = async tourId => {
   const tour = await Tour.findById(tourId)
-  if (!tour) throw new Error('Tour not found')
+  if (!tour) throw tourNotFound()
   return tour
 }
 
@@ -42,18 +46,18 @@ const getAllToursByCompany = async companyId => Tour.find({ company: companyId }
 
 const getCargosByTour = async tourId => {
   const tour = await Tour.findById(tourId)
-  if (!tour) throw new Error('Tour not found')
+  if (!tour) throw tourNotFound()
   return tour.orders.flatMap(order => order.cargos)
 }
 
 const addOrderToTour = async (tourId, orderId) => {
   const tour = await Tour.findById(tourId)
-  if (!tour) throw new Error('Tour not found')
+  if (!tour) throw tourNotFound()
 
   const order = await Order.findById(orderId)
-  if (!order) throw new Error('Order not found')
+  if (!order) throw orderNotFound()
   if (order.company.toString() !== tour.company.toString()) {
-    throw new Error('Order does not belong to this company')
+    throw new DomainError('Order does not belong to this company', { status: 403 })
   }
 
   return tour.addOrder(orderId)
@@ -61,24 +65,24 @@ const addOrderToTour = async (tourId, orderId) => {
 
 const assignVehicleToTour = async (tourId, vehicleId) => {
   const tour = await Tour.findById(tourId)
-  if (!tour) throw new Error('Tour not found')
+  if (!tour) throw tourNotFound()
   const vehicle = await Vehicle.findById(vehicleId)
-  if (!vehicle) throw new Error('Vehicle not found')
+  if (!vehicle) throw vehicleNotFound()
   if (vehicle.company.toString() !== tour.company.toString()) {
-    throw new Error('Vehicle does not belong to this company')
+    throw new DomainError('Vehicle does not belong to this company', { status: 403 })
   }
-  if (vehicle.state !== 'AVAILABLE') throw new Error('Vehicle is not available')
+  if (vehicle.state !== 'AVAILABLE') throw vehicleNotAvailable()
   return tour.assignVehicle(vehicleId)
 }
 
 const updateTour = async (tourId, updateData) => {
   const tour = await Tour.findById(tourId)
-  if (!tour) throw new Error('Tour not found')
+  if (!tour) throw tourNotFound()
 
   const allowedUpdates = pickAllowedFields(updateData, TOUR_MUTABLE_FIELDS)
 
   if (!Object.keys(allowedUpdates).length) {
-    throw new Error('No valid tour fields to update')
+    throw new DomainError('No valid tour fields to update', { status: 400 })
   }
 
   if (hasOwn(allowedUpdates, 'vehicle')) {
@@ -88,11 +92,11 @@ const updateTour = async (tourId, updateData) => {
       tour.vehicle = null
     } else {
       const vehicle = await Vehicle.findById(requestedVehicleId)
-      if (!vehicle) throw new Error('Vehicle not found')
+      if (!vehicle) throw vehicleNotFound()
       if (vehicle.company.toString() !== tour.company.toString()) {
-        throw new Error('Vehicle does not belong to this company')
+        throw new DomainError('Vehicle does not belong to this company', { status: 403 })
       }
-      if (vehicle.state !== 'AVAILABLE') throw new Error('Vehicle is not available')
+      if (vehicle.state !== 'AVAILABLE') throw vehicleNotAvailable()
       tour.vehicle = vehicle._id
     }
   }

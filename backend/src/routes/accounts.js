@@ -1,10 +1,10 @@
-/* eslint-disable global-require */
 /* eslint-disable consistent-return */
 const express = require('express')
 
 const passport = require('passport')
 const rateLimit = require('express-rate-limit')
 const { validateAccountRegistration, validateLogin } = require('./validations/accounts-validation')
+const { DomainError } = require('../lib/domain-error')
 
 const router = express.Router()
 const customerManager = require('../managers/customer-manager')
@@ -39,7 +39,7 @@ router.get('/session', async (req, res) => {
   res.json(response)
 })
 
-router.post('/', validateAccountRegistration, async (req, res) => {
+router.post('/', validateAccountRegistration, async (req, res, next) => {
   try {
     const { role } = req.body
     let result
@@ -53,11 +53,11 @@ router.post('/', validateAccountRegistration, async (req, res) => {
         password: req.body.password,
       })
     } else {
-      return res.status(400).json({ error: 'Invalid role' })
+      throw new DomainError('Invalid role', { status: 400 })
     }
     res.json(result)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    next(error)
   }
 })
 

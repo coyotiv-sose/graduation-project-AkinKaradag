@@ -1,7 +1,11 @@
+const { DomainError } = require('./domain-error')
+
 const PASSWORD_MIN_LENGTH = 12
 const PASSWORD_MAX_LENGTH = 64
 const PASSWORD_ALLOWED_SPECIAL_CHARACTERS = '@!-_$&'
 const PASSWORD_ALLOWED_REGEX = /^[A-Za-z0-9@!_\-$&]+$/
+
+const passwordPolicyError = message => new DomainError(message, { status: 400 })
 
 const normalizeForComparison = value => String(value || '')
   .toLowerCase()
@@ -31,15 +35,17 @@ const getNameFragments = names => {
 
 const validatePasswordPolicy = (password, { customerName, employeeName, companyName } = {}) => {
   if (typeof password !== 'string' || !password) {
-    throw new Error('Password is required')
+    throw passwordPolicyError('Password is required')
   }
 
   if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
-    throw new Error(`Password length must be between ${PASSWORD_MIN_LENGTH} and ${PASSWORD_MAX_LENGTH} characters`)
+    throw passwordPolicyError(
+      `Password length must be between ${PASSWORD_MIN_LENGTH} and ${PASSWORD_MAX_LENGTH} characters`
+    )
   }
 
   if (!PASSWORD_ALLOWED_REGEX.test(password)) {
-    throw new Error(
+    throw passwordPolicyError(
       `Password contains invalid characters. Allowed special characters are ${PASSWORD_ALLOWED_SPECIAL_CHARACTERS}`
     )
   }
@@ -49,7 +55,7 @@ const validatePasswordPolicy = (password, { customerName, employeeName, companyN
   const containsNameFragment = nameFragments.some(fragment => passwordValue.includes(fragment))
 
   if (containsNameFragment) {
-    throw new Error('Password must not contain customer, employee, or company name')
+    throw passwordPolicyError('Password must not contain customer, employee, or company name')
   }
 }
 
