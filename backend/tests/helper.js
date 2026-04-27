@@ -50,8 +50,8 @@ const createCustomer = async companyId => {
 const createAccount = async (overrides = {}) => {
   const accountData = {
     email: 'test@example.com',
-    password: 'password123',
-    role: 'customer',
+    password: 'Password1234',
+    role: 'admin',
     ...overrides,
   }
   const accountResponse = await request(app).post('/accounts').send(accountData)

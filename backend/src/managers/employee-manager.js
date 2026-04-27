@@ -1,7 +1,15 @@
 const Account = require('../models/account')
 const Employee = require('../models/employee')
+const Company = require('../models/logistic-company')
+const { validatePasswordPolicy } = require('../lib/password-policy')
 
 const createEmployee = async employeeData => {
+  const company = employeeData.company ? await Company.findById(employeeData.company) : null
+  validatePasswordPolicy(employeeData.password, {
+    employeeName: employeeData.name,
+    companyName: company?.companyName,
+  })
+
   const exist = await Account.findOne({ email: employeeData.email })
   if (exist) throw new Error('Email already registered')
 
@@ -70,6 +78,11 @@ const resetEmployeePasswordByCompany = async (employeeId, companyId, newPassword
   if (!newPassword) throw new Error('New password is required')
   const employee = await Employee.findOne({ _id: employeeId, company: companyId })
   if (!employee) throw new Error('Employee not found in this company')
+  const company = await Company.findById(companyId)
+  validatePasswordPolicy(newPassword, {
+    employeeName: employee.name,
+    companyName: company?.companyName,
+  })
   const account = await Account.findById(employee.account._id || employee.account)
   if (!account) throw new Error('Account not found')
   await account.setPassword(newPassword)

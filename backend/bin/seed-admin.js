@@ -22,7 +22,7 @@ async function seedAdmin() {
   }
 
   await mongoose.connect(mongoUri)
-  console.log(`Connected to ${mongoUri}`)
+  console.log('Connected to MongoDB')
 
   const existing = await Account.findOne({ email: email.toLowerCase() })
   if (existing) {

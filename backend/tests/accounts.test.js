@@ -16,7 +16,7 @@ describe('Account', () => {
 
         it('should not register without an email', async() => {
             const response = await request(app).post('/accounts').send({
-                password: 'password123',
+                password: 'Password1234',
                 role: 'customer',
             })
             expect(response.status).toBeGreaterThanOrEqual(400)
@@ -41,7 +41,7 @@ describe('Account', () => {
             await createAccount()
             const login = await request(app).post('/accounts/session').send({
                 email: 'test@example.com',
-                password: 'password123',
+                password: 'Password1234',
             })
             expect(login.status).toBe(200)
             expect(login.body).toHaveProperty('email', 'test@example.com')
@@ -59,16 +59,16 @@ describe('Account', () => {
         it('should not login with non-existing email', async() => {
             const login = await request(app).post('/accounts/session').send({
                 email: 'nobody@example.com',
-                password: 'password123',
+                password: 'Password1234',
             })
             expect(login.status).toBe(401)
         })
 
         it('should not login without email', async() => {
             const login = await request(app).post('/accounts/session').send({
-                password: 'password123',
+                password: 'Password1234',
             })
-            expect(login.status).toBe(401)
+            expect(login.status).toBe(400)
         })
 
         it('should not login without password', async() => {

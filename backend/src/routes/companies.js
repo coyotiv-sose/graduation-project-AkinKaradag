@@ -1,5 +1,6 @@
 /* eslint-disable consistent-return */
 const express = require('express')
+const { celebrate, Joi, Segments } = require('celebrate')
 
 const router = express.Router()
 const companyManager = require('../managers/company-manager')
@@ -9,6 +10,37 @@ const employeeManager = require('../managers/employee-manager')
 const orderManager = require('../managers/order-manager')
 const vehicleManager = require('../managers/vehicle-manager')
 const tourManager = require('../managers/tour-manager')
+const { PASSWORD_ALLOWED_REGEX, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } = require('../lib/password-policy')
+
+const objectIdPattern = /^[0-9a-fA-F]{24}$/
+
+const validateCompanyCustomerPasswordReset = celebrate({
+  [Segments.PARAMS]: Joi.object({
+    companyId: Joi.string().pattern(objectIdPattern).required(),
+    customerId: Joi.string().pattern(objectIdPattern).required(),
+  }).required(),
+  [Segments.BODY]: Joi.object({
+    newPassword: Joi.string()
+      .min(PASSWORD_MIN_LENGTH)
+      .max(PASSWORD_MAX_LENGTH)
+      .pattern(PASSWORD_ALLOWED_REGEX)
+      .required(),
+  }).required(),
+})
+
+const validateCompanyEmployeePasswordReset = celebrate({
+  [Segments.PARAMS]: Joi.object({
+    companyId: Joi.string().pattern(objectIdPattern).required(),
+    employeeId: Joi.string().pattern(objectIdPattern).required(),
+  }).required(),
+  [Segments.BODY]: Joi.object({
+    newPassword: Joi.string()
+      .min(PASSWORD_MIN_LENGTH)
+      .max(PASSWORD_MAX_LENGTH)
+      .pattern(PASSWORD_ALLOWED_REGEX)
+      .required(),
+  }).required(),
+})
 
 // ---- Company detail ----
 
@@ -70,7 +102,7 @@ router.delete('/:companyId/customers/:customerId', async (req, res, next) => {
   }
 })
 
-router.post('/:companyId/customers/:customerId/reset-password', async (req, res, next) => {
+router.post('/:companyId/customers/:customerId/reset-password', validateCompanyCustomerPasswordReset, async (req, res, next) => {
   try {
     await customerManager.resetCustomerPasswordByCompany(
       req.params.customerId,
@@ -131,7 +163,7 @@ router.delete('/:companyId/employees/:employeeId', async (req, res, next) => {
   }
 })
 
-router.post('/:companyId/employees/:employeeId/reset-password', async (req, res, next) => {
+router.post('/:companyId/employees/:employeeId/reset-password', validateCompanyEmployeePasswordReset, async (req, res, next) => {
   try {
     await employeeManager.resetEmployeePasswordByCompany(
       req.params.employeeId,
