@@ -1,6 +1,7 @@
 const Account = require('../models/account')
 const Customer = require('../models/customer')
 const Company = require('../models/logistic-company')
+const { ACTOR_PROFILE_NOT_FOUND_ERROR_CODES } = require('../lib/authz-error-codes')
 const { validatePasswordPolicy } = require('../lib/password-policy')
 
 const createCustomer = async customerData => {
@@ -43,14 +44,18 @@ const getAllCustomers = () => Customer.find()
 
 const getCustomerByAccountId = async accountId => {
   const customer = await Customer.findOne({ account: accountId })
-  if (!customer) throw new Error('Customer not found')
+  if (!customer) {
+    const error = new Error('Customer not found')
+    error.code = ACTOR_PROFILE_NOT_FOUND_ERROR_CODES.customer
+    throw error
+  }
   return customer
 }
 
 const validateCustomerBelongsToCompany = async (customerId, companyId) => {
   const customer = await Customer.findOne({ _id: customerId, company: companyId })
   if (!customer) throw new Error('Customer not found')
-  if (!customer) throw new Error('Customer does not belong to this company')
+  return customer
 }
 
 const updateCustomerByCompany = async (customerId, companyId, updates) => {

@@ -2,18 +2,25 @@ const express = require('express')
 
 const router = express.Router()
 const orderManager = require('../managers/order-manager')
+const requireRole = require('../middlewares/require-role')
+const { requireOrderAccess } = require('../middlewares/require-access')
+const { forwardRouteError } = require('../lib/route-error-forwarding')
 const { validateOrderIdParam, validateUpdateOrder } = require('./validations/orders-validation')
 
-router.get('/:orderId', validateOrderIdParam, async (req, res, next) => {
+const orderAccess = requireOrderAccess()
+
+router.use(requireRole('admin', 'employee', 'customer'))
+
+router.get('/:orderId', validateOrderIdParam, orderAccess, async (req, res, next) => {
   try {
-    const order = await orderManager.findOrderById(req.params.orderId)
+    const order = req.authz?.order || (await orderManager.findOrderById(req.params.orderId))
     res.status(200).json(order)
   } catch (error) {
     next(error)
   }
 })
 
-router.put('/:orderId', validateUpdateOrder, async (req, res, next) => {
+router.put('/:orderId', validateUpdateOrder, orderAccess, async (req, res, next) => {
   try {
     const order = await orderManager.updateOrder(req.params.orderId, req.body)
     req.app.io
@@ -21,20 +28,18 @@ router.put('/:orderId', validateUpdateOrder, async (req, res, next) => {
       .to(`company:${order.company}`)
       .to(`order:${order._id}`)
       .emit('order:updated', order)
-    res.status(200).json(order)
+    return res.status(200).json(order)
   } catch (error) {
-    const status = error.message === 'Order not found' ? 404 : 400
-    res.status(status).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 
-router.get('/:orderId/cargos', validateOrderIdParam, async (req, res, next) => {
+router.get('/:orderId/cargos', validateOrderIdParam, orderAccess, async (req, res, next) => {
   try {
     const cargos = await orderManager.getCargosFromOrder(req.params.orderId)
-    res.status(200).json(cargos)
+    return res.status(200).json(cargos)
   } catch (error) {
-    const status = error.message === 'Order not found' ? 404 : 400
-    res.status(status).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 

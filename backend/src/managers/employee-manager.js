@@ -1,6 +1,7 @@
 const Account = require('../models/account')
 const Employee = require('../models/employee')
 const Company = require('../models/logistic-company')
+const { ACTOR_PROFILE_NOT_FOUND_ERROR_CODES } = require('../lib/authz-error-codes')
 const { validatePasswordPolicy } = require('../lib/password-policy')
 
 const createEmployee = async employeeData => {
@@ -43,7 +44,11 @@ const getAllEmployees = () => Employee.find()
 
 const getEmployeeByAccountId = async accountId => {
   const employee = await Employee.findOne({ account: accountId })
-  if (!employee) throw new Error('Employee not found')
+  if (!employee) {
+    const error = new Error('Employee not found')
+    error.code = ACTOR_PROFILE_NOT_FOUND_ERROR_CODES.employee
+    throw error
+  }
   return employee
 }
 

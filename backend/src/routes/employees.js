@@ -1,16 +1,14 @@
 const express = require('express')
 
 const router = express.Router()
-const employeeManager = require('../managers/employee-manager')
+const requireRole = require('../middlewares/require-role')
+const { requireEmployeeAccess } = require('../middlewares/require-access')
 const { validateEmployeeIdParam } = require('./validations/employees-validation')
 
-router.get('/:employeeId', validateEmployeeIdParam, async (req, res, next) => {
-  try {
-    const employee = await employeeManager.getEmployeeById(req.params.employeeId)
-    res.status(200).json(employee)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
-  }
+router.use(requireRole('admin', 'employee'))
+
+router.get('/:employeeId', validateEmployeeIdParam, requireEmployeeAccess(), (req, res) => {
+  res.status(200).json(req.authz?.employee)
 })
 
 module.exports = router

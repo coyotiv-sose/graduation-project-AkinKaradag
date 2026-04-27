@@ -1,9 +1,11 @@
 const express = require('express')
 
 const router = express.Router()
-const customerManager = require('../managers/customer-manager')
 const orderManager = require('../managers/order-manager')
 const generateOrder = require('../lib/order-generator')
+const { forwardRouteError } = require('../lib/route-error-forwarding')
+const requireRole = require('../middlewares/require-role')
+const { requireCustomerAccess, requireOrderAccess } = require('../middlewares/require-access')
 const {
   validateCustomerIdParam,
   validateCustomerOrderParams,
@@ -12,18 +14,23 @@ const {
   validateAddCargoToOrder,
 } = require('./validations/customers-validation')
 
-router.get('/:customerId', validateCustomerIdParam, async (req, res, next) => {
+const customerAccess = requireCustomerAccess()
+const customerOrderAccess = requireOrderAccess({ customerParamName: 'customerId' })
+
+router.use(requireRole('admin', 'employee', 'customer'))
+
+router.get('/:customerId', validateCustomerIdParam, customerAccess, async (req, res, next) => {
   try {
-    const customer = await customerManager.getCustomerById(req.params.customerId)
-    res.json(customer)
+    const customer = req.authz?.customer
+    return res.json(customer)
   } catch (error) {
-    res.status(404).json({ error: error.message })
+    return forwardRouteError(next, error)
   }
 })
 
-router.post('/:customerId/orders', validateCreateCustomerOrder, async (req, res, next) => {
+router.post('/:customerId/orders', validateCreateCustomerOrder, customerAccess, async (req, res, next) => {
   try {
-    const customer = await customerManager.getCustomerById(req.params.customerId)
+    const customer = req.authz?.customer
 
     const newOrder = await orderManager.createOrder({
       ...req.body,
@@ -31,44 +38,49 @@ router.post('/:customerId/orders', validateCreateCustomerOrder, async (req, res,
       company: customer.company,
     })
     req.app.io.to(`company:${customer.company}`).to(`customer:${customer._id}`).emit('order:created', newOrder)
-    res.status(201).json(newOrder)
+    return res.status(201).json(newOrder)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 
-// eslint-disable-next-line consistent-return
-router.post('/:customerId/orders/ai-generate', validateGenerateCustomerOrder, async (req, res, next) => {
-  try {
-    const { prompt, billingInfo: providedBillingInfo } = req.body
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' })
+router.post(
+  '/:customerId/orders/ai-generate',
+  validateGenerateCustomerOrder,
+  customerAccess,
+  async (req, res, next) => {
+    try {
+      const { prompt, billingInfo: providedBillingInfo } = req.body
+      if (!prompt) {
+        return res.status(400).json({ error: 'Prompt is required' })
+      }
+
+      const customer = req.authz?.customer
+
+      const orderData = await generateOrder(prompt)
+
+      const billingInfo =
+        providedBillingInfo || customer.billingInfo?.find(b => b.isDefault) || customer.billingInfo?.[0]
+      if (!billingInfo) {
+        return res.status(400).json({ error: 'Customer has no billing info' })
+      }
+
+      const newOrder = await orderManager.createOrder({
+        ...orderData,
+        customer: customer._id,
+        company: customer.company,
+        billingInfo,
+      })
+
+      req.app.io.to(`company:${customer.company}`).to(`customer:${customer._id}`).emit('order:created', newOrder)
+      return res.status(201).json(newOrder)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
     }
-
-    const customer = await customerManager.getCustomerById(req.params.customerId)
-
-    const orderData = await generateOrder(prompt)
-
-    const billingInfo = providedBillingInfo || customer.billingInfo?.find(b => b.isDefault) || customer.billingInfo?.[0]
-    if (!billingInfo) {
-      return res.status(400).json({ error: 'Customer has no billing info' })
-    }
-
-    const newOrder = await orderManager.createOrder({
-      ...orderData,
-      customer: customer._id,
-      company: customer.company,
-      billingInfo,
-    })
-
-    req.app.io.to(`company:${customer.company}`).to(`customer:${customer._id}`).emit('order:created', newOrder)
-    res.status(201).json(newOrder)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
   }
-})
+)
 
-router.get('/:customerId/orders', validateCustomerIdParam, async (req, res, next) => {
+router.get('/:customerId/orders', validateCustomerIdParam, customerAccess, async (req, res, next) => {
   try {
     const orders = await orderManager.getOrdersByCustomer(req.params.customerId)
     res.status(200).json(orders)
@@ -77,36 +89,45 @@ router.get('/:customerId/orders', validateCustomerIdParam, async (req, res, next
   }
 })
 
-router.get('/:customerId/orders/:orderId', validateCustomerOrderParams, async (req, res, next) => {
+router.get('/:customerId/orders/:orderId', validateCustomerOrderParams, customerOrderAccess, async (req, res, next) => {
   try {
-    const order = await orderManager.findOrderById(req.params.orderId)
-    res.status(200).json(order)
+    const order = req.authz?.order
+    return res.status(200).json(order)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 
-router.delete('/:customerId/orders/:orderId', validateCustomerOrderParams, async (req, res, next) => {
-  try {
-    const order = await orderManager.deleteOrderByCustomer(req.params.orderId, req.params.customerId)
-    req.app.io
-      .to(`company:${order.company}`)
-      .to(`customer:${req.params.customerId}`)
-      .emit('order:deleted', { orderId: order._id })
-    res.status(204).send()
-  } catch (error) {
-    const status = error.message === 'Order not found' ? 404 : 400
-    res.status(status).json({ error: error.message })
+router.delete(
+  '/:customerId/orders/:orderId',
+  validateCustomerOrderParams,
+  customerOrderAccess,
+  async (req, res, next) => {
+    try {
+      const order = await orderManager.deleteOrderByCustomer(req.params.orderId, req.params.customerId)
+      req.app.io
+        .to(`company:${order.company}`)
+        .to(`customer:${req.params.customerId}`)
+        .emit('order:deleted', { orderId: order._id })
+      return res.status(204).send()
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.post('/:customerId/orders/:orderId/cargos', validateAddCargoToOrder, async (req, res, next) => {
-  try {
-    const addCargo = await orderManager.addCargoToOrder(req.params.orderId, req.body)
-    res.status(201).json(addCargo)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
+router.post(
+  '/:customerId/orders/:orderId/cargos',
+  validateAddCargoToOrder,
+  customerOrderAccess,
+  async (req, res, next) => {
+    try {
+      const addCargo = await orderManager.addCargoToOrder(req.params.orderId, req.body)
+      return res.status(201).json(addCargo)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
 module.exports = router
