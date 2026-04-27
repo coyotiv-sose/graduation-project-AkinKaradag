@@ -24,6 +24,7 @@ node "Docker Compose" as dc {
 
     package "Routes" as routes {
       [/accounts] as r_accounts
+      [/admin] as r_admin
       [/companies] as r_companies
       [/customers] as r_customers
       [/orders] as r_orders
@@ -32,7 +33,16 @@ node "Docker Compose" as dc {
       [/employees] as r_employees
     }
 
+    package "Middlewares" as middlewares {
+      [RequireRole] as mw_role
+      [RequireAccess] as mw_access
+      [ApiErrorHandler] as mw_error
+      [MarkApi] as mw_api
+    }
+
     package "Managers (Business Logic)" as managers {
+      [AccountManager] as m_account
+      [CompanyManager] as m_company
       [CustomerManager] as m_customer
       [EmployeeManager] as m_employee
       [OrderManager] as m_order
@@ -41,6 +51,13 @@ node "Docker Compose" as dc {
     }
 
     package "Lib" as lib {
+      [AccessControl] as l_access
+      [ApiError] as l_apierror
+      [DomainError] as l_domain
+      [PasswordPolicy] as l_password
+      [RouteErrorForwarding] as l_routerr
+      [ObjectUtils] as l_objects
+      [Validation\n(primitives + schemas)] as l_validation
       [OrderGenerator\n(OpenAI GPT-4o-mini)] as ai
     }
 
@@ -68,9 +85,27 @@ browser --> vite : HTTP
 ' ── Frontend to API ──
 vite --> express : REST / JSON\n(withCredentials)
 
+' ── Routes → Middlewares ──
+routes --> mw_api
+routes --> mw_role
+routes --> mw_access
+routes --> l_validation
+
+' ── Middlewares → Lib ──
+mw_access --> l_access
+mw_access --> l_routerr
+mw_access --> l_domain
+mw_error --> l_apierror
+
 ' ── Routes → Managers ──
+r_accounts --> m_account
 r_accounts --> m_customer
 r_accounts --> m_employee
+r_admin --> m_company
+r_admin --> m_customer
+r_admin --> m_employee
+r_admin --> m_order
+r_companies --> m_company
 r_companies --> m_customer
 r_companies --> m_employee
 r_companies --> m_order
@@ -84,7 +119,24 @@ r_vehicles --> m_vehicle
 r_tours --> m_tour
 r_employees --> m_employee
 
+' ── Managers → Lib ──
+m_account --> l_password
+m_account --> l_domain
+m_customer --> l_password
+m_customer --> l_domain
+m_employee --> l_password
+m_employee --> l_domain
+m_order --> l_domain
+m_order --> l_objects
+m_tour --> l_domain
+m_tour --> l_objects
+m_vehicle --> l_domain
+m_vehicle --> l_objects
+m_company --> l_domain
+
 ' ── Managers → Models ──
+m_account --> mod_account
+m_company --> mod_company
 m_customer --> mod_account
 m_customer --> mod_customer
 m_employee --> mod_account
@@ -93,6 +145,7 @@ m_order --> mod_order
 m_vehicle --> mod_vehicle
 m_tour --> mod_tour
 m_tour --> mod_vehicle
+m_tour --> mod_order
 
 ' ── Auth → Models ──
 auth --> mod_account
