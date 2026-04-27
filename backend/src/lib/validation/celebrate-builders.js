@@ -1,6 +1,6 @@
 const { celebrate, Segments } = require('celebrate')
 
-const { objectIdParamsSchema } = require('../../lib/request-validation')
+const { objectIdParamsSchema } = require('./primitives')
 
 const normalizeParamKeys = paramKeys => (Array.isArray(paramKeys) ? paramKeys : [paramKeys])
 

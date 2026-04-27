@@ -1,4 +1,4 @@
-const { validateParams } = require('./builders')
+const { validateParams } = require('../../lib/validation/celebrate-builders')
 
 const validateEmployeeIdParam = validateParams('employeeId')
 
