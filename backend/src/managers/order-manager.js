@@ -1,6 +1,11 @@
 const Order = require('../models/order')
 const { validateCustomerBelongsToCompany } = require('./customer-manager')
 
+const ORDER_MUTABLE_FIELDS = ['origin', 'destination', 'deliveryDate', 'state', 'cargos', 'billingInfo', 'note']
+
+const pickAllowedFields = (payload, allowedFields) =>
+  Object.fromEntries(Object.entries(payload || {}).filter(([key]) => allowedFields.includes(key)))
+
 const createOrder = async orderData => {
   if (!orderData.cargos || orderData.cargos.length === 0) {
     throw new Error('Order must contain at least one cargo')
@@ -32,9 +37,14 @@ const getOrdersByCustomerFromCompany = async (customerId, companyId) => {
 }
 
 const updateOrder = async (orderId, updateData) => {
+  const allowedUpdates = pickAllowedFields(updateData, ORDER_MUTABLE_FIELDS)
+  if (!Object.keys(allowedUpdates).length) {
+    throw new Error('No valid order fields to update')
+  }
+
   const order = await Order.findOneAndUpdate(
     { _id: orderId, state: 'PENDING' },
-    { $set: updateData },
+    { $set: allowedUpdates },
     { new: true, runValidators: true }
   )
 

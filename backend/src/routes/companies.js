@@ -9,6 +9,19 @@ const employeeManager = require('../managers/employee-manager')
 const orderManager = require('../managers/order-manager')
 const vehicleManager = require('../managers/vehicle-manager')
 const tourManager = require('../managers/tour-manager')
+const { forwardRouteError } = require('../lib/route-error-forwarding')
+const requireRole = require('../middlewares/require-role')
+const {
+  requireCompanyAccess,
+  requireCustomerAccess,
+  requireEmployeeAccess,
+  requireOrderAccess,
+  requireVehicleAccess,
+  requireTourAccess,
+  requireBodyCustomerInCompany,
+  requireBodyOrderInCompany,
+  requireBodyVehicleInCompany,
+} = require('../middlewares/require-access')
 const {
   validateCompanyIdParam,
   validateCompanyCustomerParams,
@@ -28,10 +41,30 @@ const {
   validateCompanyEmployeePasswordReset,
 } = require('./validations/companies-validation')
 
+const companyAccess = requireCompanyAccess()
+const withCompanyScope = (...middlewares) => [companyAccess, ...middlewares]
+const withCompanyAccess = withCompanyScope()
+const withCompanyCustomerAccess = withCompanyScope(requireCustomerAccess({ companyParamName: 'companyId' }))
+const withCompanyEmployeeAccess = withCompanyScope(requireEmployeeAccess({ companyParamName: 'companyId' }))
+const withCompanyOrderAccess = withCompanyScope(requireOrderAccess({ companyParamName: 'companyId' }))
+const withCompanyVehicleAccess = withCompanyScope(requireVehicleAccess({ companyParamName: 'companyId' }))
+const withCompanyBodyCustomerAccess = withCompanyScope(requireBodyCustomerInCompany())
+const withCompanyBodyVehicleAccess = withCompanyScope(requireBodyVehicleInCompany({ vehicleField: 'vehicle' }))
+const withCompanyTourOrderAccess = withCompanyScope(
+  requireTourAccess({ companyParamName: 'companyId' }),
+  requireBodyOrderInCompany()
+)
+const withCompanyTourVehicleUpdateAccess = withCompanyScope(
+  requireTourAccess({ companyParamName: 'companyId' }),
+  requireBodyVehicleInCompany({ vehicleFields: ['vehicle', 'vehicleId'] })
+)
+
+router.use(requireRole('admin', 'employee'))
+
 // ---- Company detail ----
 
 // eslint-disable-next-line consistent-return
-router.get('/:companyId', validateCompanyIdParam, async (req, res, next) => {
+router.get('/:companyId', validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
   try {
     const company = await companyManager.getCompanyById(req.params.companyId)
     if (!company) return res.status(404).json({ error: 'Company not found' })
@@ -43,7 +76,7 @@ router.get('/:companyId', validateCompanyIdParam, async (req, res, next) => {
 
 // ---- Customers ----
 
-router.post('/:companyId/customers', validateCreateCompanyCustomer, async (req, res, next) => {
+router.post('/:companyId/customers', validateCreateCompanyCustomer, ...withCompanyAccess, async (req, res, next) => {
   try {
     const customer = await customerManager.createCustomer({
       ...req.body,
@@ -51,11 +84,11 @@ router.post('/:companyId/customers', validateCreateCompanyCustomer, async (req, 
     })
     res.status(201).json(customer)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 
-router.get('/:companyId/customers', validateCompanyIdParam, async (req, res, next) => {
+router.get('/:companyId/customers', validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
   try {
     const customers = await customerManager.getCustomerByCompany(req.params.companyId)
     res.status(200).json(customers)
@@ -64,33 +97,42 @@ router.get('/:companyId/customers', validateCompanyIdParam, async (req, res, nex
   }
 })
 
-router.put('/:companyId/customers/:customerId', validateUpdateCompanyCustomer, async (req, res, next) => {
-  try {
-    const customer = await customerManager.updateCustomerByCompany(
-      req.params.customerId,
-      req.params.companyId,
-      req.body
-    )
-    res.status(200).json(customer)
-  } catch (error) {
-    const status = error.message.includes('not found') ? 404 : 400
-    res.status(status).json({ error: error.message })
+router.put(
+  '/:companyId/customers/:customerId',
+  validateUpdateCompanyCustomer,
+  ...withCompanyCustomerAccess,
+  async (req, res, next) => {
+    try {
+      const customer = await customerManager.updateCustomerByCompany(
+        req.params.customerId,
+        req.params.companyId,
+        req.body
+      )
+      res.status(200).json(customer)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.delete('/:companyId/customers/:customerId', validateCompanyCustomerParams, async (req, res, next) => {
-  try {
-    await customerManager.deleteCustomerByCompany(req.params.customerId, req.params.companyId)
-    res.status(204).send()
-  } catch (error) {
-    const status = error.message.includes('not found') ? 404 : 500
-    res.status(status).json({ error: error.message })
+router.delete(
+  '/:companyId/customers/:customerId',
+  validateCompanyCustomerParams,
+  ...withCompanyCustomerAccess,
+  async (req, res, next) => {
+    try {
+      await customerManager.deleteCustomerByCompany(req.params.customerId, req.params.companyId)
+      res.status(204).send()
+    } catch (error) {
+      return forwardRouteError(next, error, 500)
+    }
   }
-})
+)
 
 router.post(
   '/:companyId/customers/:customerId/reset-password',
   validateCompanyCustomerPasswordReset,
+  ...withCompanyCustomerAccess,
   async (req, res, next) => {
     try {
       await customerManager.resetCustomerPasswordByCompany(
@@ -100,15 +142,14 @@ router.post(
       )
       res.status(200).json({ message: 'Password reset successfully' })
     } catch (error) {
-      const status = error.message.includes('not found') ? 404 : 400
-      res.status(status).json({ error: error.message })
+      return forwardRouteError(next, error, 400)
     }
   }
 )
 
 // ---- Employees ----
 
-router.post('/:companyId/employees', validateCreateCompanyEmployee, async (req, res, next) => {
+router.post('/:companyId/employees', validateCreateCompanyEmployee, ...withCompanyAccess, async (req, res, next) => {
   try {
     const employee = await employeeManager.createEmployee({
       ...req.body,
@@ -116,11 +157,11 @@ router.post('/:companyId/employees', validateCreateCompanyEmployee, async (req, 
     })
     res.status(201).json(employee)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 
-router.get('/:companyId/employees', validateCompanyIdParam, async (req, res, next) => {
+router.get('/:companyId/employees', validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
   try {
     const employees = await employeeManager.getEmployeeByCompany(req.params.companyId)
     res.status(200).json(employees)
@@ -129,33 +170,42 @@ router.get('/:companyId/employees', validateCompanyIdParam, async (req, res, nex
   }
 })
 
-router.put('/:companyId/employees/:employeeId', validateUpdateCompanyEmployee, async (req, res, next) => {
-  try {
-    const employee = await employeeManager.updateEmployeeByCompany(
-      req.params.employeeId,
-      req.params.companyId,
-      req.body
-    )
-    res.status(200).json(employee)
-  } catch (error) {
-    const status = error.message.includes('not found') ? 404 : 400
-    res.status(status).json({ error: error.message })
+router.put(
+  '/:companyId/employees/:employeeId',
+  validateUpdateCompanyEmployee,
+  ...withCompanyEmployeeAccess,
+  async (req, res, next) => {
+    try {
+      const employee = await employeeManager.updateEmployeeByCompany(
+        req.params.employeeId,
+        req.params.companyId,
+        req.body
+      )
+      res.status(200).json(employee)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.delete('/:companyId/employees/:employeeId', validateCompanyEmployeeParams, async (req, res, next) => {
-  try {
-    await employeeManager.deleteEmployeeByCompany(req.params.employeeId, req.params.companyId)
-    res.status(204).send()
-  } catch (error) {
-    const status = error.message.includes('not found') ? 404 : 500
-    res.status(status).json({ error: error.message })
+router.delete(
+  '/:companyId/employees/:employeeId',
+  validateCompanyEmployeeParams,
+  ...withCompanyEmployeeAccess,
+  async (req, res, next) => {
+    try {
+      await employeeManager.deleteEmployeeByCompany(req.params.employeeId, req.params.companyId)
+      res.status(204).send()
+    } catch (error) {
+      return forwardRouteError(next, error, 500)
+    }
   }
-})
+)
 
 router.post(
   '/:companyId/employees/:employeeId/reset-password',
   validateCompanyEmployeePasswordReset,
+  ...withCompanyEmployeeAccess,
   async (req, res, next) => {
     try {
       await employeeManager.resetEmployeePasswordByCompany(
@@ -165,28 +215,35 @@ router.post(
       )
       res.status(200).json({ message: 'Password reset successfully' })
     } catch (error) {
-      const status = error.message.includes('not found') ? 404 : 400
-      res.status(status).json({ error: error.message })
+      return forwardRouteError(next, error, 400)
     }
   }
 )
 
 // ---- Orders ----
 
-router.post('/:companyId/orders', validateCreateCompanyOrder, async (req, res, next) => {
-  try {
-    const newOrder = await orderManager.createOrder({
-      ...req.body,
-      company: req.params.companyId,
-    })
-    req.app.io.to(`company:${req.params.companyId}`).to(`customer:${newOrder.customer}`).emit('order:created', newOrder)
-    res.status(201).json(newOrder)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
+router.post(
+  '/:companyId/orders',
+  validateCreateCompanyOrder,
+  ...withCompanyBodyCustomerAccess,
+  async (req, res, next) => {
+    try {
+      const newOrder = await orderManager.createOrder({
+        ...req.body,
+        company: req.params.companyId,
+      })
+      req.app.io
+        .to(`company:${req.params.companyId}`)
+        .to(`customer:${newOrder.customer}`)
+        .emit('order:created', newOrder)
+      res.status(201).json(newOrder)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.get('/:companyId/orders', validateCompanyIdParam, async (req, res, next) => {
+router.get('/:companyId/orders', validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
   try {
     const orders = await orderManager.getOrdersByCompany(req.params.companyId)
     res.status(200).json(orders)
@@ -195,34 +252,42 @@ router.get('/:companyId/orders', validateCompanyIdParam, async (req, res, next) 
   }
 })
 
-router.delete('/:companyId/orders/:orderId', validateCompanyOrderParams, async (req, res, next) => {
-  try {
-    const order = await orderManager.deleteOrderByCompany(req.params.orderId, req.params.companyId)
-    req.app.io
-      .to(`customer:${order.customer}`)
-      .to(`company:${req.params.companyId}`)
-      .emit('order:deleted', { orderId: order._id })
-    res.status(204).send()
-  } catch (error) {
-    const status = error.message === 'Order not found' ? 404 : 400
-    res.status(status).json({ error: error.message })
+router.delete(
+  '/:companyId/orders/:orderId',
+  validateCompanyOrderParams,
+  ...withCompanyOrderAccess,
+  async (req, res, next) => {
+    try {
+      const order = await orderManager.deleteOrderByCompany(req.params.orderId, req.params.companyId)
+      req.app.io
+        .to(`customer:${order.customer}`)
+        .to(`company:${req.params.companyId}`)
+        .emit('order:deleted', { orderId: order._id })
+      res.status(204).send()
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.get('/:companyId/customers/:customerId/orders', validateCompanyCustomerParams, async (req, res, next) => {
-  try {
-    const ordersFromCustomer = await orderManager.getOrdersByCustomerFromCompany(
-      req.params.customerId,
-      req.params.companyId
-    )
-    res.status(200).json(ordersFromCustomer)
-  } catch (error) {
-    const status = error.message === 'Customer not found' ? 404 : 400
-    res.status(status).json({ error: error.message })
+router.get(
+  '/:companyId/customers/:customerId/orders',
+  validateCompanyCustomerParams,
+  ...withCompanyCustomerAccess,
+  async (req, res, next) => {
+    try {
+      const ordersFromCustomer = await orderManager.getOrdersByCustomerFromCompany(
+        req.params.customerId,
+        req.params.companyId
+      )
+      res.status(200).json(ordersFromCustomer)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.post('/:companyId/vehicles', validateCreateCompanyVehicle, async (req, res, next) => {
+router.post('/:companyId/vehicles', validateCreateCompanyVehicle, ...withCompanyAccess, async (req, res, next) => {
   try {
     const newVehicle = await vehicleManager.createVehicle({
       ...req.body,
@@ -230,11 +295,11 @@ router.post('/:companyId/vehicles', validateCreateCompanyVehicle, async (req, re
     })
     res.status(201).json(newVehicle)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 
-router.get('/:companyId/vehicles', validateCompanyIdParam, async (req, res, next) => {
+router.get('/:companyId/vehicles', validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
   try {
     const vehicles = await vehicleManager.getAllVehiclesOfCompany(req.params.companyId)
     res.status(200).json(vehicles)
@@ -243,17 +308,21 @@ router.get('/:companyId/vehicles', validateCompanyIdParam, async (req, res, next
   }
 })
 
-router.put('/:companyId/vehicles/:vehicleId', validateUpdateCompanyVehicle, async (req, res, next) => {
-  try {
-    const vehicle = await vehicleManager.updateVehicle(req.params.vehicleId, req.body)
-    res.status(200).json(vehicle)
-  } catch (error) {
-    const status = error.message === 'Vehicle not found' ? 404 : 400
-    res.status(status).json({ error: error.message })
+router.put(
+  '/:companyId/vehicles/:vehicleId',
+  validateUpdateCompanyVehicle,
+  ...withCompanyVehicleAccess,
+  async (req, res, next) => {
+    try {
+      const vehicle = await vehicleManager.updateVehicle(req.params.vehicleId, req.body)
+      res.status(200).json(vehicle)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.post('/:companyId/tours', validateCreateCompanyTour, async (req, res, next) => {
+router.post('/:companyId/tours', validateCreateCompanyTour, ...withCompanyBodyVehicleAccess, async (req, res, next) => {
   try {
     const newTour = await tourManager.createTour({
       ...req.body,
@@ -261,11 +330,11 @@ router.post('/:companyId/tours', validateCreateCompanyTour, async (req, res, nex
     })
     res.status(201).json(newTour)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    return forwardRouteError(next, error, 400)
   }
 })
 
-router.get('/:companyId/tours', validateCompanyIdParam, async (req, res, next) => {
+router.get('/:companyId/tours', validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
   try {
     const tours = await tourManager.getAllToursByCompany(req.params.companyId)
     res.status(200).json(tours)
@@ -274,48 +343,46 @@ router.get('/:companyId/tours', validateCompanyIdParam, async (req, res, next) =
   }
 })
 
-router.post('/:companyId/tours/:tourId', validateAddOrderToTour, async (req, res, next) => {
-  try {
-    const newOrder = await tourManager.addOrderToTour(req.params.tourId, req.body.orderId)
-    res.status(200).json(newOrder)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
+router.post(
+  '/:companyId/tours/:tourId',
+  validateAddOrderToTour,
+  ...withCompanyTourOrderAccess,
+  async (req, res, next) => {
+    try {
+      const newOrder = await tourManager.addOrderToTour(req.params.tourId, req.body.orderId)
+      res.status(200).json(newOrder)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
+    }
   }
-})
+)
 
-router.put('/:companyId/tours/:tourId', validateUpdateCompanyTour, async (req, res, next) => {
-  try {
-    const currentTour = await tourManager.findTourById(req.params.tourId)
-    if (!currentTour) return res.status(404).json({ error: 'Tour not found' })
+router.put(
+  '/:companyId/tours/:tourId',
+  validateUpdateCompanyTour,
+  ...withCompanyTourVehicleUpdateAccess,
+  async (req, res, next) => {
+    try {
+      const tour = await tourManager.updateTour(req.params.tourId, req.body)
 
-    const nextState = req.body.state
-    const isTerminal = currentTour.state === 'FINISHED' || currentTour.state === 'CANCELLED'
-    if (isTerminal) {
-      return res.status(400).json({ error: `Cannot update a tour that is ${currentTour.state.toLowerCase()}` })
+      if (req.body.state === 'STARTED' || req.body.state === 'FINISHED') {
+        const orderIds = tour.orders.map(o => o._id || o)
+        const updatedOrders = await orderManager.getOrdersByIdsWithCustomer(orderIds)
+
+        updatedOrders.forEach(order => {
+          req.app.io
+            .to(`customer:${order.customer._id || order.customer}`)
+            .to(`order:${order._id}`)
+            .emit('order:updated', order)
+        })
+        req.app.io.to(`company:${req.params.companyId}`).emit('orders:refresh')
+      }
+
+      res.status(200).json(tour)
+    } catch (error) {
+      return forwardRouteError(next, error, 400)
     }
-    if (currentTour.state === 'STARTED' && nextState && !['FINISHED', 'CANCELLED'].includes(nextState)) {
-      return res.status(400).json({ error: 'A started tour can only be finished or cancelled' })
-    }
-
-    const tour = await tourManager.updateTour(req.params.tourId, req.body)
-
-    if (req.body.state === 'STARTED' || req.body.state === 'FINISHED') {
-      const orderIds = tour.orders.map(o => o._id || o)
-      const updatedOrders = await orderManager.getOrdersByIdsWithCustomer(orderIds)
-
-      updatedOrders.forEach(order => {
-        req.app.io
-          .to(`customer:${order.customer._id || order.customer}`)
-          .to(`order:${order._id}`)
-          .emit('order:updated', order)
-      })
-      req.app.io.to(`company:${req.params.companyId}`).emit('orders:refresh')
-    }
-
-    res.status(200).json(tour)
-  } catch (error) {
-    res.status(400).json({ error: error.message })
   }
-})
+)
 
 module.exports = router

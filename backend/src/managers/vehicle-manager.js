@@ -1,5 +1,10 @@
 const Vehicle = require('../models/vehicle')
 
+const VEHICLE_MUTABLE_FIELDS = ['name', 'brand', 'model', 'year', 'payLoad', 'state']
+
+const pickAllowedFields = (payload, allowedFields) =>
+  Object.fromEntries(Object.entries(payload || {}).filter(([key]) => allowedFields.includes(key)))
+
 const createVehicle = async vehicleData => {
   const newVehicle = await Vehicle.create(vehicleData)
   return newVehicle
@@ -12,9 +17,14 @@ const findVehicleById = async vehicleId => {
 }
 
 const updateVehicle = async (vehicleId, updatedData) => {
+  const allowedUpdates = pickAllowedFields(updatedData, VEHICLE_MUTABLE_FIELDS)
+  if (!Object.keys(allowedUpdates).length) {
+    throw new Error('No valid vehicle fields to update')
+  }
+
   const vehicle = await Vehicle.findOneAndUpdate(
     { _id: vehicleId },
-    { $set: updatedData },
+    { $set: allowedUpdates },
     { new: true, runValidators: true }
   )
 
