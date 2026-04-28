@@ -79,7 +79,13 @@ const updateTour = async (tourId, updateData) => {
   const tour = await Tour.findById(tourId)
   if (!tour) throw tourNotFound()
 
-  const allowedUpdates = pickAllowedFields(updateData, TOUR_MUTABLE_FIELDS)
+  const payload = updateData ? { ...updateData } : {}
+  if (hasOwn(payload, 'vehicleId') && !hasOwn(payload, 'vehicle')) {
+    payload.vehicle = payload.vehicleId
+    delete payload.vehicleId
+  }
+
+  const allowedUpdates = pickAllowedFields(payload, TOUR_MUTABLE_FIELDS)
 
   if (!Object.keys(allowedUpdates).length) {
     throw new DomainError('No valid tour fields to update', { status: 400 })
