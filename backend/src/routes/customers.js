@@ -1,4 +1,6 @@
 const express = require('express')
+const rateLimit = require('express-rate-limit')
+const { ipKeyGenerator } = rateLimit
 
 const router = express.Router()
 const orderManager = require('../managers/order-manager')
@@ -16,6 +18,15 @@ const {
 
 const customerAccess = requireCustomerAccess()
 const customerOrderAccess = requireOrderAccess({ customerParamName: 'customerId' })
+
+const aiGenerateRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.AI_GENERATE_RATE_LIMIT_MAX || 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: req => req.user?._id?.toString() || ipKeyGenerator(req),
+  message: { error: 'Too many AI order generations. Please try again later.' },
+})
 
 router.use(requireRole('admin', 'employee', 'customer'))
 
@@ -46,6 +57,7 @@ router.post('/:customerId/orders', validateCreateCustomerOrder, customerAccess, 
 
 router.post(
   '/:customerId/orders/ai-generate',
+  aiGenerateRateLimiter,
   validateGenerateCustomerOrder,
   customerAccess,
   async (req, res, next) => {
