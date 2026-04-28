@@ -7,6 +7,18 @@ const mongoose = require('mongoose')
 
 const app = require('../src/app')
 
+// Supertest never runs createSocketServer — stub Socket.IO so routes that emit do not throw.
+// Real code chains `.to().to().to().emit()` — a self-returning chain supports any depth.
+if (!app.io) {
+  const chain = {
+    to() {
+      return chain
+    },
+    emit() {},
+  }
+  app.io = { to: () => chain }
+}
+
 const clearDatabase = async () => {
   const { collections } = mongoose.connection
   // eslint-disable-next-line guard-for-in
@@ -15,24 +27,43 @@ const clearDatabase = async () => {
   }
 }
 
-const createCompany = async () => {
-  const companyResponse = await request(app).post('/companies').send({
+const loginAsAdmin = async (overrides = {}) => {
+  const credentials = {
+    email: 'admin@example.com',
+    password: 'Password1234',
+    role: 'admin',
+    ...overrides,
+  }
+  const agent = request.agent(app)
+  await agent.post('/accounts').send(credentials)
+  await agent.post('/accounts/session').send({
+    email: credentials.email,
+    password: credentials.password,
+  })
+  return agent
+}
+
+const createCompany = async (agent, overrides = {}) => {
+  const response = await agent.post('/admin/companies').send({
     companyName: 'company1',
     address: 'Some Street 1',
     postalCode: '43121',
     city: 'Somewhere',
+    ...overrides,
   })
-
-  return companyResponse
+  if (response.body && response.body.company) {
+    response.body = response.body.company
+  }
+  return response
 }
 
-const createCustomer = async companyId => {
-  const customerResponse = await request(app)
+const createCustomer = async (agent, companyId, overrides = {}) => {
+  const customerResponse = await agent
     .post(`/companies/${companyId}/customers`)
     .send({
       customerName: 'customer1',
       email: 'customer1@mail.com',
-      password: 'shouldNotBeHere',
+      password: 'Password1234',
       billingInfo: [
         {
           customerName: 'customer1',
@@ -42,6 +73,7 @@ const createCustomer = async companyId => {
           VATnr: 'VAT-001',
         },
       ],
+      ...overrides,
     })
 
   return customerResponse
@@ -58,8 +90,15 @@ const createAccount = async (overrides = {}) => {
   return accountResponse
 }
 
-const createOrder = async (customerId, billingInfo) => {
-  const orderResponse = await request(app)
+const sanitizeBillingSnippet = snippet => {
+  if (!snippet || typeof snippet !== 'object') return snippet
+  const { _id, ...rest } = snippet
+  return rest
+}
+
+const createOrder = async (agent, customerId, billingSnippet) => {
+  const billingInfo = sanitizeBillingSnippet(billingSnippet)
+  const orderResponse = await agent
     .post(`/customers/${customerId}/orders`)
     .send({
       origin: 'Zurich',
@@ -79,9 +118,11 @@ const createOrder = async (customerId, billingInfo) => {
 }
 
 module.exports = {
+  loginAsAdmin,
   createCompany,
   createCustomer,
   createAccount,
+  sanitizeBillingSnippet,
   createOrder,
   clearDatabase,
   app,
