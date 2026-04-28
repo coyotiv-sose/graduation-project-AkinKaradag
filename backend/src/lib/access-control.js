@@ -5,12 +5,13 @@ const getEntityId = value => {
     return String(value)
   }
 
-  if (typeof value === 'object' && value._id !== undefined) {
-    return getEntityId(value._id)
-  }
-
+  // BSON ObjectId exposes a circular `_id` getter — resolve hex before drilling into `_id`.
   if (typeof value === 'object' && typeof value.toHexString === 'function') {
     return value.toHexString()
+  }
+
+  if (typeof value === 'object' && value._id !== undefined) {
+    return getEntityId(value._id)
   }
 
   if (typeof value === 'object' && typeof value.valueOf === 'function') {
