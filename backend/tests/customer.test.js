@@ -1,16 +1,18 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-undef */
-const { createCompany, createCustomer, clearDatabase, app, request, mongoose} = require('./helper')
+const { createCompany, createCustomer, clearDatabase, loginAsAdmin, mongoose } = require('./helper')
 
 describe('Customer', () => {
+  let agent
   let company
   let customer
 
   beforeEach(async () => {
     await clearDatabase()
-    company = await createCompany()
-    customer = await createCustomer(company.body._id)
-    })
+    agent = await loginAsAdmin()
+    company = await createCompany(agent)
+    customer = await createCustomer(agent, company.body._id)
+  })
 
   it('should create a customer by a company', async () => {
     const expectedOutput = {
@@ -30,35 +32,33 @@ describe('Customer', () => {
   })
 
   it('should find a customer by its id', async () => {
-    const response = await request(app).get(`/customers/${customer.body._id}`)
+    const response = await agent.get(`/customers/${customer.body._id}`)
     expect(response.status).toBe(200)
     expect(response.body.customerName).toBe('customer1')
   })
 
-  it('should not find a customer by its id, if customer does not exist', async() => {
+  it('should not find a customer by its id, if customer does not exist', async () => {
     const fakeId = new mongoose.Types.ObjectId()
-    const response = await request(app).get(`/customers/${fakeId}`)
+    const response = await agent.get(`/customers/${fakeId}`)
     expect(response.status).toBe(404)
     expect(response.body.error).toBe('Customer not found')
   })
 
-  it('should find all customers belonging to a company', async() => {
-    const response = await request(app).get(`/companies/${company.body._id}/customers`)
+  it('should find all customers belonging to a company', async () => {
+    const response = await agent.get(`/companies/${company.body._id}/customers`)
     expect(response.status).toBe(200)
     expect(response.body).toHaveLength(1)
   })
 
-  it('should return empty List for company with no customers', async() => {
+  it('should return empty List for company with no customers', async () => {
     const fakeId = new mongoose.Types.ObjectId()
-    const response = await request(app).get(`/companies/${fakeId}/customers`)
+    const response = await agent.get(`/companies/${fakeId}/customers`)
     expect(response.status).toBe(200)
     expect(response.body).toHaveLength(0)
   })
 
-  it(`should return 500 for invalid comapny id`, async() => {
-    const response = await request(app).get('/companies/notValidId/customers')
-    expect(response.status).toBe(500)
-
+  it('should return 400 for invalid comapny id', async () => {
+    const response = await agent.get('/companies/notValidId/customers')
+    expect(response.status).toBe(400)
   })
-
 })
