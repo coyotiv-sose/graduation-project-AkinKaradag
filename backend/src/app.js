@@ -11,7 +11,7 @@ const cors = require('cors')
 const session = require('express-session')
 const passport = require('passport')
 const helmet = require('helmet')
-const mongoSanitize = require('express-mongo-sanitize')
+const mongoSanitize = require('@exortek/express-mongo-sanitize')
 const { errors: celebrateErrors } = require('celebrate')
 
 require('dotenv').config()
@@ -67,7 +67,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(logger('dev'))
 }
 app.use(helmet())
-app.use(mongoSanitize())
+app.use(mongoSanitize({ removeMatches: true }))
 app.use(express.json({ limit: '10kb' }))
 app.use(express.urlencoded({ extended: false, limit: '10kb' }))
 app.use(cookieParser())
@@ -125,10 +125,7 @@ app.createSocketServer = function (server) {
   const employeeManager = require('./managers/employee-manager')
 
   const io = require('socket.io')(server, {
-    cors: {
-      origin: true,
-      credentials: true,
-    },
+    cors: corsOptions,
   })
 
   app.io = io
