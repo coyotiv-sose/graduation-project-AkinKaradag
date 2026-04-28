@@ -1,7 +1,6 @@
 /* eslint-disable consistent-return */
 const express = require('express')
 
-const passport = require('passport')
 const rateLimit = require('express-rate-limit')
 const { validateAccountRegistration, validateLogin } = require('./validations/accounts-validation')
 const { DomainError } = require('../lib/domain-error')
@@ -66,38 +65,26 @@ router.post('/session', loginRateLimiter, validateLogin, async (req, res, next) 
     const normalizedEmail = req.body.email.toLowerCase()
     const account = await accountManager.getAccountByEmail(normalizedEmail)
 
-    if (accountManager.isAccountLoginLocked(account)) {
-      return res.status(429).json({ error: 'Account temporarily locked. Please try again later.' })
+    const result = await accountManager.verifyAccountPassword(account, req.body.password)
+
+    if (!result.success) {
+      if (account && !account.isLoginLocked()) {
+        await accountManager.registerFailedLoginAttempt(account)
+      }
+      return res.status(401).json({ error: 'Invalid email or password' })
     }
 
-    passport.authenticate('local', async (err, user) => {
-      try {
-        if (err) return next(err)
+    await accountManager.resetFailedLoginAttempts(result.user)
 
-        if (!user) {
-          const isLocked = await accountManager.registerFailedLoginAttempt(account)
-          if (isLocked) {
-            return res.status(429).json({ error: 'Account temporarily locked. Please try again later.' })
-          }
-          return res.status(401).json({ error: 'Invalid email or password' })
-        }
-
-        await accountManager.resetFailedLoginAttempts(user)
-
-        req.session.regenerate(regenerateErr => {
-          if (regenerateErr) return next(regenerateErr)
-
-          req.login(user, loginErr => {
-            if (loginErr) return next(loginErr)
-            res.json(user)
-          })
-        })
-      } catch (error) {
-        next(error)
-      }
-    })(req, res, next)
+    return req.session.regenerate(regenerateErr => {
+      if (regenerateErr) return next(regenerateErr)
+      return req.login(result.user, loginErr => {
+        if (loginErr) return next(loginErr)
+        return res.json(result.user)
+      })
+    })
   } catch (error) {
-    next(error)
+    return next(error)
   }
 })
 

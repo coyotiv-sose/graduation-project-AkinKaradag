@@ -11,6 +11,18 @@ const accountSchema = new mongoose.Schema({
   lockUntil: { type: Date, default: null },
 })
 
+const stripSensitiveAccountFields = (_doc, ret) => {
+  /* eslint-disable no-param-reassign */
+  delete ret.hash
+  delete ret.salt
+  delete ret.__v
+  /* eslint-enable no-param-reassign */
+  return ret
+}
+
+accountSchema.set('toJSON', { transform: stripSensitiveAccountFields })
+accountSchema.set('toObject', { transform: stripSensitiveAccountFields })
+
 accountSchema.methods.isLoginLocked = function () {
   return Boolean(this.lockUntil && this.lockUntil.getTime() > Date.now())
 }
