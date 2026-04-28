@@ -31,12 +31,13 @@ const orderCreateByCompanyBodySchema = createBodySchema(
 )
 
 const orderGenerateBodySchema = Joi.object({
-  prompt: nonEmptyStringSchema.required(),
+  prompt: nonEmptyStringSchema.max(2000).required(),
   billingInfo: billingInfoSchema.optional(),
 }).required()
 
 const orderUpdateBodySchema = createUpdateBodySchema({
   ...orderBaseBodyFields,
+  billingInfo: billingInfoSchema.optional(),
   customer: objectIdSchema,
   company: objectIdSchema,
 })

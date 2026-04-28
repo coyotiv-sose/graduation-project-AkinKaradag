@@ -1,8 +1,21 @@
 const OpenAI = require('openai')
 
+const { DomainError } = require('./domain-error')
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
+
+const parseGeneratedOrder = text => {
+  if (!text) {
+    throw new DomainError('AI service returned an empty response', { status: 502 })
+  }
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new DomainError('AI service returned an invalid response', { status: 502 })
+  }
+}
 
 module.exports = async function (prompt) {
   const response = await openai.chat.completions.create({
@@ -43,10 +56,11 @@ Rules:
         content: prompt,
       },
     ],
+    response_format: { type: 'json_object' },
     temperature: 0.2,
     max_tokens: 1000,
   })
 
   const text = response.choices?.[0]?.message?.content || ''
-  return JSON.parse(text)
+  return parseGeneratedOrder(text)
 }
