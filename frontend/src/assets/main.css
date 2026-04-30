@@ -375,6 +375,96 @@
   color: var(--color-primary);
 }
 
+.kl-table-wrap {
+  overflow-x: auto;
+}
+
+.kl-table__actions {
+  text-align: right;
+  white-space: nowrap;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+td.kl-table__actions {
+  gap: 0.35rem;
+}
+
+/* Shared admin/list detail surfaces */
+.section-sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+}
+
+.danger-icon:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.empty-row {
+  text-align: center;
+  padding: 2rem 1rem !important;
+}
+
+.inline-form {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-subtle);
+}
+
+.inline-form__title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.inline-form__hint {
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+}
+
+.inline-form .kl-form-row + .kl-form-row {
+  margin-top: 0.85rem;
+}
+
+.inline-form__actions {
+  margin-top: 1.15rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-input {
+  position: relative;
+  width: 280px;
+  max-width: 100%;
+}
+
+.search-input__icon {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-input__control {
+  padding-left: 1.9rem;
+}
+
+.filter-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.filter-row .kl-select {
+  max-width: 220px;
+}
+
 /* ===========================
    Tabs
    =========================== */
