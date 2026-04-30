@@ -6,6 +6,11 @@ const VARIANT_ICON = {
   destination: Flag,
 }
 
+const VARIANT_ICON_CLASS = {
+  origin: '',
+  destination: 'kl-section-icon--info',
+}
+
 const DEFAULT_PLACEHOLDERS = {
   origin: {
     name: 'Company or person name',
@@ -39,6 +44,9 @@ export default {
     iconComponent() {
       return VARIANT_ICON[this.variant]
     },
+    iconClass() {
+      return VARIANT_ICON_CLASS[this.variant]
+    },
     placeholders() {
       return DEFAULT_PLACEHOLDERS[this.variant]
     },
@@ -47,9 +55,9 @@ export default {
 </script>
 
 <template lang="pug">
-section.kl-card.kl-card--padded.form-section
-  header.form-section__head
-    .form-section__icon(:class="`form-section__icon--${variant}`")
+section.kl-card.kl-card--padded.kl-form-section
+  header.kl-section-head
+    .kl-section-icon(:class="iconClass")
       component(:is="iconComponent", :size="16", :stroke-width="1.75")
     div
       h3 {{ title }}
@@ -73,43 +81,3 @@ section.kl-card.kl-card--padded.form-section
       label.kl-label City
       input.kl-input(v-model="modelValue.city" :placeholder="placeholders.city" required)
 </template>
-
-<style scoped>
-.form-section__head {
-  display: flex;
-  gap: 0.85rem;
-  align-items: center;
-  margin-bottom: 1.25rem;
-}
-
-.form-section__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.form-section__icon--destination {
-  background: var(--color-info-soft);
-  color: var(--color-info);
-}
-
-.form-section__head h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.form-section__head p {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
-}
-
-.form-section .kl-form-row + .kl-form-row {
-  margin-top: 0.85rem;
-}
-</style>

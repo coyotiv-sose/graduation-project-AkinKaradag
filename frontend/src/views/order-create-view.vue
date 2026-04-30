@@ -6,22 +6,29 @@ import { useCustomerStore } from '@/stores/customer-store'
 import { useAdminStore } from '@/stores/admin-store'
 import PageHeader from '@/components/page-header.vue'
 import AddressForm from '@/components/address-form.vue'
-import { Plus, Trash2, Sparkles, Package, User, Receipt } from 'lucide-vue-next'
+import OrderCustomerPicker from '@/components/order-customer-picker.vue'
+import OrderBillingSection from '@/components/order-billing-section.vue'
+import OrderCargoSection from '@/components/order-cargo-section.vue'
+import OrderSummaryCard from '@/components/order-summary-card.vue'
+import OrderAiPrompt from '@/components/order-ai-prompt.vue'
 import {
   createEmptyBillingInfo,
   createEmptyAddress,
   createEmptyCargo,
   formatAddress,
-  shortAddress,
-  customerLabel,
-  billingLabel,
-  formatDate,
-  formatBillingLine,
 } from '@/utils/order-form-helpers'
 
 export default {
   name: 'OrderCreateView',
-  components: { PageHeader, AddressForm, Plus, Trash2, Sparkles, Package, User, Receipt },
+  components: {
+    PageHeader,
+    AddressForm,
+    OrderCustomerPicker,
+    OrderBillingSection,
+    OrderCargoSection,
+    OrderSummaryCard,
+    OrderAiPrompt,
+  },
   data() {
     return {
       origin: createEmptyAddress(),
@@ -29,17 +36,13 @@ export default {
       deliveryDate: '',
       note: '',
       cargos: [createEmptyCargo()],
-      errorMessage: '',
-      successMessage: '',
-      isSubmitting: false,
-      prompt: '',
-      isGenerating: false,
-      generatedOrder: null,
-      aiError: '',
       selectedCustomerId: '',
       selectedBillingId: '',
       overrideBilling: false,
       customBillingInfo: createEmptyBillingInfo(),
+      errorMessage: '',
+      successMessage: '',
+      isSubmitting: false,
     }
   },
   computed: {
@@ -87,23 +90,11 @@ export default {
     canSubmit() {
       return this.addressesComplete && !!this.resolvedCustomerId && this.billingReady && !this.isSubmitting
     },
-    canGenerate() {
-      return !!this.resolvedCustomerId && this.billingReady && !!this.prompt.trim() && !this.isGenerating
+    needsCustomerForAi() {
+      return this.isStaffMode && !this.selectedCustomerId
     },
-    totalWeight() {
-      return this.cargos.reduce((sum, c) => sum + Number(c.quantity || 0) * Number(c.weight || 0), 0)
-    },
-    totalUnits() {
-      return this.cargos.reduce((sum, c) => sum + Number(c.quantity || 0), 0)
-    },
-    formattedDeliveryDate() {
-      if (!this.deliveryDate) return '—'
-      return new Date(this.deliveryDate).toLocaleDateString(undefined, {
-        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-      })
-    },
-    billingSummaryLine() {
-      return formatBillingLine(this.resolvedBillingInfo)
+    aiBillingInfo() {
+      return this.billingReady ? this.resolvedBillingInfo : null
     },
   },
   watch: {
@@ -122,25 +113,13 @@ export default {
     }
   },
   methods: {
-    ...mapActions(useOrderStore, ['createOrderForCustomer', 'generateOrderFromPrompt']),
+    ...mapActions(useOrderStore, ['createOrderForCustomer']),
     ...mapActions(useCustomerStore, { loadCompanyCustomers: 'getAllCustomers' }),
     ...mapActions(useAdminStore, { loadAllCustomers: 'getAllCustomers' }),
-    shortAddress,
-    customerLabel,
-    billingLabel,
-    formatDate,
     pickDefaultBillingId(profiles) {
       if (!profiles?.length) return ''
       const chosen = profiles.find(b => b.isDefault) || profiles[0]
       return chosen._id || ''
-    },
-    addCargo() {
-      this.cargos.push(createEmptyCargo())
-    },
-    removeCargo(index) {
-      if (this.cargos.length > 1) {
-        this.cargos.splice(index, 1)
-      }
     },
     resetForm() {
       this.origin = createEmptyAddress()
@@ -185,38 +164,6 @@ export default {
         this.isSubmitting = false
       }
     },
-    async generateOrder() {
-      this.aiError = ''
-      if (!this.resolvedCustomerId) {
-        this.aiError = this.isStaffMode ? 'Select a customer first' : 'Profile not loaded'
-        return
-      }
-      if (!this.billingReady) {
-        this.aiError = 'Billing information is incomplete'
-        return
-      }
-      if (!this.prompt.trim()) {
-        this.aiError = 'Please enter a prompt'
-        return
-      }
-
-      this.isGenerating = true
-      this.generatedOrder = null
-
-      try {
-        const order = await this.generateOrderFromPrompt(
-          this.resolvedCustomerId,
-          this.prompt,
-          this.resolvedBillingInfo,
-        )
-        this.generatedOrder = order
-        this.prompt = ''
-      } catch (e) {
-        this.aiError = e.response?.data?.error || e.message || 'Failed to generate order'
-      } finally {
-        this.isGenerating = false
-      }
-    },
   },
 }
 </script>
@@ -231,85 +178,21 @@ export default {
     back-label="Back to orders"
   )
   .order-create__grid
-    //- FORM
     form.form-col(@submit.prevent="submitOrder")
-      //- Staff-only: pick the customer this order is for
-      section.kl-card.kl-card--padded.form-section(v-if="isStaffMode")
-        header.form-section__head
-          .form-section__icon
-            User(:size="16", :stroke-width="1.75")
-          div
-            h3 Customer
-            p.kl-muted Who is this order being booked for?
-        .kl-form-row(style="--cols: 1")
-          .kl-field
-            label.kl-label Customer
-            select.kl-select(v-model="selectedCustomerId" required)
-              option(disabled value="") Select a customer
-              option(
-                v-for="customer in customerOptions"
-                :key="customer._id"
-                :value="customer._id"
-              ) {{ customerLabel(customer) }}
-          p.kl-muted.hint(v-if="isStaffMode && !customerOptions.length")
-            | No customers found. Add a customer first to create orders on their behalf.
+      OrderCustomerPicker(
+        v-if="isStaffMode"
+        v-model="selectedCustomerId"
+        :customers="customerOptions"
+      )
 
-      //- Billing section
-      section.kl-card.kl-card--padded.form-section(v-if="showBillingSection")
-        header.form-section__head
-          .form-section__icon.form-section__icon--billing
-            Receipt(:size="16", :stroke-width="1.75")
-          div
-            h3 Billing address
-            p.kl-muted Who gets invoiced for this order?
-        template(v-if="!overrideBilling && billingProfiles.length > 1")
-          .kl-form-row(style="--cols: 1")
-            .kl-field
-              label.kl-label Billing profile
-              select.kl-select(v-model="selectedBillingId")
-                option(
-                  v-for="billing in billingProfiles"
-                  :key="billing._id"
-                  :value="billing._id"
-                ) {{ billingLabel(billing) }}
-        .billing-preview(v-if="!overrideBilling && resolvedBillingInfo")
-          .billing-preview__name {{ resolvedBillingInfo.customerName }}
-          .billing-preview__line {{ resolvedBillingInfo.address }}
-          .billing-preview__line {{ resolvedBillingInfo.postalCode }} {{ resolvedBillingInfo.city }}
-          .billing-preview__meta(v-if="resolvedBillingInfo.VATnr")
-            | VAT: {{ resolvedBillingInfo.VATnr }}
-        p.kl-alert.kl-alert--warning(v-if="!overrideBilling && !billingProfiles.length")
-          template(v-if="isStaffMode")
-            | This customer has no billing profile yet. Enable "Bill a different party" below to enter one manually.
-          template(v-else)
-            | You have no billing address on file. Please add one to your profile before creating an order.
-        .override-toggle(v-if="isStaffMode")
-          label.kl-checkbox
-            input(type="checkbox" v-model="overrideBilling")
-            span Bill a different party (one-off override)
-        template(v-if="overrideBilling")
-          .kl-form-row(style="--cols: 1")
-            .kl-field
-              label.kl-label Billed party
-              input.kl-input(v-model="customBillingInfo.customerName" placeholder="Company or person to invoice" required)
-          .kl-form-row(style="--cols: 1")
-            .kl-field
-              label.kl-label Address
-              input.kl-input(v-model="customBillingInfo.address" placeholder="Street and number" required)
-          .kl-form-row(style="--cols: 120px 1fr")
-            .kl-field
-              label.kl-label Postal
-              input.kl-input(v-model="customBillingInfo.postalCode" placeholder="4000" required)
-            .kl-field
-              label.kl-label City
-              input.kl-input(v-model="customBillingInfo.city" placeholder="Basel" required)
-          .kl-form-row(style="--cols: 1fr 1fr")
-            .kl-field
-              label.kl-label Label (optional)
-              input.kl-input(v-model="customBillingInfo.label" placeholder="e.g. Third-party billing")
-            .kl-field
-              label.kl-label VAT nr (optional)
-              input.kl-input(v-model="customBillingInfo.VATnr" placeholder="CHE-123.456.789")
+      OrderBillingSection(
+        v-if="showBillingSection"
+        v-model:selected-id="selectedBillingId"
+        v-model:override="overrideBilling"
+        v-model:custom="customBillingInfo"
+        :profiles="billingProfiles"
+        :is-staff-mode="isStaffMode"
+      )
 
       AddressForm(
         v-model="origin"
@@ -325,63 +208,13 @@ export default {
         subtitle="Where is the shipment going?"
       )
 
-      section.kl-card.kl-card--padded.form-section
-        header.form-section__head
-          .form-section__icon
-            Package(:size="16", :stroke-width="1.75")
-          div
-            h3 Scheduling & cargo
-            p.kl-muted Delivery window and shipment contents.
-        .kl-form-row(style="--cols: 1fr 1fr")
-          .kl-field
-            label.kl-label Delivery date
-            input.kl-input(type="date" v-model="deliveryDate" required)
-        .cargo-section(:class="{ 'cargo-section--disabled': !addressesComplete }")
-          p.hint(v-if="!addressesComplete")
-            | Fill in all address fields and the delivery date to add cargo details.
-          template(v-if="addressesComplete")
-            div.cargo-entry(v-for="(cargo, index) in cargos" :key="index")
-              .cargo-entry__head
-                span Cargo {{ index + 1 }}
-                button.kl-btn.kl-btn--ghost.kl-btn--sm.danger-icon(
-                  v-if="cargos.length > 1"
-                  type="button"
-                  title="Remove cargo"
-                  @click="removeCargo(index)"
-                )
-                  Trash2(:size="14", :stroke-width="1.75")
-              .kl-form-row(style="--cols: 1fr 1fr 1fr")
-                .kl-field
-                  label.kl-label Type
-                  select.kl-select(v-model="cargo.loadCarrierType")
-                    option Pallet
-                    option Box
-                    option Container
-                    option Envelope
-                    option Other
-                .kl-field
-                  label.kl-label Quantity
-                  input.kl-input(type="number" v-model.number="cargo.quantity" min="1" required)
-                .kl-field
-                  label.kl-label Weight (kg)
-                  input.kl-input(type="number" v-model.number="cargo.weight" min="0" required)
-              .kl-form-row(style="--cols: 1fr 1fr 1fr")
-                .kl-field
-                  label.kl-label Width (cm)
-                  input.kl-input(type="number" v-model.number="cargo.dimensions.width" min="0")
-                .kl-field
-                  label.kl-label Length (cm)
-                  input.kl-input(type="number" v-model.number="cargo.dimensions.length" min="0")
-                .kl-field
-                  label.kl-label Height (cm)
-                  input.kl-input(type="number" v-model.number="cargo.dimensions.height" min="0")
-            button.kl-btn.kl-btn--outline(type="button" @click="addCargo")
-              Plus(:size="14", :stroke-width="2")
-              |  Add another cargo
-        .kl-form-row(style="--cols: 1")
-          .kl-field
-            label.kl-label Note (optional)
-            textarea.kl-textarea(v-model="note" rows="3" placeholder="Additional notes...")
+      OrderCargoSection(
+        v-model:cargos="cargos"
+        v-model:delivery-date="deliveryDate"
+        v-model:note="note"
+        :enabled="addressesComplete"
+      )
+
       p.kl-alert.kl-alert--danger(v-if="errorMessage") {{ errorMessage }}
       p.kl-alert.kl-alert--success(v-if="successMessage") {{ successMessage }}
       .form-submit
@@ -391,78 +224,22 @@ export default {
         )
           | {{ isSubmitting ? 'Creating...' : 'Submit order' }}
 
-    //- SUMMARY
     aside.summary-col
-      .kl-card.kl-card--padded.summary
-        h3 Order summary
-        p.kl-muted.summary__sub Live preview based on your inputs.
-        .summary-row(v-if="isStaffMode")
-          span.summary-row__label Customer
-          span.summary-row__value {{ selectedCustomer ? selectedCustomer.customerName : 'Not selected' }}
-        .summary-row
-          span.summary-row__label Billing
-          span.summary-row__value {{ billingSummaryLine }}
-        .summary-row
-          span.summary-row__label Origin
-          span.summary-row__value {{ shortAddress(origin) }}
-        .summary-row
-          span.summary-row__label Destination
-          span.summary-row__value {{ shortAddress(destination) }}
-        .summary-row
-          span.summary-row__label Delivery
-          span.summary-row__value {{ formattedDeliveryDate }}
-        .kl-divider
-        .summary-stats
-          div
-            .summary-stats__label Cargo items
-            .summary-stats__value {{ cargos.length }}
-          div
-            .summary-stats__label Total units
-            .summary-stats__value {{ totalUnits }}
-          div
-            .summary-stats__label Total weight
-            .summary-stats__value {{ totalWeight }} kg
-      .kl-card.kl-card--padded.ai-section
-        .ai-section__head
-          .ai-section__icon
-            Sparkles(:size="16", :stroke-width="1.75")
-          div
-            h3 Create with AI
-            p.kl-muted Describe your shipment in plain language.
-        p.kl-muted.hint(v-if="isStaffMode && !selectedCustomerId")
-          | Select a customer above before generating with AI.
-        textarea.kl-textarea(
-          v-model="prompt"
-          rows="4"
-          placeholder='e.g. "Ship 3 pallets of electronics from Berlin to Munich by next Friday, each pallet ~200kg"'
-          :disabled="isGenerating || (isStaffMode && !selectedCustomerId)"
-        )
-        button.kl-btn.kl-btn--primary.kl-btn--block(
-          type="button"
-          :disabled="!canGenerate"
-          @click="generateOrder"
-        )
-          | {{ isGenerating ? 'Generating...' : 'Create order with AI' }}
-        p.kl-alert.kl-alert--danger(v-if="aiError") {{ aiError }}
-        div.generated-order(v-if="generatedOrder")
-          .generated-order__head
-            h4 Order created
-            span.kl-badge.kl-badge--primary {{ generatedOrder.state }}
-          p
-            strong Origin:
-            |  {{ generatedOrder.origin }}
-          p
-            strong Destination:
-            |  {{ generatedOrder.destination }}
-          p
-            strong Delivery:
-            |  {{ formatDate(generatedOrder.deliveryDate) }}
-          .kl-divider
-          h5 Cargos
-          div.generated-cargo(v-for="(cargo, idx) in generatedOrder.cargos" :key="idx")
-            p {{ cargo.quantity }}x {{ cargo.loadCarrierType }} — {{ cargo.weight }} kg
-            p.kl-muted.small
-              | {{ cargo.dimensions.width }} × {{ cargo.dimensions.length }} × {{ cargo.dimensions.height }} cm
+      OrderSummaryCard(
+        :customer="selectedCustomer"
+        :billing-info="resolvedBillingInfo"
+        :origin="origin"
+        :destination="destination"
+        :delivery-date="deliveryDate"
+        :cargos="cargos"
+        :show-customer="isStaffMode"
+      )
+      OrderAiPrompt(
+        :customer-id="resolvedCustomerId"
+        :billing-info="aiBillingInfo"
+        :is-staff-mode="isStaffMode"
+        :needs-customer-hint="needsCustomerForAi"
+      )
 </template>
 
 <style scoped>
@@ -491,271 +268,10 @@ export default {
   top: 1.5rem;
 }
 
-.form-section__head {
-  display: flex;
-  gap: 0.85rem;
-  align-items: center;
-  margin-bottom: 1.25rem;
-}
-
-.form-section__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.form-section__icon--destination {
-  background: var(--color-info-soft);
-  color: var(--color-info);
-}
-
-.form-section__icon--billing {
-  background: var(--color-warning-soft, var(--color-primary-soft));
-  color: var(--color-warning, var(--color-primary));
-}
-
-.form-section__head h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.form-section__head p {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
-}
-
-.form-section + .form-section {
-  margin-top: 0;
-}
-
-.form-section .kl-form-row + .kl-form-row {
-  margin-top: 0.85rem;
-}
-
-.billing-preview {
-  margin-top: 0.85rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-primary);
-  border-radius: var(--radius-sm);
-  background: var(--color-background-subtle);
-  font-size: 0.875rem;
-  line-height: 1.45;
-}
-
-.billing-preview__name {
-  font-weight: 600;
-  color: var(--color-heading);
-  margin-bottom: 0.1rem;
-}
-
-.billing-preview__line {
-  color: var(--color-text);
-}
-
-.billing-preview__meta {
-  margin-top: 0.35rem;
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-}
-
-.override-toggle {
-  margin-top: 0.85rem;
-}
-
-.kl-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--color-text);
-  cursor: pointer;
-  user-select: none;
-}
-
-.kl-checkbox input[type='checkbox'] {
-  margin: 0;
-  cursor: pointer;
-}
-
-.cargo-section {
-  margin-top: 1.25rem;
-}
-
-.cargo-section--disabled {
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.hint {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  font-style: italic;
-  margin: 0 0 0.75rem;
-}
-
-.cargo-entry {
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-primary);
-  border-radius: var(--radius-sm);
-  margin-bottom: 0.85rem;
-  background: var(--color-background-subtle);
-}
-
-.cargo-entry__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.85rem;
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.danger-icon:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
-}
-
 .form-submit {
   display: flex;
   justify-content: flex-end;
   padding: 0.5rem 0 1rem;
-}
-
-/* Summary */
-.summary h3,
-.ai-section h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.summary__sub {
-  margin: 0.25rem 0 1rem;
-  font-size: 0.85rem;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.55rem 0;
-  font-size: 0.875rem;
-}
-
-.summary-row__label {
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.summary-row__value {
-  color: var(--color-heading);
-  text-align: right;
-  font-weight: 500;
-}
-
-.summary-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-.summary-stats__label {
-  font-size: 0.7rem;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-}
-
-.summary-stats__value {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-heading);
-  margin-top: 0.15rem;
-}
-
-/* AI section */
-.ai-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.ai-section__head {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.ai-section__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ai-section__head p {
-  margin: 0;
-  font-size: 0.8rem;
-}
-
-.generated-order {
-  padding: 0.85rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-background-subtle);
-  font-size: 0.875rem;
-}
-
-.generated-order h4 {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.generated-order h5 {
-  margin: 0 0 0.4rem;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-}
-
-.generated-order__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.generated-order p {
-  margin: 0.2rem 0;
-}
-
-.generated-cargo + .generated-cargo {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed var(--color-border);
-}
-
-.generated-cargo .small {
-  font-size: 0.8rem;
 }
 
 @media (max-width: 1020px) {
