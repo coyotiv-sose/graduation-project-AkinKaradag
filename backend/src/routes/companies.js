@@ -29,6 +29,15 @@ const withCompanyTourVehicleUpdateAccess = withCompanyScope(
   access.requireBodyVehicleInCompany({ vehicleFields: ['vehicle', 'vehicleId'] })
 )
 
+router.get('/public', async (req, res, next) => {
+  try {
+    const companies = await companyManager.getPublicCompanies()
+    res.status(200).json(companies)
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.use(requireRole('admin', 'employee'))
 
 // ---- Company detail ----
