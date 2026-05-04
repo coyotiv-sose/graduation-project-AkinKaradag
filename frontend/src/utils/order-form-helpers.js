@@ -88,3 +88,10 @@ export function formatBillingLine(billing) {
     .join(', ')
   return where ? `${who} · ${where}` : who
 }
+
+export function totalCargoWeight(cargos = []) {
+  return cargos.reduce(
+    (sum, cargo) => sum + Number(cargo.quantity || 0) * Number(cargo.weight || 0),
+    0,
+  )
+}

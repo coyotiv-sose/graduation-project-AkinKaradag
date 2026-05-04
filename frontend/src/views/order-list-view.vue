@@ -3,6 +3,8 @@ import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useAccountStore } from '@/stores/account-store'
 import PageHeader from '@/components/layout/page-header.vue'
+import { orderBadgeClass } from '@/utils/badge-classes'
+import { formatDate } from '@/utils/format'
 import { Plus, ChevronRight } from 'lucide-vue-next'
 
 export default {
@@ -14,16 +16,8 @@ export default {
   },
   methods: {
     ...mapActions(useOrderStore, ['getOrders', 'getOrdersByCompany']),
-    formatDate(date) {
-      return new Date(date).toLocaleDateString()
-    },
-    orderBadgeClass(state) {
-      return {
-        PENDING: 'kl-badge kl-badge--warning',
-        IN_PROCESS: 'kl-badge kl-badge--info',
-        DELIVERED: 'kl-badge kl-badge--primary',
-      }[state] || 'kl-badge kl-badge--muted'
-    },
+    formatDate,
+    orderBadgeClass,
   },
   async mounted() {
     if (this.isCustomer && this.customerId) {
