@@ -2,6 +2,7 @@
 import { mapActions } from 'pinia'
 import { useAccountStore } from '../stores/account-store'
 import { ArrowRight, Mail, Lock } from 'lucide-vue-next'
+import { apiErrorMessage } from '@/utils/error-helpers'
 
 export default {
   name: 'LoginView',
@@ -23,7 +24,7 @@ export default {
         await this.login(this.email, this.password)
         this.$router.push('/')
       } catch (e) {
-        this.error = e.response?.data?.error || e.message || 'Unable to sign in'
+        this.error = apiErrorMessage(e, 'Unable to sign in')
       } finally {
         this.isSubmitting = false
       }
