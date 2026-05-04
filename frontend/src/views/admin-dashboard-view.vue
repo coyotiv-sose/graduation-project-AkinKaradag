@@ -2,22 +2,40 @@
 import { mapState, mapActions } from 'pinia'
 import { useAdminStore } from '@/stores/admin-store'
 import { useAccountStore } from '@/stores/account-store'
-import AdminDashboardCompanyTab from '@/components/admin/admin-dashboard-company-tab.vue'
-import AdminDashboardCustomerTab from '@/components/admin/admin-dashboard-customer-tab.vue'
-import AdminDashboardOrderTab from '@/components/admin/admin-dashboard-order-tab.vue'
-import AdminCompanyForm from '@/components/admin/admin-company-form.vue'
-import PageHeader from '@/components/layout/page-header.vue'
+import AdminDashboardCompanyTab from '@/components/admin-dashboard/admin-dashboard-company-tab.vue'
+import AdminDashboardCustomerTab from '@/components/admin-dashboard/admin-dashboard-customer-tab.vue'
+import AdminDashboardOrderTab from '@/components/admin-dashboard/admin-dashboard-order-tab.vue'
+import PageHeader from '@/components/page-header.vue'
 import { Building2, Users, Package } from 'lucide-vue-next'
+import { apiErrorMessage } from '@/utils/error-helpers'
+
+const emptyCompanyForm = () => ({
+  companyName: '',
+  address: '',
+  postalCode: '',
+  city: '',
+  ownerName: '',
+  ownerEmail: '',
+  ownerPassword: '',
+})
+
+const companyFormFromCompany = company => ({
+  ...emptyCompanyForm(),
+  companyName: company.companyName || '',
+  address: company.address || '',
+  postalCode: company.postalCode || '',
+  city: company.city || '',
+})
 
 export default {
   name: 'AdminDashboardView',
-  components: { AdminDashboardCompanyTab, AdminDashboardCustomerTab, AdminDashboardOrderTab, AdminCompanyForm, PageHeader, Building2, Users, Package },
+  components: { AdminDashboardCompanyTab, AdminDashboardCustomerTab, AdminDashboardOrderTab, PageHeader, Building2, Users, Package },
   data() {
     return {
       activeTab: 'companies',
-      formMode: null,
+      showCompanyForm: false,
       editingCompany: null,
-      isSubmittingCompany: false,
+      companyForm: emptyCompanyForm(),
       isLoading: false,
       error: null,
       info: null,
@@ -42,6 +60,11 @@ export default {
       this.error = null
       this.info = null
     },
+    resetCompanyFormState() {
+      this.showCompanyForm = false
+      this.editingCompany = null
+      this.companyForm = emptyCompanyForm()
+    },
     async loadDashboardData() {
       if (!this.isAdmin) return
       this.resetFeedback()
@@ -53,39 +76,47 @@ export default {
           this.getAllOrders(),
         ])
       } catch (err) {
-        this.error = err.response?.data?.error || err.message
+        this.error = apiErrorMessage(err)
       } finally {
         this.isLoading = false
       }
     },
     openCreateCompany() {
       this.resetFeedback()
-      this.editingCompany = null
-      this.formMode = 'create'
+      this.resetCompanyFormState()
+      this.showCompanyForm = true
     },
     openEditCompany(company) {
       this.resetFeedback()
-      this.editingCompany = company
-      this.formMode = 'edit'
+      this.resetCompanyFormState()
+      this.editingCompany = company._id
+      this.companyForm = companyFormFromCompany(company)
+      this.showCompanyForm = true
     },
-    async handleSubmitCompany(payload) {
+    async submitCompany() {
       this.resetFeedback()
-      this.isSubmittingCompany = true
+
       try {
-        if (this.formMode === 'edit') {
-          await this.updateCompany(this.editingCompany._id, payload)
+        if (this.editingCompany) {
+          const companyData = {
+            companyName: this.companyForm.companyName,
+            address: this.companyForm.address,
+            postalCode: this.companyForm.postalCode,
+            city: this.companyForm.city,
+          }
+          await this.updateCompany(this.editingCompany, companyData)
+          this.resetCompanyFormState()
         } else {
-          const result = await this.createCompany(payload)
+          const ownerEmail = this.companyForm.ownerEmail
+          const result = await this.createCompany(this.companyForm)
+          this.resetCompanyFormState()
+
           if (result?.owner) {
-            this.info = `Company created with owner account: ${payload.ownerEmail}`
+            this.info = `Company created with owner account: ${ownerEmail}`
           }
         }
-        this.formMode = null
-        this.editingCompany = null
       } catch (err) {
-        this.error = err.response?.data?.error || err.message
-      } finally {
-        this.isSubmittingCompany = false
+        this.error = apiErrorMessage(err)
       }
     },
     async removeCompany(companyId) {
@@ -94,13 +125,12 @@ export default {
       try {
         await this.deleteCompany(companyId)
       } catch (err) {
-        this.error = err.response?.data?.error || err.message
+        this.error = apiErrorMessage(err)
       }
     },
     cancelForm() {
       this.resetFeedback()
-      this.formMode = null
-      this.editingCompany = null
+      this.resetCompanyFormState()
     },
   },
   async mounted() {
@@ -166,20 +196,20 @@ div.admin(v-if="isAdmin")
     )
       | Orders
       span.kl-tab-count {{ allOrders.length }}
-  template(v-if="activeTab === 'companies'")
-    AdminCompanyForm(
-      v-if="formMode"
-      :initial-company="editingCompany"
-      :is-submitting="isSubmittingCompany"
-      @submit="handleSubmitCompany"
-      @cancel="cancelForm"
-    )
-    AdminDashboardCompanyTab(
-      :companies="companies"
-      @open-create="openCreateCompany"
-      @edit-company="openEditCompany"
-      @delete-company="removeCompany"
-    )
+  AdminDashboardCompanyTab(
+    v-if="activeTab === 'companies'"
+    :companies="companies"
+    :show-company-form="showCompanyForm"
+    :editing-company="editingCompany"
+    :company-form="companyForm"
+    :is-loading="isLoading"
+    @open-create="openCreateCompany"
+    @edit-company="openEditCompany"
+    @submit-company="submitCompany"
+    @cancel-form="cancelForm"
+    @delete-company="removeCompany"
+    @update-form="companyForm = $event"
+  )
   AdminDashboardCustomerTab(
     v-if="activeTab === 'customers'"
     :customers="allCustomers"
