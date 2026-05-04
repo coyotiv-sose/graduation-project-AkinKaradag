@@ -16,6 +16,8 @@ const getCompanyById = async companyId => {
 
 const getAllCompanies = () => Company.find()
 
+const getPublicCompanies = () => Company.find().select('companyName city').sort({ companyName: 1 })
+
 const updateCompany = async (companyId, updates) => {
   const company = await Company.findById(companyId)
   if (!company) throw new DomainError('Company not found', { status: 404 })
@@ -34,6 +36,7 @@ module.exports = {
   createCompany,
   getCompanyById,
   getAllCompanies,
+  getPublicCompanies,
   updateCompany,
   deleteCompany,
 }
