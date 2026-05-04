@@ -5,25 +5,57 @@ import { useCustomerStore } from '@/stores/customer-store'
 import { useEmployeeStore } from '@/stores/employee-store'
 import { useAccountStore } from '@/stores/account-store'
 import { useAdminStore } from '@/stores/admin-store'
-import PageHeader from '@/components/layout/page-header.vue'
-import CompanyCustomersPanel from '@/components/company/company-customers-panel.vue'
-import CompanyEmployeesPanel from '@/components/company/company-employees-panel.vue'
-import CompanyOrdersPanel from '@/components/company/company-orders-panel.vue'
+import PageHeader from '@/components/page-header.vue'
+import CompanyCustomersSection from '@/components/company-detail/company-customers-section.vue'
+import CompanyEmployeesSection from '@/components/company-detail/company-employees-section.vue'
+import CompanyOrdersSection from '@/components/company-detail/company-orders-section.vue'
 import { Route, Truck } from 'lucide-vue-next'
+import { apiErrorMessage } from '@/utils/error-helpers'
+
+const emptyCustomerForm = () => ({
+  customerName: '',
+  email: '',
+  company: '',
+  profile: 'CUSTOMER_DEFAULT',
+  billingInfo: [],
+})
+
+const emptyEmployeeForm = () => ({
+  name: '',
+  email: '',
+  profile: 'DISPATCHER',
+})
+
+const emptyOrderForm = () => ({
+  origin: '',
+  destination: '',
+  state: 'PENDING',
+  deliveryDate: '',
+})
 
 export default {
   name: 'CompanyDetailView',
   components: {
-    CompanyCustomersPanel,
-    CompanyEmployeesPanel,
-    CompanyOrdersPanel,
     PageHeader,
+    CompanyCustomersSection,
+    CompanyEmployeesSection,
+    CompanyOrdersSection,
     Route,
     Truck,
   },
   data() {
     return {
       company: null,
+      resetTarget: null,
+      newPassword: '',
+      editingCustomerId: null,
+      customerForm: emptyCustomerForm(),
+      editingEmployeeId: null,
+      employeeForm: emptyEmployeeForm(),
+      editingOrderId: null,
+      orderForm: emptyOrderForm(),
+      error: null,
+      success: null,
     }
   },
   computed: {
@@ -33,11 +65,7 @@ export default {
     ...mapState(useCompanyStore, ['companies']),
     ...mapState(useCustomerStore, ['customers']),
     ...mapState(useEmployeeStore, ['employees']),
-    ...mapState(useAccountStore, {
-      accountCompanyId: 'companyId',
-      isAdmin: 'isAdmin',
-      isEmployee: 'isEmployee',
-    }),
+    ...mapState(useAccountStore, ['isAdmin', 'isEmployee']),
     ...mapState(useAdminStore, ['allOrders']),
     canManage() {
       return this.isAdmin || this.isEmployee
@@ -50,12 +78,13 @@ export default {
       })
     },
     backTarget() {
-      if (this.isAdmin) {
+      const accountStore = useAccountStore()
+      if (accountStore.isAdmin) {
         return { to: { name: 'admin' }, label: 'Back to admin dashboard' }
       }
-      if (this.isEmployee && this.accountCompanyId) {
+      if (accountStore.isEmployee && accountStore.companyId) {
         return {
-          to: { name: 'dispatcher', params: { companyId: this.accountCompanyId } },
+          to: { name: 'dispatcher', params: { companyId: accountStore.companyId } },
           label: 'Back to dispatcher',
         }
       }
@@ -65,36 +94,195 @@ export default {
   methods: {
     ...mapActions(useCompanyStore, ['getAllCompanies', 'getCompany']),
     ...mapActions(useCustomerStore, {
-      loadCustomers: 'getAllCustomers',
+      getAllCustomers: 'getAllCustomers',
+      companyUpdateCustomer: 'updateCustomer',
+      companyDeleteCustomer: 'deleteCustomer',
+      companyResetCustomerPassword: 'resetCustomerPassword',
     }),
     ...mapActions(useEmployeeStore, {
-      loadEmployees: 'getAllEmployees',
+      getAllEmployees: 'getAllEmployees',
+      companyUpdateEmployee: 'updateEmployee',
+      companyDeleteEmployee: 'deleteEmployee',
+      companyResetEmployeePassword: 'resetEmployeePassword',
     }),
     ...mapActions(useAdminStore, {
-      loadOrders: 'getAllOrders',
+      adminUpdateOrder: 'updateOrder',
+      adminDeleteOrder: 'deleteOrder',
+      adminGetAllOrders: 'getAllOrders',
     }),
-    async loadCompanyData() {
-      if (this.isAdmin) {
-        await this.getAllCompanies()
-      } else {
-        await this.getCompany(this.companyId)
+    clearMessages() {
+      this.error = null
+      this.success = null
+    },
+    closeAllForms() {
+      this.resetTarget = null
+      this.newPassword = ''
+      this.editingCustomerId = null
+      this.editingEmployeeId = null
+      this.editingOrderId = null
+    },
+    openResetPassword(type, id) {
+      this.closeAllForms()
+      this.clearMessages()
+      this.resetTarget = { type, id }
+    },
+    cancelResetPassword() {
+      this.resetTarget = null
+      this.newPassword = ''
+    },
+    async submitResetPassword() {
+      try {
+        this.clearMessages()
+        if (!this.resetTarget) return
+        if (this.resetTarget.type === 'employee') {
+          await this.companyResetEmployeePassword(this.companyId, this.resetTarget.id, this.newPassword)
+        } else if (this.resetTarget.type === 'customer') {
+          await this.companyResetCustomerPassword(this.companyId, this.resetTarget.id, this.newPassword)
+        }
+        this.success = 'Password reset successfully'
+        this.resetTarget = null
+        this.newPassword = ''
+      } catch (err) {
+        this.error = apiErrorMessage(err)
       }
-      this.company = this.companies.find(company => company._id === this.companyId)
+    },
 
-      const jobs = [
-        this.loadCustomers(this.companyId),
-        this.loadEmployees(this.companyId),
-      ]
-
-      if (this.isAdmin) {
-        jobs.push(this.loadOrders())
+    openEditCustomer(customer) {
+      this.closeAllForms()
+      this.clearMessages()
+      this.editingCustomerId = customer._id
+      this.customerForm = {
+        customerName: customer.customerName || '',
+        email: customer.account?.email || '',
+        company: customer.company?._id || customer.company || this.companyId,
+        profile: customer.profile || 'CUSTOMER_DEFAULT',
+        billingInfo: (customer.billingInfo || []).map(b => ({
+          label: b.label || 'default',
+          customerName: b.customerName || '',
+          address: b.address || '',
+          postalCode: b.postalCode || '',
+          city: b.city || '',
+          VATnr: b.VATnr || '',
+          isDefault: !!b.isDefault,
+        })),
       }
+    },
+    cancelEditCustomer() {
+      this.editingCustomerId = null
+      this.customerForm = emptyCustomerForm()
+    },
+    async submitCustomer() {
+      try {
+        this.clearMessages()
+        await this.companyUpdateCustomer(this.companyId, this.editingCustomerId, this.customerForm)
+        await this.getAllCustomers(this.companyId)
+        this.editingCustomerId = null
+        this.customerForm = emptyCustomerForm()
+        this.success = 'Customer updated'
+      } catch (err) {
+        this.error = apiErrorMessage(err)
+      }
+    },
+    async removeCustomer(customerId) {
+      if (!confirm('Are you sure you want to delete this customer and their account?')) return
+      try {
+        this.clearMessages()
+        await this.companyDeleteCustomer(this.companyId, customerId)
+        await this.getAllCustomers(this.companyId)
+        this.success = 'Customer deleted'
+      } catch (err) {
+        this.error = apiErrorMessage(err)
+      }
+    },
 
-      await Promise.all(jobs)
+    openEditEmployee(employee) {
+      this.closeAllForms()
+      this.clearMessages()
+      this.editingEmployeeId = employee._id
+      this.employeeForm = {
+        name: employee.name || '',
+        email: employee.account?.email || '',
+        profile: employee.profile || 'DISPATCHER',
+      }
+    },
+    cancelEditEmployee() {
+      this.editingEmployeeId = null
+      this.employeeForm = emptyEmployeeForm()
+    },
+    async submitEmployee() {
+      try {
+        this.clearMessages()
+        await this.companyUpdateEmployee(this.companyId, this.editingEmployeeId, this.employeeForm)
+        await this.getAllEmployees(this.companyId)
+        this.editingEmployeeId = null
+        this.employeeForm = emptyEmployeeForm()
+        this.success = 'Employee updated'
+      } catch (err) {
+        this.error = apiErrorMessage(err)
+      }
+    },
+    async removeEmployee(employeeId) {
+      if (!confirm('Are you sure you want to delete this employee and their account?')) return
+      try {
+        this.clearMessages()
+        await this.companyDeleteEmployee(this.companyId, employeeId)
+        await this.getAllEmployees(this.companyId)
+        this.success = 'Employee deleted'
+      } catch (err) {
+        this.error = apiErrorMessage(err)
+      }
+    },
+
+    openEditOrder(order) {
+      this.closeAllForms()
+      this.clearMessages()
+      this.editingOrderId = order._id
+      this.orderForm = {
+        origin: order.origin || '',
+        destination: order.destination || '',
+        state: order.state || 'PENDING',
+        deliveryDate: order.deliveryDate ? order.deliveryDate.substring(0, 10) : '',
+      }
+    },
+    cancelEditOrder() {
+      this.editingOrderId = null
+      this.orderForm = emptyOrderForm()
+    },
+    async submitOrder() {
+      try {
+        this.clearMessages()
+        await this.adminUpdateOrder(this.editingOrderId, this.orderForm)
+        this.editingOrderId = null
+        this.orderForm = emptyOrderForm()
+        this.success = 'Order updated'
+      } catch (err) {
+        this.error = apiErrorMessage(err)
+      }
+    },
+    async removeOrder(orderId) {
+      if (!confirm('Are you sure you want to delete this order?')) return
+      try {
+        this.clearMessages()
+        await this.adminDeleteOrder(orderId)
+        this.success = 'Order deleted'
+      } catch (err) {
+        this.error = apiErrorMessage(err)
+      }
     },
   },
   async mounted() {
-    await this.loadCompanyData()
+    if (this.isAdmin) {
+      await this.getAllCompanies()
+    } else {
+      await this.getCompany(this.companyId)
+    }
+    this.company = this.companies.find(c => c._id === this.companyId)
+    const jobs = [
+      this.getAllCustomers(this.companyId),
+      this.getAllEmployees(this.companyId),
+    ]
+    if (this.isAdmin) jobs.push(this.adminGetAllOrders())
+    await Promise.all(jobs)
   },
 }
 </script>
@@ -115,23 +303,57 @@ div.company-detail(v-if="company")
       router-link.kl-btn.kl-btn--outline(:to="`/companies/${companyId}/vehicles`")
         Truck(:size="14", :stroke-width="1.75")
         | Vehicles
-  .company-detail__panels
-    CompanyCustomersPanel(
-      :customers="customers"
-      :companies="companies"
-      :company-id="companyId"
-      :can-manage="canManage"
-      :is-admin="isAdmin"
-    )
-    CompanyEmployeesPanel(
-      :employees="employees"
-      :company-id="companyId"
-      :can-manage="canManage"
-    )
-    CompanyOrdersPanel(
-      v-if="isAdmin"
-      :company-orders="companyOrders"
-    )
+  div.kl-alert.kl-alert--danger(v-if="error") {{ error }}
+  div.kl-alert.kl-alert--success(v-if="success") {{ success }}
+  CompanyCustomersSection(
+    :customers="customers"
+    :companies="companies"
+    :company-id="companyId"
+    :can-manage="canManage"
+    :is-admin="isAdmin"
+    :editing-customer-id="editingCustomerId"
+    :customer-form="customerForm"
+    :reset-target="resetTarget"
+    :new-password="newPassword"
+    @edit-customer="openEditCustomer"
+    @delete-customer="removeCustomer"
+    @reset-password="openResetPassword"
+    @submit-reset-password="submitResetPassword"
+    @cancel-reset-password="cancelResetPassword"
+    @update-new-password="newPassword = $event"
+    @update-customer-form="customerForm = $event"
+    @submit-customer="submitCustomer"
+    @cancel-customer="cancelEditCustomer"
+  )
+  CompanyEmployeesSection(
+    :employees="employees"
+    :company-id="companyId"
+    :can-manage="canManage"
+    :editing-employee-id="editingEmployeeId"
+    :employee-form="employeeForm"
+    :reset-target="resetTarget"
+    :new-password="newPassword"
+    @edit-employee="openEditEmployee"
+    @delete-employee="removeEmployee"
+    @reset-password="openResetPassword"
+    @submit-reset-password="submitResetPassword"
+    @cancel-reset-password="cancelResetPassword"
+    @update-new-password="newPassword = $event"
+    @update-employee-form="employeeForm = $event"
+    @submit-employee="submitEmployee"
+    @cancel-employee="cancelEditEmployee"
+  )
+  CompanyOrdersSection(
+    v-if="isAdmin"
+    :orders="companyOrders"
+    :editing-order-id="editingOrderId"
+    :order-form="orderForm"
+    @edit-order="openEditOrder"
+    @delete-order="removeOrder"
+    @update-order-form="orderForm = $event"
+    @submit-order="submitOrder"
+    @cancel-order="cancelEditOrder"
+  )
 div.loading-wrap(v-else)
   PageHeader(title="Company", subtitle="Loading...")
 </template>
@@ -141,10 +363,8 @@ div.loading-wrap(v-else)
   padding-bottom: 2.5rem;
 }
 
-.company-detail__panels {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+.section + .section {
+  margin-top: 1.25rem;
 }
 
 .loading-wrap {

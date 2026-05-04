@@ -3,20 +3,21 @@ import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useVehicleStore } from '@/stores/vehicle-store'
 import { useTourStore } from '@/stores/tour-store'
-import dispatcherDataMixin from '@/mixins/dispatcher-data-mixin'
-import DispatcherDashboardFleetPanel from '@/components/dispatcher/dispatcher-dashboard-fleet-panel.vue'
-import DispatcherDashboardOrdersPanel from '@/components/dispatcher/dispatcher-dashboard-orders-panel.vue'
-import DispatcherDashboardSummary from '@/components/dispatcher/dispatcher-dashboard-summary.vue'
-import DispatcherDashboardToursPanel from '@/components/dispatcher/dispatcher-dashboard-tours-panel.vue'
+import AssignOrderModal from './assign-order-modal.vue'
+import DispatcherFleetPanel from './dispatcher-fleet-panel.vue'
+import DispatcherKpiRow from './dispatcher-kpi-row.vue'
+import DispatcherOrdersPanel from './dispatcher-orders-panel.vue'
+import DispatcherToursPanel from './dispatcher-tours-panel.vue'
+import { apiErrorMessage } from '@/utils/error-helpers'
 
 export default {
   name: 'DispatcherDashboard',
-  mixins: [dispatcherDataMixin],
   components: {
-    DispatcherDashboardFleetPanel,
-    DispatcherDashboardOrdersPanel,
-    DispatcherDashboardSummary,
-    DispatcherDashboardToursPanel,
+    AssignOrderModal,
+    DispatcherFleetPanel,
+    DispatcherKpiRow,
+    DispatcherOrdersPanel,
+    DispatcherToursPanel,
   },
   props: {
     companyId: {
@@ -24,83 +25,206 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      showTourForm: false,
+      tourForm: {
+        date: '',
+        vehicleId: '',
+      },
+      assignModal: {
+        visible: false,
+        tourId: null,
+        orderId: null,
+        vehicleId: null,
+      },
+      dragOverTourId: null,
+      errorMessage: '',
+    }
+  },
   computed: {
     ...mapState(useOrderStore, ['orders']),
     ...mapState(useVehicleStore, ['vehicles']),
     ...mapState(useTourStore, ['tours']),
-  },
-  watch: {
-    companyId: {
-      immediate: true,
-      async handler() {
-        await this.loadDispatcherData()
-      },
+    pendingOrders() {
+      return this.orders.filter(o => o.state === 'PENDING')
+    },
+    inProcessOrders() {
+      return this.orders.filter(o => o.state === 'IN_PROCESS')
+    },
+    availableVehicles() {
+      return this.vehicles.filter(v => v.state === 'AVAILABLE')
+    },
+    startedTours() {
+      return this.tours.filter(t => t.state === 'STARTED')
+    },
+    plannedTours() {
+      return this.tours.filter(t => t.state === 'PLANNED')
+    },
+    archivedTours() {
+      return this.tours
+        .filter(t => t.state === 'FINISHED' || t.state === 'CANCELLED')
+        .slice()
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
     },
   },
   methods: {
     ...mapActions(useOrderStore, ['getOrdersByCompany', 'deleteOrderByCompany']),
     ...mapActions(useVehicleStore, ['getAllVehicles']),
     ...mapActions(useTourStore, ['getAllTours', 'createTour', 'addOrderToTour', 'assignVehicleToTour', 'updateTour']),
-    /** Wraps withRefresh so emit-based children don't await the promise; mixin still surfaces errorMessage. */
-    async runStoreAction(action) {
+    async refreshAll() {
+      await Promise.all([
+        this.getOrdersByCompany(this.companyId),
+        this.getAllVehicles(this.companyId),
+        this.getAllTours(this.companyId),
+      ])
+    },
+    async handleCreateTour() {
+      this.errorMessage = ''
       try {
-        await this.withRefresh(action)
-      } catch {
-        // mixin already populated errorMessage
+        await this.createTour(this.companyId, {
+          date: this.tourForm.date,
+          vehicle: this.tourForm.vehicleId,
+        })
+        this.tourForm = { date: '', vehicleId: '' }
+        this.showTourForm = false
+      } catch (e) {
+        this.errorMessage = apiErrorMessage(e)
       }
     },
-    handleCreateTour({ date, vehicleId }) {
-      return this.runStoreAction(() => this.createTour(this.companyId, { date, vehicle: vehicleId }))
+    openAssignOrder(tourId) {
+      this.assignModal = { visible: true, tourId, orderId: null, vehicleId: null }
     },
-    handleAssignOrder({ tourId, orderId }) {
-      return this.runStoreAction(() => this.addOrderToTour(this.companyId, tourId, orderId))
+    closeAssignModal() {
+      this.assignModal = { visible: false, tourId: null, orderId: null, vehicleId: null }
     },
-    handleAssignVehicle({ tourId, vehicleId }) {
-      return this.runStoreAction(() => this.assignVehicleToTour(tourId, vehicleId, this.companyId))
+    async assignOrderToTour() {
+      this.errorMessage = ''
+      try {
+        await this.addOrderToTour(this.companyId, this.assignModal.tourId, this.assignModal.orderId)
+        this.assignModal = { visible: false, tourId: null, orderId: null, vehicleId: null }
+        await this.refreshAll()
+      } catch (e) {
+        this.errorMessage = apiErrorMessage(e)
+      }
     },
-    handleUpdateTourState({ tourId, state }) {
-      return this.runStoreAction(() => this.updateTour(this.companyId, tourId, { state }))
+    async handleAssignVehicle(tourId, vehicleId) {
+      this.errorMessage = ''
+      try {
+        await this.assignVehicleToTour(tourId, vehicleId, this.companyId)
+        await this.refreshAll()
+      } catch (e) {
+        this.errorMessage = apiErrorMessage(e)
+      }
     },
-    handleCancelTour({ tourId }) {
-      return this.handleUpdateTourState({ tourId, state: 'CANCELLED' })
+    onOrderDragStart(event, orderId) {
+      event.dataTransfer.effectAllowed = 'move'
+      event.dataTransfer.setData('text/plain', orderId)
     },
-    handleDeleteOrder({ orderId }) {
-      return this.runStoreAction(() => this.deleteOrderByCompany(this.companyId, orderId))
+    onTourDragOver(event, tourId) {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'move'
+      this.dragOverTourId = tourId
     },
+    onTourDragLeave(tourId) {
+      if (this.dragOverTourId === tourId) this.dragOverTourId = null
+    },
+    async onTourDrop(event, tourId) {
+      event.preventDefault()
+      const orderId = event.dataTransfer.getData('text/plain')
+      this.dragOverTourId = null
+      if (!orderId) return
+      const alreadyAssigned = this.tours.some(t => t.orders?.some(o => o._id === orderId))
+      if (alreadyAssigned) return
+      this.errorMessage = ''
+      try {
+        await this.addOrderToTour(this.companyId, tourId, orderId)
+        await this.refreshAll()
+      } catch (e) {
+        this.errorMessage = apiErrorMessage(e)
+      }
+    },
+    async updateTourState(tourId, state) {
+      this.errorMessage = ''
+      try {
+        await this.updateTour(this.companyId, tourId, { state })
+        await this.refreshAll()
+      } catch (e) {
+        this.errorMessage = apiErrorMessage(e)
+      }
+    },
+    async cancelTour(tourId) {
+      const confirmed = window.confirm('Cancel this tour? Any in-process orders will go back to pending.')
+      if (!confirmed) return
+      await this.updateTourState(tourId, 'CANCELLED')
+    },
+    async deleteOrder(orderId) {
+      this.errorMessage = ''
+      try {
+        await this.deleteOrderByCompany(this.companyId, orderId)
+        await this.getOrdersByCompany(this.companyId)
+      } catch (e) {
+        this.errorMessage = apiErrorMessage(e)
+      }
+    },
+  },
+  async mounted() {
+    await this.refreshAll()
   },
 }
 </script>
 
+
 <template lang="pug">
 .dispatcher
-  p.kl-muted.loading-state(v-if="isLoading && !errorMessage") Loading dispatcher data...
   .kl-alert.kl-alert--danger(v-if="errorMessage") {{ errorMessage }}
 
-  DispatcherDashboardSummary(
-    :orders="orders"
-    :vehicles="vehicles"
-    :tours="tours"
+  DispatcherKpiRow(
+    :pending-count="pendingOrders.length",
+    :active-tours-count="startedTours.length",
+    :planned-tours-count="plannedTours.length",
+    :available-vehicles-count="availableVehicles.length",
+    :vehicle-count="vehicles.length"
   )
 
   .dispatcher__grid
-    DispatcherDashboardOrdersPanel(
-      :orders="orders"
-      @delete-order="handleDeleteOrder"
+    DispatcherOrdersPanel(
+      :pending-orders="pendingOrders",
+      :in-process-orders="inProcessOrders",
+      @drag-order-start="onOrderDragStart",
+      @delete-order="deleteOrder"
     )
-    DispatcherDashboardToursPanel(
-      :orders="orders"
-      :vehicles="vehicles"
-      :tours="tours"
-      @create-tour="handleCreateTour"
-      @assign-order="handleAssignOrder"
-      @assign-vehicle="handleAssignVehicle"
-      @update-tour-state="handleUpdateTourState"
-      @cancel-tour="handleCancelTour"
+    DispatcherToursPanel(
+      :show-tour-form="showTourForm",
+      :tour-form="tourForm",
+      :available-vehicles="availableVehicles",
+      :planned-tours="plannedTours",
+      :started-tours="startedTours",
+      :archived-tours="archivedTours",
+      :tours="tours",
+      :drag-over-tour-id="dragOverTourId",
+      @toggle-tour-form="showTourForm = !showTourForm",
+      @update-tour-vehicle="tourForm.vehicleId = $event",
+      @update-tour-date="tourForm.date = $event",
+      @create-tour="handleCreateTour",
+      @open-assign-order="openAssignOrder",
+      @assign-vehicle="handleAssignVehicle",
+      @update-tour-state="updateTourState",
+      @cancel-tour="cancelTour",
+      @tour-drag-over="onTourDragOver",
+      @tour-drag-leave="onTourDragLeave",
+      @tour-drop="onTourDrop"
     )
 
-  DispatcherDashboardFleetPanel(
-    :company-id="companyId"
-    :vehicles="vehicles"
+  DispatcherFleetPanel(:vehicles="vehicles", :company-id="companyId")
+
+  AssignOrderModal(
+    :visible="assignModal.visible",
+    :pending-orders="pendingOrders",
+    :order-id="assignModal.orderId",
+    @update-order-id="assignModal.orderId = $event",
+    @close="closeAssignModal",
+    @assign="assignOrderToTour"
   )
 </template>
 
@@ -110,10 +234,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.loading-state {
-  margin: 0;
 }
 
 .dispatcher__grid {

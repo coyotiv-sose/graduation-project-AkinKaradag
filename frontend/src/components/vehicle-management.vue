@@ -1,8 +1,9 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useVehicleStore } from '@/stores/vehicle-store'
-import CreateFormWrapper from '../shared/create-form-wrapper.vue'
+import CreateFormWrapper from './create-form-wrapper.vue'
 import { Truck } from 'lucide-vue-next'
+import { vehicleBadgeClass } from '@/utils/display-helpers'
 
 export default {
   name: 'VehicleManagement',
@@ -41,16 +42,7 @@ export default {
       this.year = new Date().getFullYear()
       this.payLoad = ''
     },
-    vehicleBadgeClass(state) {
-      return {
-        AVAILABLE: 'kl-badge kl-badge--primary',
-        ON_TOUR: 'kl-badge kl-badge--info',
-        IN_GARAGE: 'kl-badge kl-badge--danger',
-        DAMAGED: 'kl-badge kl-badge--danger',
-        PARKED: 'kl-badge kl-badge--muted',
-        SOLD: 'kl-badge kl-badge--muted',
-      }[state] || 'kl-badge kl-badge--muted'
-    },
+    vehicleBadgeClass,
     async updateState(vehicleId, state) {
       await this.updateVehicle(this.companyId, vehicleId, { state })
     },

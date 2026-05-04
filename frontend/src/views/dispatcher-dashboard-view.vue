@@ -1,6 +1,6 @@
 <script>
 import DispatcherDashboard from '@/components/dispatcher/dispatcher-dashboard.vue'
-import PageHeader from '@/components/layout/page-header.vue'
+import PageHeader from '@/components/page-header.vue'
 
 export default {
   name: 'DispatcherDashboardView',
@@ -22,7 +22,8 @@ div.dispatcher-view
     :back-to="`/companies/${companyId}`"
     back-label="Back to company"
   )
-  DispatcherDashboard(:company-id="companyId")
+  Suspense
+    DispatcherDashboard(:company-id="companyId")
 </template>
 
 <style scoped>

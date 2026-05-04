@@ -23,11 +23,10 @@ export default {
     },
   },
   methods: {
-    formatDate,
-    orderBadgeClass,
     companyIdOf(entity) {
       return entity?.company?._id || entity?.company || null
     },
+    formatDate,
     matchesOrderFilters(order, query) {
       if (query) {
         const origin = (order.origin || '').toLowerCase()
@@ -46,6 +45,7 @@ export default {
 
       return true
     },
+    orderBadgeClass,
   },
 }
 </script>

@@ -1,7 +1,8 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useCustomerStore } from '@/stores/customer-store'
-import CreateFormWrapper from '../shared/create-form-wrapper.vue'
+import CreateFormWrapper from './create-form-wrapper.vue'
+import { initials } from '@/utils/display-helpers'
 
 export default {
   name: 'CustomerForm',
@@ -53,15 +54,7 @@ export default {
         isDefault: true,
       }
     },
-    initials(name) {
-      if (!name) return '?'
-      return name
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(p => p[0]?.toUpperCase() || '')
-        .join('')
-    },
+    initials,
   },
   async mounted() {
     await this.getAllCustomers(this.companyId)

@@ -1,4 +1,6 @@
 <script>
+import { apiErrorMessage } from '@/utils/error-helpers'
+
 export default {
   name: 'CreateFormWrapper',
   props: {
@@ -24,7 +26,7 @@ export default {
       try {
         await this.onSubmit()
       } catch (e) {
-        this.errorMessage = e.response?.data?.error || e.message || 'Something went wrong'
+        this.errorMessage = apiErrorMessage(e)
       } finally {
         this.isLoading = false
       }
