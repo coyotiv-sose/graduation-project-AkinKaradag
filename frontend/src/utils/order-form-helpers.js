@@ -41,10 +41,6 @@ export function billingLabel(billing) {
   return `${tag}${billing.customerName} — ${billing.postalCode} ${billing.city}`
 }
 
-export function formatDate(date) {
-  return new Date(date).toLocaleDateString()
-}
-
 export function defaultBillingIndex(profiles) {
   if (!profiles || !profiles.length) return 0
   const idx = profiles.findIndex(b => b.isDefault)

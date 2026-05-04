@@ -1,5 +1,7 @@
 <script>
 import { Search as SearchIcon } from 'lucide-vue-next'
+import { formatDate } from '@/utils/format'
+import { orderBadgeClass } from '@/utils/badge-classes'
 
 export default {
   name: 'AdminDashboardOrderTab',
@@ -22,12 +24,10 @@ export default {
     },
   },
   methods: {
+    formatDate,
+    orderBadgeClass,
     companyIdOf(entity) {
       return entity?.company?._id || entity?.company || null
-    },
-    formatDate(date) {
-      if (!date) return '—'
-      return new Date(date).toLocaleDateString()
     },
     matchesOrderFilters(order, query) {
       if (query) {
@@ -46,11 +46,6 @@ export default {
       }
 
       return true
-    },
-    orderBadgeClass(state) {
-      if (state === 'DELIVERED') return 'kl-badge kl-badge--primary'
-      if (state === 'IN_PROCESS') return 'kl-badge kl-badge--info'
-      return 'kl-badge kl-badge--warning'
     },
   },
 }
