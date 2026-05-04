@@ -41,27 +41,31 @@ export default {
     ...mapActions(useOrderStore, ['getOrdersByCompany', 'deleteOrderByCompany']),
     ...mapActions(useVehicleStore, ['getAllVehicles']),
     ...mapActions(useTourStore, ['getAllTours', 'createTour', 'addOrderToTour', 'assignVehicleToTour', 'updateTour']),
-    async handleCreateTour({ date, vehicleId }) {
-      return this.withRefresh(() => this.createTour(this.companyId, { date, vehicle: vehicleId }))
+    /** Wraps withRefresh so emit-based children don't await the promise; mixin still surfaces errorMessage. */
+    async runStoreAction(action) {
+      try {
+        await this.withRefresh(action)
+      } catch {
+        // mixin already populated errorMessage
+      }
     },
-    async handleAssignOrder({ tourId, orderId }) {
-      return this.withRefresh(() => this.addOrderToTour(this.companyId, tourId, orderId))
+    handleCreateTour({ date, vehicleId }) {
+      return this.runStoreAction(() => this.createTour(this.companyId, { date, vehicle: vehicleId }))
     },
-    async handleAssignVehicle({ tourId, vehicleId }) {
-      return this.withRefresh(() => this.assignVehicleToTour(tourId, vehicleId, this.companyId))
+    handleAssignOrder({ tourId, orderId }) {
+      return this.runStoreAction(() => this.addOrderToTour(this.companyId, tourId, orderId))
     },
-    async handleUpdateTourState({ tourId, state }) {
-      return this.withRefresh(() => this.updateTour(this.companyId, tourId, { state }))
+    handleAssignVehicle({ tourId, vehicleId }) {
+      return this.runStoreAction(() => this.assignVehicleToTour(tourId, vehicleId, this.companyId))
     },
-    async handleCancelTour({ tourId }) {
+    handleUpdateTourState({ tourId, state }) {
+      return this.runStoreAction(() => this.updateTour(this.companyId, tourId, { state }))
+    },
+    handleCancelTour({ tourId }) {
       return this.handleUpdateTourState({ tourId, state: 'CANCELLED' })
     },
-    async handleDeleteOrder({ orderId }) {
-      try {
-        await this.withRefresh(() => this.deleteOrderByCompany(this.companyId, orderId))
-      } catch {
-        // mixin sets errorMessage
-      }
+    handleDeleteOrder({ orderId }) {
+      return this.runStoreAction(() => this.deleteOrderByCompany(this.companyId, orderId))
     },
   },
 }
@@ -87,11 +91,11 @@ export default {
       :orders="orders"
       :vehicles="vehicles"
       :tours="tours"
-      :on-create-tour="handleCreateTour"
-      :on-assign-order="handleAssignOrder"
-      :on-assign-vehicle="handleAssignVehicle"
-      :on-update-tour-state="handleUpdateTourState"
-      :on-cancel-tour="handleCancelTour"
+      @create-tour="handleCreateTour"
+      @assign-order="handleAssignOrder"
+      @assign-vehicle="handleAssignVehicle"
+      @update-tour-state="handleUpdateTourState"
+      @cancel-tour="handleCancelTour"
     )
 
   DispatcherDashboardFleetPanel(
