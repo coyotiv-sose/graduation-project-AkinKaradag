@@ -4,13 +4,14 @@ import { useOrderStore } from '@/stores/order-store'
 import { useAccountStore } from '@/stores/account-store'
 import { useCustomerStore } from '@/stores/customer-store'
 import { useAdminStore } from '@/stores/admin-store'
-import PageHeader from '@/components/layout/page-header.vue'
-import AddressForm from '@/components/shared/address-form.vue'
-import OrderCustomerPicker from '@/components/orders/order-customer-picker.vue'
-import OrderBillingSection from '@/components/orders/order-billing-section.vue'
-import OrderCargoSection from '@/components/orders/order-cargo-section.vue'
-import OrderSummaryCard from '@/components/orders/order-summary-card.vue'
-import OrderAiPrompt from '@/components/orders/order-ai-prompt.vue'
+import PageHeader from '@/components/page-header.vue'
+import AddressForm from '@/components/order-create/address-form.vue'
+import OrderCustomerPicker from '@/components/order-create/order-customer-picker.vue'
+import OrderBillingSection from '@/components/order-create/order-billing-section.vue'
+import OrderCargoSection from '@/components/order-create/order-cargo-section.vue'
+import OrderSummaryCard from '@/components/order-create/order-summary-card.vue'
+import OrderAiPrompt from '@/components/order-create/order-ai-prompt.vue'
+import { apiErrorMessage } from '@/utils/error-helpers'
 import {
   createEmptyBillingInfo,
   createEmptyAddress,
@@ -159,7 +160,7 @@ export default {
         this.successMessage = 'Order created successfully!'
         this.resetForm()
       } catch (e) {
-        this.errorMessage = e.response?.data?.error || e.message
+        this.errorMessage = apiErrorMessage(e)
       } finally {
         this.isSubmitting = false
       }

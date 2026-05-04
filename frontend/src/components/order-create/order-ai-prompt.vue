@@ -2,7 +2,8 @@
 import { mapActions } from 'pinia'
 import { Sparkles } from 'lucide-vue-next'
 import { useOrderStore } from '@/stores/order-store'
-import { formatDate } from '@/utils/format'
+import { formatDate } from '@/utils/display-helpers'
+import { apiErrorMessage } from '@/utils/error-helpers'
 
 export default {
   name: 'OrderAiPrompt',
@@ -60,7 +61,7 @@ export default {
         this.prompt = ''
         this.$emit('generated', order)
       } catch (e) {
-        this.aiError = e.response?.data?.error || e.message || 'Failed to generate order'
+        this.aiError = apiErrorMessage(e, 'Failed to generate order')
       } finally {
         this.isGenerating = false
       }

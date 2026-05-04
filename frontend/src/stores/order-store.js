@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import { createOrderBillingPayload, normalizeCargoForApi } from '@/utils/order-form-helpers'
+import { apiErrorMessage } from '@/utils/error-helpers'
 
 export const useOrderStore = defineStore('order', {
   state: () => ({
@@ -15,14 +15,12 @@ export const useOrderStore = defineStore('order', {
       this.error = ''
       this.lastGeneratedOrder = null
       try {
-        const payload = billingInfo
-          ? { prompt, billingInfo: createOrderBillingPayload(billingInfo) }
-          : { prompt }
+        const payload = billingInfo ? { prompt, billingInfo } : { prompt }
         const { data } = await axios.post(`/customers/${customerId}/orders/ai-generate`, payload)
         this.lastGeneratedOrder = data
         return data
       } catch (e) {
-        this.error = e.response?.data?.error || e.message || 'Something went wrong'
+        this.error = apiErrorMessage(e)
         throw e
       } finally {
         this.isGenerating = false
@@ -48,15 +46,7 @@ export const useOrderStore = defineStore('order', {
       await axios.delete(`/companies/${companyId}/orders/${orderId}`)
     },
     async createOrderForCustomer(customerId, orderData) {
-      const payload = {
-        origin: orderData.origin,
-        destination: orderData.destination,
-        deliveryDate: orderData.deliveryDate,
-        cargos: (orderData.cargos || []).map(normalizeCargoForApi),
-        billingInfo: createOrderBillingPayload(orderData.billingInfo),
-        note: orderData.note ?? '',
-      }
-      const { data } = await axios.post(`/customers/${customerId}/orders`, payload)
+      const { data } = await axios.post(`/customers/${customerId}/orders`, orderData)
       return data
     },
 
