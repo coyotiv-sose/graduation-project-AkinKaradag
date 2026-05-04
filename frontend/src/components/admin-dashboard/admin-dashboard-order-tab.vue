@@ -1,7 +1,6 @@
 <script>
 import { Search as SearchIcon } from 'lucide-vue-next'
-import { formatDate } from '@/utils/format'
-import { orderBadgeClass } from '@/utils/badge-classes'
+import { formatDate, orderBadgeClass } from '@/utils/display-helpers'
 
 export default {
   name: 'AdminDashboardOrderTab',
