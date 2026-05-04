@@ -1,3 +1,5 @@
+export { formatDate } from './display-helpers'
+
 export function createEmptyBillingInfo() {
   return {
     label: '',
@@ -24,39 +26,6 @@ export function createEmptyCargo() {
 
 export function formatAddress(addr) {
   return `${addr.name}, ${addr.street} ${addr.number}, ${addr.postalCode} ${addr.city}`
-}
-
-/** Strip Mongoose billing subdocuments for POST — Joi rejects unknown keys (_id, __v). */
-export function createOrderBillingPayload(billing) {
-  if (!billing) return null
-  const label = String(billing.label ?? '').trim() || 'default'
-  const payload = {
-    label,
-    customerName: String(billing.customerName ?? '').trim(),
-    address: String(billing.address ?? '').trim(),
-    postalCode: String(billing.postalCode ?? '').trim(),
-    city: String(billing.city ?? '').trim(),
-    VATnr: billing.VATnr != null ? String(billing.VATnr).trim() : '',
-  }
-  if (typeof billing.isDefault === 'boolean') {
-    payload.isDefault = billing.isDefault
-  }
-  return payload
-}
-
-/** Ensure cargo matches Joi.number() fields (HTML inputs may yield strings). */
-export function normalizeCargoForApi(cargo) {
-  const d = cargo.dimensions || {}
-  return {
-    loadCarrierType: String(cargo.loadCarrierType ?? '').trim(),
-    quantity: Number(cargo.quantity),
-    weight: Number(cargo.weight),
-    dimensions: {
-      width: Number(d.width),
-      length: Number(d.length),
-      height: Number(d.height),
-    },
-  }
 }
 
 export function shortAddress(addr) {
@@ -87,11 +56,4 @@ export function formatBillingLine(billing) {
     .filter(Boolean)
     .join(', ')
   return where ? `${who} · ${where}` : who
-}
-
-export function totalCargoWeight(cargos = []) {
-  return cargos.reduce(
-    (sum, cargo) => sum + Number(cargo.quantity || 0) * Number(cargo.weight || 0),
-    0,
-  )
 }

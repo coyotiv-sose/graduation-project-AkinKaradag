@@ -2,10 +2,9 @@
 import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useAccountStore } from '@/stores/account-store'
-import PageHeader from '@/components/layout/page-header.vue'
-import { orderBadgeClass } from '@/utils/badge-classes'
-import { formatDate } from '@/utils/format'
+import PageHeader from '@/components/page-header.vue'
 import { Plus, ChevronRight } from 'lucide-vue-next'
+import { formatDate, orderBadgeClass } from '@/utils/display-helpers'
 
 export default {
   name: 'OrderListView',
