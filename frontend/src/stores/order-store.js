@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { createOrderBillingPayload, normalizeCargoForApi } from '@/utils/order-form-helpers'
 
 export const useOrderStore = defineStore('order', {
   state: () => ({
@@ -14,7 +15,9 @@ export const useOrderStore = defineStore('order', {
       this.error = ''
       this.lastGeneratedOrder = null
       try {
-        const payload = billingInfo ? { prompt, billingInfo } : { prompt }
+        const payload = billingInfo
+          ? { prompt, billingInfo: createOrderBillingPayload(billingInfo) }
+          : { prompt }
         const { data } = await axios.post(`/customers/${customerId}/orders/ai-generate`, payload)
         this.lastGeneratedOrder = data
         return data
@@ -45,7 +48,15 @@ export const useOrderStore = defineStore('order', {
       await axios.delete(`/companies/${companyId}/orders/${orderId}`)
     },
     async createOrderForCustomer(customerId, orderData) {
-      const { data } = await axios.post(`/customers/${customerId}/orders`, orderData)
+      const payload = {
+        origin: orderData.origin,
+        destination: orderData.destination,
+        deliveryDate: orderData.deliveryDate,
+        cargos: (orderData.cargos || []).map(normalizeCargoForApi),
+        billingInfo: createOrderBillingPayload(orderData.billingInfo),
+        note: orderData.note ?? '',
+      }
+      const { data } = await axios.post(`/customers/${customerId}/orders`, payload)
       return data
     },
 
