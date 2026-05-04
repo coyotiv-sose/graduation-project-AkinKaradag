@@ -1,5 +1,6 @@
 <script>
 import { Truck, Package, Route } from 'lucide-vue-next'
+import { pendingOrders, availableVehicles } from '@/utils/dispatcher-selectors'
 
 export default {
   name: 'DispatcherDashboardSummary',
@@ -11,7 +12,7 @@ export default {
   },
   computed: {
     pendingOrdersCount() {
-      return this.orders.filter(order => order.state === 'PENDING').length
+      return pendingOrders(this.orders).length
     },
     startedToursCount() {
       return this.tours.filter(tour => tour.state === 'STARTED').length
@@ -20,7 +21,7 @@ export default {
       return this.tours.filter(tour => tour.state === 'PLANNED').length
     },
     availableVehiclesCount() {
-      return this.vehicles.filter(vehicle => vehicle.state === 'AVAILABLE').length
+      return availableVehicles(this.vehicles).length
     },
   },
 }

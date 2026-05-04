@@ -1,42 +1,36 @@
 <script>
 import { ChevronRight, Trash2 } from 'lucide-vue-next'
+import { formatDate } from '@/utils/format'
+import { orderBadgeClass } from '@/utils/badge-classes'
+import {
+  pendingOrders as filterPendingOrders,
+  inProcessOrders as filterInProcessOrders,
+} from '@/utils/dispatcher-selectors'
 
 export default {
   name: 'DispatcherDashboardOrdersPanel',
   components: { ChevronRight, Trash2 },
   props: {
     orders: { type: Array, default: () => [] },
-    onDeleteOrder: { type: Function, required: true },
   },
+  emits: ['delete-order'],
   computed: {
     pendingOrders() {
-      return this.orders.filter(order => order.state === 'PENDING')
+      return filterPendingOrders(this.orders)
     },
     inProcessOrders() {
-      return this.orders.filter(order => order.state === 'IN_PROCESS')
+      return filterInProcessOrders(this.orders)
     },
   },
   methods: {
-    formatDate(date) {
-      return new Date(date).toLocaleDateString()
-    },
-    orderBadgeClass(state) {
-      return {
-        PENDING: 'kl-badge kl-badge--warning',
-        IN_PROCESS: 'kl-badge kl-badge--info',
-        DELIVERED: 'kl-badge kl-badge--primary',
-      }[state] || 'kl-badge kl-badge--muted'
-    },
+    formatDate,
+    orderBadgeClass,
     onOrderDragStart(event, orderId) {
       event.dataTransfer.effectAllowed = 'move'
       event.dataTransfer.setData('text/plain', orderId)
     },
-    async requestDeleteOrder(orderId) {
-      try {
-        await this.onDeleteOrder({ orderId })
-      } catch {
-        return null
-      }
+    requestDeleteOrder(orderId) {
+      this.$emit('delete-order', { orderId })
     },
   },
 }

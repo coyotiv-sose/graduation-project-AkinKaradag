@@ -22,8 +22,7 @@ div.dispatcher-view
     :back-to="`/companies/${companyId}`"
     back-label="Back to company"
   )
-  Suspense
-    DispatcherDashboard(:company-id="companyId")
+  DispatcherDashboard(:company-id="companyId")
 </template>
 
 <style scoped>

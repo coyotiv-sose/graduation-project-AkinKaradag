@@ -3,15 +3,15 @@ import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useVehicleStore } from '@/stores/vehicle-store'
 import { useTourStore } from '@/stores/tour-store'
+import dispatcherDataMixin from '@/mixins/dispatcher-data-mixin'
 import DispatcherDashboardFleetPanel from '@/components/dispatcher-dashboard-fleet-panel.vue'
 import DispatcherDashboardOrdersPanel from '@/components/dispatcher-dashboard-orders-panel.vue'
 import DispatcherDashboardSummary from '@/components/dispatcher-dashboard-summary.vue'
 import DispatcherDashboardToursPanel from '@/components/dispatcher-dashboard-tours-panel.vue'
 
-const errorMessageFrom = error => error.response?.data?.error || error.message
-
 export default {
   name: 'DispatcherDashboard',
+  mixins: [dispatcherDataMixin],
   components: {
     DispatcherDashboardFleetPanel,
     DispatcherDashboardOrdersPanel,
@@ -23,12 +23,6 @@ export default {
       type: String,
       required: true,
     },
-  },
-  data() {
-    return {
-      errorMessage: '',
-      isLoading: false,
-    }
   },
   computed: {
     ...mapState(useOrderStore, ['orders']),
@@ -47,54 +41,27 @@ export default {
     ...mapActions(useOrderStore, ['getOrdersByCompany', 'deleteOrderByCompany']),
     ...mapActions(useVehicleStore, ['getAllVehicles']),
     ...mapActions(useTourStore, ['getAllTours', 'createTour', 'addOrderToTour', 'assignVehicleToTour', 'updateTour']),
-    async refreshAll() {
-      await Promise.all([
-        this.getOrdersByCompany(this.companyId),
-        this.getAllVehicles(this.companyId),
-        this.getAllTours(this.companyId),
-      ])
-    },
-    async loadDispatcherData() {
-      this.errorMessage = ''
-      this.isLoading = true
-
-      try {
-        await this.refreshAll()
-      } catch (error) {
-        this.errorMessage = errorMessageFrom(error)
-      } finally {
-        this.isLoading = false
-      }
-    },
-    async runAction(action) {
-      this.errorMessage = ''
-
-      try {
-        const result = await action()
-        await this.refreshAll()
-        return result
-      } catch (error) {
-        this.errorMessage = errorMessageFrom(error)
-        throw error
-      }
-    },
     async handleCreateTour({ date, vehicleId }) {
-      return this.runAction(() => this.createTour(this.companyId, { date, vehicle: vehicleId }))
+      return this.withRefresh(() => this.createTour(this.companyId, { date, vehicle: vehicleId }))
     },
     async handleAssignOrder({ tourId, orderId }) {
-      return this.runAction(() => this.addOrderToTour(this.companyId, tourId, orderId))
+      return this.withRefresh(() => this.addOrderToTour(this.companyId, tourId, orderId))
     },
     async handleAssignVehicle({ tourId, vehicleId }) {
-      return this.runAction(() => this.assignVehicleToTour(tourId, vehicleId, this.companyId))
+      return this.withRefresh(() => this.assignVehicleToTour(tourId, vehicleId, this.companyId))
     },
     async handleUpdateTourState({ tourId, state }) {
-      return this.runAction(() => this.updateTour(this.companyId, tourId, { state }))
+      return this.withRefresh(() => this.updateTour(this.companyId, tourId, { state }))
     },
     async handleCancelTour({ tourId }) {
       return this.handleUpdateTourState({ tourId, state: 'CANCELLED' })
     },
     async handleDeleteOrder({ orderId }) {
-      return this.runAction(() => this.deleteOrderByCompany(this.companyId, orderId))
+      try {
+        await this.withRefresh(() => this.deleteOrderByCompany(this.companyId, orderId))
+      } catch {
+        // mixin sets errorMessage
+      }
     },
   },
 }
@@ -114,7 +81,7 @@ export default {
   .dispatcher__grid
     DispatcherDashboardOrdersPanel(
       :orders="orders"
-      :on-delete-order="handleDeleteOrder"
+      @delete-order="handleDeleteOrder"
     )
     DispatcherDashboardToursPanel(
       :orders="orders"
