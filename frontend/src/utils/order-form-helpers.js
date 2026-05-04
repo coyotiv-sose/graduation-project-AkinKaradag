@@ -26,6 +26,39 @@ export function formatAddress(addr) {
   return `${addr.name}, ${addr.street} ${addr.number}, ${addr.postalCode} ${addr.city}`
 }
 
+/** Strip Mongoose billing subdocuments for POST — Joi rejects unknown keys (_id, __v). */
+export function createOrderBillingPayload(billing) {
+  if (!billing) return null
+  const label = String(billing.label ?? '').trim() || 'default'
+  const payload = {
+    label,
+    customerName: String(billing.customerName ?? '').trim(),
+    address: String(billing.address ?? '').trim(),
+    postalCode: String(billing.postalCode ?? '').trim(),
+    city: String(billing.city ?? '').trim(),
+    VATnr: billing.VATnr != null ? String(billing.VATnr).trim() : '',
+  }
+  if (typeof billing.isDefault === 'boolean') {
+    payload.isDefault = billing.isDefault
+  }
+  return payload
+}
+
+/** Ensure cargo matches Joi.number() fields (HTML inputs may yield strings). */
+export function normalizeCargoForApi(cargo) {
+  const d = cargo.dimensions || {}
+  return {
+    loadCarrierType: String(cargo.loadCarrierType ?? '').trim(),
+    quantity: Number(cargo.quantity),
+    weight: Number(cargo.weight),
+    dimensions: {
+      width: Number(d.width),
+      length: Number(d.length),
+      height: Number(d.height),
+    },
+  }
+}
+
 export function shortAddress(addr) {
   if (!addr.city && !addr.street) return 'Not filled'
   return [addr.name, `${addr.postalCode} ${addr.city}`.trim()].filter(Boolean).join(' · ')
