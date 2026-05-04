@@ -5,7 +5,7 @@ import { useCustomerStore } from '@/stores/customer-store'
 import { useEmployeeStore } from '@/stores/employee-store'
 import { useAccountStore } from '@/stores/account-store'
 import { useAdminStore } from '@/stores/admin-store'
-import PageHeader from '@/components/page-header.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 import { ChevronRight, Pencil, Trash2, Key, Plus, Building2, Route, Truck } from 'lucide-vue-next'
 
 const emptyBillingItem = () => ({

@@ -2,7 +2,7 @@
 import { mapState, mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useAccountStore } from '@/stores/account-store'
-import PageHeader from '@/components/page-header.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 import { Plus, ChevronRight } from 'lucide-vue-next'
 
 export default {

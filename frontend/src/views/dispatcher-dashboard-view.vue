@@ -1,6 +1,6 @@
 <script>
-import DispatcherDashboard from '@/components/dispatcher-dashboard.vue'
-import PageHeader from '@/components/page-header.vue'
+import DispatcherDashboard from '@/components/dispatcher/dispatcher-dashboard.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 
 export default {
   name: 'DispatcherDashboardView',

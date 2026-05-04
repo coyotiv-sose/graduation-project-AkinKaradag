@@ -4,10 +4,10 @@ import { useOrderStore } from '@/stores/order-store'
 import { useVehicleStore } from '@/stores/vehicle-store'
 import { useTourStore } from '@/stores/tour-store'
 import dispatcherDataMixin from '@/mixins/dispatcher-data-mixin'
-import DispatcherDashboardFleetPanel from '@/components/dispatcher-dashboard-fleet-panel.vue'
-import DispatcherDashboardOrdersPanel from '@/components/dispatcher-dashboard-orders-panel.vue'
-import DispatcherDashboardSummary from '@/components/dispatcher-dashboard-summary.vue'
-import DispatcherDashboardToursPanel from '@/components/dispatcher-dashboard-tours-panel.vue'
+import DispatcherDashboardFleetPanel from '@/components/dispatcher/dispatcher-dashboard-fleet-panel.vue'
+import DispatcherDashboardOrdersPanel from '@/components/dispatcher/dispatcher-dashboard-orders-panel.vue'
+import DispatcherDashboardSummary from '@/components/dispatcher/dispatcher-dashboard-summary.vue'
+import DispatcherDashboardToursPanel from '@/components/dispatcher/dispatcher-dashboard-tours-panel.vue'
 
 export default {
   name: 'DispatcherDashboard',

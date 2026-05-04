@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useVehicleStore } from '@/stores/vehicle-store'
-import CreateFormWrapper from './create-form-wrapper.vue'
+import CreateFormWrapper from '../shared/create-form-wrapper.vue'
 import { Truck } from 'lucide-vue-next'
 
 export default {

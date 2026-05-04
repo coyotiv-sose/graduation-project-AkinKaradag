@@ -1,6 +1,6 @@
 <script>
-import VehicleManagement from '@/components/vehicle-management.vue'
-import PageHeader from '@/components/page-header.vue'
+import VehicleManagement from '@/components/entities/vehicle-management.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 
 export default {
   name: 'VehicleView',

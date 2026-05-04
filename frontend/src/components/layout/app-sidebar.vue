@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useAccountStore } from '@/stores/account-store'
-import ThemeToggle from './theme-toggle.vue'
+import ThemeToggle from '../shared/theme-toggle.vue'
 import NotificationBell from './notification-bell.vue'
 import {
   LayoutDashboard,
