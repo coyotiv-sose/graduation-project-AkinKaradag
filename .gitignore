@@ -25,6 +25,7 @@ coverage/
 
 #Docker
 data
+data.bak/
 
 # Local secrets (admin seed credentials, etc.)
 secrets/
