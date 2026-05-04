@@ -1,5 +1,6 @@
 <script>
-import { shortAddress, formatBillingLine } from '@/utils/order-form-helpers'
+import { formatBillingLine, shortAddress, totalCargoWeight } from '@/utils/order-form-helpers'
+import { formatLongDate } from '@/utils/format'
 
 export default {
   name: 'OrderSummaryCard',
@@ -26,16 +27,13 @@ export default {
       return shortAddress(this.destination)
     },
     formattedDeliveryDate() {
-      if (!this.deliveryDate) return '—'
-      return new Date(this.deliveryDate).toLocaleDateString(undefined, {
-        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-      })
+      return formatLongDate(this.deliveryDate)
     },
     totalUnits() {
       return this.cargos.reduce((sum, c) => sum + Number(c.quantity || 0), 0)
     },
     totalWeight() {
-      return this.cargos.reduce((sum, c) => sum + Number(c.quantity || 0) * Number(c.weight || 0), 0)
+      return totalCargoWeight(this.cargos)
     },
   },
 }
