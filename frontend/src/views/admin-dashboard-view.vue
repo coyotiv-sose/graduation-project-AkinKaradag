@@ -2,11 +2,11 @@
 import { mapState, mapActions } from 'pinia'
 import { useAdminStore } from '@/stores/admin-store'
 import { useAccountStore } from '@/stores/account-store'
-import AdminDashboardCompanyTab from '@/components/admin-dashboard-company-tab.vue'
-import AdminDashboardCustomerTab from '@/components/admin-dashboard-customer-tab.vue'
-import AdminDashboardOrderTab from '@/components/admin-dashboard-order-tab.vue'
-import AdminCompanyForm from '@/components/admin-company-form.vue'
-import PageHeader from '@/components/page-header.vue'
+import AdminDashboardCompanyTab from '@/components/admin/admin-dashboard-company-tab.vue'
+import AdminDashboardCustomerTab from '@/components/admin/admin-dashboard-customer-tab.vue'
+import AdminDashboardOrderTab from '@/components/admin/admin-dashboard-order-tab.vue'
+import AdminCompanyForm from '@/components/admin/admin-company-form.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 import { Building2, Users, Package } from 'lucide-vue-next'
 
 export default {

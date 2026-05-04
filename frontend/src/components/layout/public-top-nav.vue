@@ -1,7 +1,7 @@
 <script>
 import { mapState } from 'pinia'
 import { useAccountStore } from '@/stores/account-store'
-import ThemeToggle from './theme-toggle.vue'
+import ThemeToggle from '../shared/theme-toggle.vue'
 
 export default {
   name: 'PublicTopNav',

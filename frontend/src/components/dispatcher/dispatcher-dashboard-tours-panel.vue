@@ -1,8 +1,8 @@
 <script>
 import { Plus } from 'lucide-vue-next'
-import DispatcherTourCreateForm from '@/components/dispatcher-tour-create-form.vue'
-import DispatcherTourCard from '@/components/dispatcher-tour-card.vue'
-import DispatcherTourAssignModal from '@/components/dispatcher-tour-assign-modal.vue'
+import DispatcherTourCreateForm from '@/components/dispatcher/dispatcher-tour-create-form.vue'
+import DispatcherTourCard from '@/components/dispatcher/dispatcher-tour-card.vue'
+import DispatcherTourAssignModal from '@/components/dispatcher/dispatcher-tour-assign-modal.vue'
 import { availableVehicles, pendingOrders } from '@/utils/dispatcher-selectors'
 
 export default {

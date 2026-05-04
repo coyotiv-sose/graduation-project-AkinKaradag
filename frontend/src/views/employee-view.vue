@@ -1,6 +1,6 @@
 <script>
-import Employee from '@/components/employee.vue'
-import PageHeader from '@/components/page-header.vue'
+import Employee from '@/components/entities/employee.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 
 export default {
   name: 'EmployeeView',

@@ -2,7 +2,7 @@
 import { mapActions } from 'pinia'
 import { useOrderStore } from '@/stores/order-store'
 import { useSocketStore } from '@/stores/socket-store'
-import PageHeader from '@/components/page-header.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 import { ChevronRight, Pencil } from 'lucide-vue-next'
 
 export default {

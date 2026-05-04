@@ -1,6 +1,6 @@
 <script>
-import Customer from '@/components/customer.vue'
-import PageHeader from '@/components/page-header.vue'
+import Customer from '@/components/entities/customer.vue'
+import PageHeader from '@/components/layout/page-header.vue'
 
 export default {
   name: 'CustomerDashboardView',
