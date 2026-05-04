@@ -5,36 +5,19 @@ import { useAccountStore } from '@/stores/account-store'
 import AdminDashboardCompanyTab from '@/components/admin-dashboard-company-tab.vue'
 import AdminDashboardCustomerTab from '@/components/admin-dashboard-customer-tab.vue'
 import AdminDashboardOrderTab from '@/components/admin-dashboard-order-tab.vue'
+import AdminCompanyForm from '@/components/admin-company-form.vue'
 import PageHeader from '@/components/page-header.vue'
 import { Building2, Users, Package } from 'lucide-vue-next'
 
-const emptyCompanyForm = () => ({
-  companyName: '',
-  address: '',
-  postalCode: '',
-  city: '',
-  ownerName: '',
-  ownerEmail: '',
-  ownerPassword: '',
-})
-
-const companyFormFromCompany = company => ({
-  ...emptyCompanyForm(),
-  companyName: company.companyName || '',
-  address: company.address || '',
-  postalCode: company.postalCode || '',
-  city: company.city || '',
-})
-
 export default {
   name: 'AdminDashboardView',
-  components: { AdminDashboardCompanyTab, AdminDashboardCustomerTab, AdminDashboardOrderTab, PageHeader, Building2, Users, Package },
+  components: { AdminDashboardCompanyTab, AdminDashboardCustomerTab, AdminDashboardOrderTab, AdminCompanyForm, PageHeader, Building2, Users, Package },
   data() {
     return {
       activeTab: 'companies',
-      showCompanyForm: false,
+      formMode: null,
       editingCompany: null,
-      companyForm: emptyCompanyForm(),
+      isSubmittingCompany: false,
       isLoading: false,
       error: null,
       info: null,
@@ -59,11 +42,6 @@ export default {
       this.error = null
       this.info = null
     },
-    resetCompanyFormState() {
-      this.showCompanyForm = false
-      this.editingCompany = null
-      this.companyForm = emptyCompanyForm()
-    },
     async loadDashboardData() {
       if (!this.isAdmin) return
       this.resetFeedback()
@@ -82,40 +60,32 @@ export default {
     },
     openCreateCompany() {
       this.resetFeedback()
-      this.resetCompanyFormState()
-      this.showCompanyForm = true
+      this.editingCompany = null
+      this.formMode = 'create'
     },
     openEditCompany(company) {
       this.resetFeedback()
-      this.resetCompanyFormState()
-      this.editingCompany = company._id
-      this.companyForm = companyFormFromCompany(company)
-      this.showCompanyForm = true
+      this.editingCompany = company
+      this.formMode = 'edit'
     },
-    async submitCompany() {
+    async handleSubmitCompany(payload) {
       this.resetFeedback()
-
+      this.isSubmittingCompany = true
       try {
-        if (this.editingCompany) {
-          const companyData = {
-            companyName: this.companyForm.companyName,
-            address: this.companyForm.address,
-            postalCode: this.companyForm.postalCode,
-            city: this.companyForm.city,
-          }
-          await this.updateCompany(this.editingCompany, companyData)
-          this.resetCompanyFormState()
+        if (this.formMode === 'edit') {
+          await this.updateCompany(this.editingCompany._id, payload)
         } else {
-          const ownerEmail = this.companyForm.ownerEmail
-          const result = await this.createCompany(this.companyForm)
-          this.resetCompanyFormState()
-
+          const result = await this.createCompany(payload)
           if (result?.owner) {
-            this.info = `Company created with owner account: ${ownerEmail}`
+            this.info = `Company created with owner account: ${payload.ownerEmail}`
           }
         }
+        this.formMode = null
+        this.editingCompany = null
       } catch (err) {
         this.error = err.response?.data?.error || err.message
+      } finally {
+        this.isSubmittingCompany = false
       }
     },
     async removeCompany(companyId) {
@@ -129,7 +99,8 @@ export default {
     },
     cancelForm() {
       this.resetFeedback()
-      this.resetCompanyFormState()
+      this.formMode = null
+      this.editingCompany = null
     },
   },
   async mounted() {
@@ -195,20 +166,20 @@ div.admin(v-if="isAdmin")
     )
       | Orders
       span.kl-tab-count {{ allOrders.length }}
-  AdminDashboardCompanyTab(
-    v-if="activeTab === 'companies'"
-    :companies="companies"
-    :show-company-form="showCompanyForm"
-    :editing-company="editingCompany"
-    :company-form="companyForm"
-    :is-loading="isLoading"
-    @open-create="openCreateCompany"
-    @edit-company="openEditCompany"
-    @submit-company="submitCompany"
-    @cancel-form="cancelForm"
-    @delete-company="removeCompany"
-    @update-form="companyForm = $event"
-  )
+  template(v-if="activeTab === 'companies'")
+    AdminCompanyForm(
+      v-if="formMode"
+      :initial-company="editingCompany"
+      :is-submitting="isSubmittingCompany"
+      @submit="handleSubmitCompany"
+      @cancel="cancelForm"
+    )
+    AdminDashboardCompanyTab(
+      :companies="companies"
+      @open-create="openCreateCompany"
+      @edit-company="openEditCompany"
+      @delete-company="removeCompany"
+    )
   AdminDashboardCustomerTab(
     v-if="activeTab === 'customers'"
     :customers="allCustomers"

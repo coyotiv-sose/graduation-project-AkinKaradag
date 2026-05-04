@@ -2,7 +2,7 @@
 import { mapActions } from 'pinia'
 import { Sparkles } from 'lucide-vue-next'
 import { useOrderStore } from '@/stores/order-store'
-import { formatDate } from '@/utils/order-form-helpers'
+import { formatDate } from '@/utils/format'
 
 export default {
   name: 'OrderAiPrompt',
