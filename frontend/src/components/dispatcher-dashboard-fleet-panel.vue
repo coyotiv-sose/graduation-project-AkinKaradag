@@ -1,25 +1,14 @@
 <script>
+import { vehicleName } from '@/utils/dispatcher-selectors'
+import { vehicleBadgeClass } from '@/utils/badge-classes'
+
 export default {
   name: 'DispatcherDashboardFleetPanel',
   props: {
     companyId: { type: String, required: true },
     vehicles: { type: Array, default: () => [] },
   },
-  methods: {
-    vehicleName(vehicle) {
-      return vehicle.name || `${vehicle.brand} ${vehicle.model}`
-    },
-    vehicleBadgeClass(state) {
-      return {
-        AVAILABLE: 'kl-badge kl-badge--primary',
-        ON_TOUR: 'kl-badge kl-badge--info',
-        IN_GARAGE: 'kl-badge kl-badge--danger',
-        DAMAGED: 'kl-badge kl-badge--danger',
-        PARKED: 'kl-badge kl-badge--muted',
-        SOLD: 'kl-badge kl-badge--muted',
-      }[state] || 'kl-badge kl-badge--muted'
-    },
-  },
+  methods: { vehicleName, vehicleBadgeClass },
 }
 </script>
 
