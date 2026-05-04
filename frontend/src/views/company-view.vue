@@ -1,6 +1,6 @@
 <script>
-import Company from '@/components/entities/company.vue'
-import PageHeader from '@/components/layout/page-header.vue'
+import Company from '@/components/company.vue'
+import PageHeader from '@/components/page-header.vue'
 
 export default {
   name: 'CompanyView',

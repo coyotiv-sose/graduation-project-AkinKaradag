@@ -1,8 +1,9 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useAccountStore } from '@/stores/account-store'
-import ThemeToggle from '../shared/theme-toggle.vue'
+import ThemeToggle from './theme-toggle.vue'
 import NotificationBell from './notification-bell.vue'
+import { initials as getInitials } from '@/utils/display-helpers'
 import {
   LayoutDashboard,
   Home,
@@ -55,13 +56,7 @@ export default {
       return 'Guest'
     },
     initials() {
-      const src = this.displayName || '?'
-      return src
-        .split(/[\s@]+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(p => p[0]?.toUpperCase() || '')
-        .join('')
+      return getInitials(this.displayName)
     },
     navItems() {
       const items = [{ to: '/', label: 'Home', icon: 'Home' }]
