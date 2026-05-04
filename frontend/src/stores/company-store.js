@@ -4,11 +4,16 @@ import axios from 'axios'
 export const useCompanyStore = defineStore('company', {
     state: () => ({
         companies: [],
+        publicCompanies: [],
     }),
     actions: {
         async getAllCompanies() {
             const { data } = await axios.get('/admin/companies')
             this.companies = data
+        },
+        async getPublicCompanies() {
+            const { data } = await axios.get('/companies/public')
+            this.publicCompanies = data
         },
         async getCompany(companyId) {
             const { data } = await axios.get(`/companies/${companyId}`)
