@@ -62,8 +62,7 @@ router.post('/', validateAccountRegistration, async (req, res, next) => {
 
 router.post('/session', loginRateLimiter, validateLogin, async (req, res, next) => {
   try {
-    const normalizedEmail = req.body.email.toLowerCase()
-    const account = await accountManager.getAccountByEmail(normalizedEmail)
+    const account = await accountManager.getAccountByEmail(req.body.email)
 
     const result = await accountManager.verifyAccountPassword(account, req.body.password)
 
