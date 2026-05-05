@@ -21,7 +21,12 @@ const runDummyPasswordHash = () =>
     )
   })
 
-const getAccountByEmail = async email => Account.findOne({ email: String(email || '').toLowerCase() })
+const normalizeEmail = email =>
+  String(email || '')
+    .trim()
+    .toLowerCase()
+
+const getAccountByEmail = async email => Account.findOne({ email: normalizeEmail(email) })
 
 const createAdminAccount = async ({ email, password }) => {
   validatePasswordPolicy(password)
