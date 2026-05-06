@@ -29,7 +29,6 @@ const createEmployee = async employeeData => {
     account: account._id,
     name: employeeData.name,
     company: employeeData.company,
-    profile: 'DISPATCHER',
   })
 
   return employee
