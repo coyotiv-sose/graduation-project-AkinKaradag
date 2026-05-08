@@ -70,19 +70,14 @@ router.post(
   }
 )
 
-router.get(
-  '/:companyId/customers',
-  validate.validateCompanyIdParam,
-  ...withCompanyAccess,
-  async (req, res, next) => {
-    try {
-      const customers = await customerManager.getCustomerByCompany(req.params.companyId)
-      res.status(200).json(customers)
-    } catch (error) {
-      next(error)
-    }
+router.get('/:companyId/customers', validate.validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
+  try {
+    const customers = await customerManager.getCustomerByCompany(req.params.companyId)
+    res.status(200).json(customers)
+  } catch (error) {
+    next(error)
   }
-)
+})
 
 router.put(
   '/:companyId/customers/:customerId',
@@ -153,19 +148,14 @@ router.post(
   }
 )
 
-router.get(
-  '/:companyId/employees',
-  validate.validateCompanyIdParam,
-  ...withCompanyAccess,
-  async (req, res, next) => {
-    try {
-      const employees = await employeeManager.getEmployeeByCompany(req.params.companyId)
-      res.status(200).json(employees)
-    } catch (error) {
-      next(error)
-    }
+router.get('/:companyId/employees', validate.validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
+  try {
+    const employees = await employeeManager.getEmployeeByCompany(req.params.companyId)
+    res.status(200).json(employees)
+  } catch (error) {
+    next(error)
   }
-)
+})
 
 router.put(
   '/:companyId/employees/:employeeId',
@@ -301,19 +291,14 @@ router.post(
   }
 )
 
-router.get(
-  '/:companyId/vehicles',
-  validate.validateCompanyIdParam,
-  ...withCompanyAccess,
-  async (req, res, next) => {
-    try {
-      const vehicles = await vehicleManager.getAllVehiclesOfCompany(req.params.companyId)
-      res.status(200).json(vehicles)
-    } catch (error) {
-      next(error)
-    }
+router.get('/:companyId/vehicles', validate.validateCompanyIdParam, ...withCompanyAccess, async (req, res, next) => {
+  try {
+    const vehicles = await vehicleManager.getAllVehiclesOfCompany(req.params.companyId)
+    res.status(200).json(vehicles)
+  } catch (error) {
+    next(error)
   }
-)
+})
 
 router.put(
   '/:companyId/vehicles/:vehicleId',
