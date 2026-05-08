@@ -2,6 +2,10 @@
 const { validatePasswordPolicy } = require('../src/lib/password-policy')
 
 describe('Password policy', () => {
+  it('rejects missing password', () => {
+    expect(() => validatePasswordPolicy()).toThrow('Password is required')
+  })
+
   it('accepts valid password characters and length', () => {
     expect(() => validatePasswordPolicy('SafePass12@_&')).not.toThrow()
   })
