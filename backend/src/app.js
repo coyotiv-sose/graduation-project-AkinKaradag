@@ -123,6 +123,7 @@ app.use(function (err, req, res, next) {
 app.createSocketServer = function (server) {
   const customerManager = require('./managers/customer-manager')
   const employeeManager = require('./managers/employee-manager')
+  const { getAccessibleOrderForAccount } = require('./middlewares/require-access')
 
   const io = require('socket.io')(server, {
     cors: corsOptions,
@@ -152,8 +153,18 @@ app.createSocketServer = function (server) {
       }
     }
 
-    socket.on('join:order', orderId => {
-      socket.join(`order:${orderId}`)
+    socket.on('join:order', async orderId => {
+      try {
+        const order = await getAccessibleOrderForAccount(socket.request.user, orderId)
+        if (!order) {
+          return
+        }
+
+        const authorizedOrderId = order._id?.toString?.() || orderId
+        socket.join(`order:${authorizedOrderId}`)
+      } catch (error) {
+        console.error('Failed to authorize order room join:', socket.id, error.message)
+      }
     })
 
     socket.on('leave:order', orderId => {

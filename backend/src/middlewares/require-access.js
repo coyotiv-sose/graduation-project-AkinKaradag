@@ -215,6 +215,19 @@ const requireOrderAccess = ({ orderParamName = 'orderId', companyParamName, cust
     additionalCheck: (order, req) => !customerParamName || idsEqual(order.customer, req.params[customerParamName]),
   })
 
+const getAccessibleOrderForAccount = async (account, orderId) => {
+  if (!account) return null
+
+  const req = {
+    user: account,
+    params: { orderId },
+  }
+  const actorScope = await getActorScope(req)
+  const order = await loadCachedResource(req, 'order', orderId, () => orderManager.findOrderById(orderId))
+
+  return canAccessOrder(actorScope, order) ? order : null
+}
+
 const requireVehicleAccess = ({ vehicleParamName = 'vehicleId', companyParamName } = {}) =>
   requireScopedResourceAccess({
     resourceType: 'vehicle',
@@ -275,6 +288,7 @@ const requireBodyVehicleInCompany = ({
 
 module.exports = {
   getActorScope,
+  getAccessibleOrderForAccount,
   requireCompanyAccess,
   requireCustomerAccess,
   requireEmployeeAccess,
