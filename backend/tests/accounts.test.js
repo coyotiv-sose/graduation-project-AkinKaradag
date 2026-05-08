@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-undef */
 const { createAccount, clearDatabase, app, request } = require('./helper')
+const Account = require('../src/models/account')
 
 describe('Account', () => {
     beforeEach(async() => {
@@ -40,6 +41,30 @@ describe('Account', () => {
             expect(account.status).toBe(200)
             expect(account.body).not.toHaveProperty('hash')
             expect(account.body).not.toHaveProperty('salt')
+        })
+
+        it('can register a customer account', async() => {
+            const response = await request(app).post('/accounts').send({
+                email: 'customer-register@example.com',
+                password: 'SafePass1234',
+                role: 'customer',
+                customerName: 'Client One',
+            })
+
+            expect(response.status).toBe(200)
+            expect(response.body.customerName).toBe('Client One')
+        })
+
+        it('can register an employee account', async() => {
+            const response = await request(app).post('/accounts').send({
+                email: 'employee-register@example.com',
+                password: 'StaffSafe1234',
+                role: 'employee',
+                name: 'Dispatcher One',
+            })
+
+            expect(response.status).toBe(200)
+            expect(response.body.name).toBe('Dispatcher One')
         })
     })
 
@@ -128,6 +153,17 @@ describe('Account', () => {
             expect(correctAfterLock.status).toBe(401)
             expect(correctAfterLock.body).toEqual({ error: 'Invalid email or password' })
         })
+
+        it('resets expired lock counters before recording a new failed login', async() => {
+            await createAccount()
+            const account = await Account.findOne({ email: 'test@example.com' })
+            account.failedLoginAttempts = 3
+            account.lockUntil = new Date(Date.now() - 1000)
+            await account.registerFailedLoginAttempt()
+
+            expect(account.failedLoginAttempts).toBe(1)
+            expect(account.lockUntil).toBeNull()
+        })
     })
 
     describe('GET /accounts/session', () => {
@@ -151,6 +187,88 @@ describe('Account', () => {
             expect(session.status).toBe(200)
             expect(session.body).not.toHaveProperty('hash')
             expect(session.body).not.toHaveProperty('salt')
+        })
+
+        it('returns the logged-in customer profile', async() => {
+            const agent = request.agent(app)
+            await agent.post('/accounts').send({
+                email: 'session-customer@example.com',
+                password: 'SafePass1234',
+                role: 'customer',
+                customerName: 'Session Customer',
+            })
+            await agent.post('/accounts/session').send({
+                email: 'session-customer@example.com',
+                password: 'SafePass1234',
+            })
+
+            const session = await agent.get('/accounts/session')
+
+            expect(session.status).toBe(200)
+            expect(session.body.role).toBe('customer')
+            expect(session.body.profile.customerName).toBe('Session Customer')
+        })
+
+        it('returns the logged-in employee profile', async() => {
+            const agent = request.agent(app)
+            await agent.post('/accounts').send({
+                email: 'session-employee@example.com',
+                password: 'StaffSafe1234',
+                role: 'employee',
+                name: 'Session Employee',
+            })
+            await agent.post('/accounts/session').send({
+                email: 'session-employee@example.com',
+                password: 'StaffSafe1234',
+            })
+
+            const session = await agent.get('/accounts/session')
+
+            expect(session.status).toBe(200)
+            expect(session.body.role).toBe('employee')
+            expect(session.body.profile.name).toBe('Session Employee')
+        })
+
+        it('returns null profile if a profile-backed account is missing its profile document', async() => {
+            const agent = request.agent(app)
+            await Account.register(
+                new Account({
+                    email: 'missing-profile@example.com',
+                    role: 'customer',
+                }),
+                'SafePass1234'
+            )
+            await agent.post('/accounts/session').send({
+                email: 'missing-profile@example.com',
+                password: 'SafePass1234',
+            })
+
+            const session = await agent.get('/accounts/session')
+
+            expect(session.status).toBe(200)
+            expect(session.body.profile).toBeNull()
+        })
+    })
+
+    describe('DELETE /accounts/session (logout)', () => {
+        it('logs out the current session', async() => {
+            const agent = request.agent(app)
+            await agent.post('/accounts').send({
+                email: 'logout@example.com',
+                password: 'Password1234',
+                role: 'admin',
+            })
+            await agent.post('/accounts/session').send({
+                email: 'logout@example.com',
+                password: 'Password1234',
+            })
+
+            const logout = await agent.delete('/accounts/session')
+            const session = await agent.get('/accounts/session')
+
+            expect(logout.status).toBe(200)
+            expect(logout.body).toEqual({ message: 'Logged out' })
+            expect(session.body).toEqual({})
         })
     })
 })
