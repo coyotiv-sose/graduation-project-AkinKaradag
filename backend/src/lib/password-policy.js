@@ -7,28 +7,27 @@ const PASSWORD_ALLOWED_REGEX = /^[A-Za-z0-9@!_\-$&]+$/
 
 const passwordPolicyError = message => new DomainError(message, { status: 400 })
 
-const normalizeForComparison = value => String(value || '')
-  .toLowerCase()
-  .replace(/[^a-z0-9]/g, '')
+const normalizeForComparison = value =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
 
 const getNameFragments = names => {
   const fragments = new Set()
 
-  names
-    .filter(Boolean)
-    .forEach(name => {
-      const normalizedName = normalizeForComparison(name)
-      if (normalizedName.length >= 3) {
-        fragments.add(normalizedName)
-      }
+  names.filter(Boolean).forEach(name => {
+    const normalizedName = normalizeForComparison(name)
+    if (normalizedName.length >= 3) {
+      fragments.add(normalizedName)
+    }
 
-      String(name)
-        .toLowerCase()
-        .split(/[^a-z0-9]+/)
-        .map(fragment => normalizeForComparison(fragment))
-        .filter(fragment => fragment.length >= 3)
-        .forEach(fragment => fragments.add(fragment))
-    })
+    String(name)
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .map(fragment => normalizeForComparison(fragment))
+      .filter(fragment => fragment.length >= 3)
+      .forEach(fragment => fragments.add(fragment))
+  })
 
   return [...fragments]
 }
