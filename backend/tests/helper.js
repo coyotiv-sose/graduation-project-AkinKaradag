@@ -6,6 +6,9 @@ const request = require('supertest')
 const mongoose = require('mongoose')
 
 const app = require('../src/app')
+const Account = require('../src/models/account')
+const customerManager = require('../src/managers/customer-manager')
+const employeeManager = require('../src/managers/employee-manager')
 
 // Supertest never runs createSocketServer — stub Socket.IO so routes that emit do not throw.
 // Real code chains `.to().to().to().emit()` — a self-returning chain supports any depth.
@@ -27,6 +30,26 @@ const clearDatabase = async () => {
   }
 }
 
+const createAccount = async (overrides = {}) => {
+  const accountData = {
+    email: 'test@example.com',
+    password: 'Password1234',
+    role: 'admin',
+    ...overrides,
+  }
+  const account = await Account.register(
+    new Account({
+      email: accountData.email,
+      role: accountData.role,
+    }),
+    accountData.password
+  )
+  return {
+    status: 200,
+    body: account.toObject(),
+  }
+}
+
 const loginAsAdmin = async (overrides = {}) => {
   const credentials = {
     email: 'admin@example.com',
@@ -35,7 +58,7 @@ const loginAsAdmin = async (overrides = {}) => {
     ...overrides,
   }
   const agent = request.agent(app)
-  await agent.post('/accounts').send(credentials)
+  await createAccount(credentials)
   await agent.post('/accounts/session').send({
     email: credentials.email,
     password: credentials.password,
@@ -58,37 +81,40 @@ const createCompany = async (agent, overrides = {}) => {
 }
 
 const createCustomer = async (agent, companyId, overrides = {}) => {
-  const customerResponse = await agent
-    .post(`/companies/${companyId}/customers`)
-    .send({
-      customerName: 'customer1',
-      email: 'customer1@mail.com',
-      password: 'Password1234',
-      billingInfo: [
-        {
-          customerName: 'customer1',
-          address: 'Main Street 1',
-          postalCode: '1234',
-          city: 'Main City',
-          VATnr: 'VAT-001',
-        },
-      ],
-      ...overrides,
-    })
+  const customerResponse = await agent.post(`/companies/${companyId}/customers`).send({
+    customerName: 'customer1',
+    email: 'customer1@mail.com',
+    password: 'Password1234',
+    billingInfo: [
+      {
+        customerName: 'customer1',
+        address: 'Main Street 1',
+        postalCode: '1234',
+        city: 'Main City',
+        VATnr: 'VAT-001',
+      },
+    ],
+    ...overrides,
+  })
 
   return customerResponse
 }
 
-const createAccount = async (overrides = {}) => {
-  const accountData = {
-    email: 'test@example.com',
-    password: 'Password1234',
-    role: 'admin',
+const createCustomerProfile = (overrides = {}) =>
+  customerManager.createCustomer({
+    email: 'customer-profile@example.com',
+    password: 'CustomerPass1234',
+    customerName: 'Test Customer',
     ...overrides,
-  }
-  const accountResponse = await request(app).post('/accounts').send(accountData)
-  return accountResponse
-}
+  })
+
+const createEmployeeProfile = (overrides = {}) =>
+  employeeManager.createEmployee({
+    email: 'employee-profile@example.com',
+    password: 'EmployeePass1234',
+    name: 'Test Employee',
+    ...overrides,
+  })
 
 const sanitizeBillingSnippet = snippet => {
   if (!snippet || typeof snippet !== 'object') return snippet
@@ -98,22 +124,20 @@ const sanitizeBillingSnippet = snippet => {
 
 const createOrder = async (agent, customerId, billingSnippet) => {
   const billingInfo = sanitizeBillingSnippet(billingSnippet)
-  const orderResponse = await agent
-    .post(`/customers/${customerId}/orders`)
-    .send({
-      origin: 'Zurich',
-      destination: 'Basel',
-      deliveryDate: '2026-05-16T00:00:00.000Z',
-      billingInfo,
-      cargos: [
-        {
-          loadCarrierType: 'Palette',
-          dimensions: { width: 1.2, length: 0.8, height: 1.5 },
-          weight: 500,
-          quantity: 2,
-        },
-      ],
-    })
+  const orderResponse = await agent.post(`/customers/${customerId}/orders`).send({
+    origin: 'Zurich',
+    destination: 'Basel',
+    deliveryDate: '2026-05-16T00:00:00.000Z',
+    billingInfo,
+    cargos: [
+      {
+        loadCarrierType: 'Palette',
+        dimensions: { width: 1.2, length: 0.8, height: 1.5 },
+        weight: 500,
+        quantity: 2,
+      },
+    ],
+  })
   return orderResponse
 }
 
@@ -122,6 +146,8 @@ module.exports = {
   createCompany,
   createCustomer,
   createAccount,
+  createCustomerProfile,
+  createEmployeeProfile,
   sanitizeBillingSnippet,
   createOrder,
   clearDatabase,

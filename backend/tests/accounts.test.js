@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-undef */
-const { createAccount, clearDatabase, app, request } = require('./helper')
+const { createAccount, createCustomerProfile, createEmployeeProfile, clearDatabase, app, request } = require('./helper')
 const Account = require('../src/models/account')
 
 describe('Account', () => {
@@ -9,62 +9,40 @@ describe('Account', () => {
     })
 
     describe('POST /accounts (register)', () => {
-        it('can register a new account', async() => {
-            const account = await createAccount()
-            expect(account.status).toBe(200)
-            expect(account.body).toHaveProperty('email', 'test@example.com')
-        })
-
-        it('should not register without an email', async() => {
+        it('does not allow public admin registration', async() => {
             const response = await request(app).post('/accounts').send({
+                email: 'public-admin@example.com',
                 password: 'Password1234',
-                role: 'customer',
+                role: 'admin',
             })
-            expect(response.status).toBeGreaterThanOrEqual(400)
+
+            expect(response.status).toBe(403)
+            expect(response.body).toEqual({ error: 'Public account registration is disabled' })
+            expect(await Account.findOne({ email: 'public-admin@example.com' })).toBeNull()
         })
 
-        it('should not register without a password', async() => {
+        it('does not allow public customer registration', async() => {
             const response = await request(app).post('/accounts').send({
-                email: 'nopassword@example.com',
-                role: 'customer',
-            })
-            expect(response.status).toBeGreaterThanOrEqual(400)
-        })
-
-        it('should store email in lowercase', async() => {
-            const account = await createAccount({ email: 'UPPER@EXAMPLE.COM' })
-            expect(account.body.email).toBe('upper@example.com')
-        })
-
-        it('should not expose hash or salt in register response', async() => {
-            const account = await createAccount()
-            expect(account.status).toBe(200)
-            expect(account.body).not.toHaveProperty('hash')
-            expect(account.body).not.toHaveProperty('salt')
-        })
-
-        it('can register a customer account', async() => {
-            const response = await request(app).post('/accounts').send({
-                email: 'customer-register@example.com',
+                email: 'public-customer@example.com',
                 password: 'SafePass1234',
                 role: 'customer',
                 customerName: 'Client One',
             })
 
-            expect(response.status).toBe(200)
-            expect(response.body.customerName).toBe('Client One')
+            expect(response.status).toBe(403)
+            expect(await Account.findOne({ email: 'public-customer@example.com' })).toBeNull()
         })
 
-        it('can register an employee account', async() => {
+        it('does not allow public employee registration', async() => {
             const response = await request(app).post('/accounts').send({
-                email: 'employee-register@example.com',
+                email: 'public-employee@example.com',
                 password: 'StaffSafe1234',
                 role: 'employee',
                 name: 'Dispatcher One',
             })
 
-            expect(response.status).toBe(200)
-            expect(response.body.name).toBe('Dispatcher One')
+            expect(response.status).toBe(403)
+            expect(await Account.findOne({ email: 'public-employee@example.com' })).toBeNull()
         })
     })
 
@@ -174,7 +152,7 @@ describe('Account', () => {
 
         it('should not expose hash or salt in authenticated session response', async() => {
             const agent = request.agent(app)
-            await agent.post('/accounts').send({
+            await createAccount({
                 email: 'session@example.com',
                 password: 'Password1234',
                 role: 'admin',
@@ -191,10 +169,9 @@ describe('Account', () => {
 
         it('returns the logged-in customer profile', async() => {
             const agent = request.agent(app)
-            await agent.post('/accounts').send({
+            await createCustomerProfile({
                 email: 'session-customer@example.com',
                 password: 'SafePass1234',
-                role: 'customer',
                 customerName: 'Session Customer',
             })
             await agent.post('/accounts/session').send({
@@ -211,10 +188,9 @@ describe('Account', () => {
 
         it('returns the logged-in employee profile', async() => {
             const agent = request.agent(app)
-            await agent.post('/accounts').send({
+            await createEmployeeProfile({
                 email: 'session-employee@example.com',
                 password: 'StaffSafe1234',
-                role: 'employee',
                 name: 'Session Employee',
             })
             await agent.post('/accounts/session').send({
@@ -253,7 +229,7 @@ describe('Account', () => {
     describe('DELETE /accounts/session (logout)', () => {
         it('logs out the current session', async() => {
             const agent = request.agent(app)
-            await agent.post('/accounts').send({
+            await createAccount({
                 email: 'logout@example.com',
                 password: 'Password1234',
                 role: 'admin',

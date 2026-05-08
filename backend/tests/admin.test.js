@@ -8,6 +8,7 @@ const {
   createOrder,
   clearDatabase,
   loginAsAdmin,
+  createCustomerProfile,
   sanitizeBillingSnippet,
 } = require('./helper')
 
@@ -45,10 +46,9 @@ describe('Admin routes', () => {
     expect(unauthenticated.status).toBe(401)
 
     const customerAgent = request.agent(app)
-    await customerAgent.post('/accounts').send({
+    await createCustomerProfile({
       email: 'customer-admin-check@example.com',
       password: 'CustomerPass1234',
-      role: 'customer',
       customerName: 'Regular User',
     })
     await customerAgent.post('/accounts/session').send({
