@@ -156,24 +156,32 @@ router.delete('/employees/:employeeId', validate.validateAdminEmployeeDelete, as
   }
 })
 
-router.post('/customers/:customerId/reset-password', validate.validateAdminCustomerPasswordReset, async (req, res, next) => {
-  try {
-    const { newPassword, company } = req.body
-    await customerManager.resetCustomerPasswordByCompany(req.params.customerId, company, newPassword)
-    res.status(200).json({ message: 'Password reset successfully' })
-  } catch (error) {
-    next(error)
+router.post(
+  '/customers/:customerId/reset-password',
+  validate.validateAdminCustomerPasswordReset,
+  async (req, res, next) => {
+    try {
+      const { newPassword, company } = req.body
+      await customerManager.resetCustomerPasswordByCompany(req.params.customerId, company, newPassword)
+      res.status(200).json({ message: 'Password reset successfully' })
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
-router.post('/employees/:employeeId/reset-password', validate.validateAdminEmployeePasswordReset, async (req, res, next) => {
-  try {
-    const { newPassword, company } = req.body
-    await employeeManager.resetEmployeePasswordByCompany(req.params.employeeId, company, newPassword)
-    res.status(200).json({ message: 'Password reset successfully' })
-  } catch (error) {
-    next(error)
+router.post(
+  '/employees/:employeeId/reset-password',
+  validate.validateAdminEmployeePasswordReset,
+  async (req, res, next) => {
+    try {
+      const { newPassword, company } = req.body
+      await employeeManager.resetEmployeePasswordByCompany(req.params.employeeId, company, newPassword)
+      res.status(200).json({ message: 'Password reset successfully' })
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
 module.exports = router
