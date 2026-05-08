@@ -42,9 +42,6 @@ export const useAccountStore = defineStore('account', {
             await axios.post('/accounts/session', { email, password })
             await this.fetchUser()
         },
-        async register(payload) {
-            await axios.post('/accounts', payload)
-        },
         async logout() {
             const socketStore = useSocketStore()
             socketStore.disconnect()

@@ -2,8 +2,7 @@
 const express = require('express')
 
 const rateLimit = require('express-rate-limit')
-const { validateAccountRegistration, validateLogin } = require('./validations/accounts-validation')
-const { DomainError } = require('../lib/domain-error')
+const { validateLogin } = require('./validations/accounts-validation')
 
 const router = express.Router()
 const customerManager = require('../managers/customer-manager')
@@ -38,26 +37,10 @@ router.get('/session', async (req, res) => {
   res.json(response)
 })
 
-router.post('/', validateAccountRegistration, async (req, res, next) => {
-  try {
-    const { role } = req.body
-    let result
-    if (role === 'customer') {
-      result = await customerManager.createCustomer(req.body)
-    } else if (role === 'employee') {
-      result = await employeeManager.createEmployee(req.body)
-    } else if (role === 'admin') {
-      result = await accountManager.createAdminAccount({
-        email: req.body.email,
-        password: req.body.password,
-      })
-    } else {
-      throw new DomainError('Invalid role', { status: 400 })
-    }
-    res.json(result)
-  } catch (error) {
-    next(error)
-  }
+router.post('/', (req, res) => {
+  res.status(403).json({
+    error: 'Public account registration is disabled',
+  })
 })
 
 router.post('/session', loginRateLimiter, validateLogin, async (req, res, next) => {
