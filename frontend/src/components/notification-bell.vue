@@ -53,7 +53,6 @@ export default {
 }
 </script>
 
-
 <template lang="pug">
 div.notification-bell(ref="bellWrapper")
   button.bell-button(
@@ -110,8 +109,10 @@ div.notification-bell(ref="bellWrapper")
   justify-content: center;
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  transition: background-color var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
 }
 
 .bell-button:hover,
@@ -144,11 +145,13 @@ div.notification-bell(ref="bellWrapper")
   position: absolute;
   bottom: calc(100% + 10px);
   left: 0;
-  width: 320px;
+  width: min(320px, calc(var(--sidebar-expanded) - 1.5rem));
+  max-width: calc(100vw - 1rem);
   max-height: 420px;
   background: var(--color-background-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
+  box-sizing: border-box;
   box-shadow: var(--shadow-lg);
   z-index: 1000;
   display: flex;
@@ -160,19 +163,25 @@ div.notification-bell(ref="bellWrapper")
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .dropdown-title {
+  min-width: 0;
   font-weight: 600;
   font-size: 13px;
   color: var(--color-heading);
   letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dropdown-actions {
   display: flex;
+  flex-shrink: 0;
   gap: 4px;
 }
 
@@ -199,6 +208,7 @@ div.notification-bell(ref="bellWrapper")
 .dropdown-body {
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 .empty-state {
@@ -257,17 +267,17 @@ div.notification-bell(ref="bellWrapper")
   font-size: 13px;
   color: var(--color-heading);
   margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .notification-message {
   font-size: 12px;
   color: var(--color-text-secondary);
   line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .notification-time {
@@ -278,7 +288,9 @@ div.notification-bell(ref="bellWrapper")
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity var(--duration-fast) var(--ease), transform var(--duration-fast) var(--ease);
+  transition:
+    opacity var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
 
 .dropdown-enter-from,
