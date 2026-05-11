@@ -15,7 +15,6 @@ export default {
 }
 </script>
 
-
 <template lang="pug">
 button.theme-toggle(
   type="button"
@@ -32,9 +31,11 @@ button.theme-toggle(
 </template>
 
 <style scoped>
-.theme-toggle {
+button.theme-toggle {
   position: relative;
   width: 54px;
+  min-width: 28px;
+  max-width: 100%;
   height: 28px;
   padding: 0;
   border: 1px solid var(--color-border);
@@ -44,9 +45,12 @@ button.theme-toggle(
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  transition: background-color var(--duration-fast) var(--ease),
+  overflow: hidden;
+  container-type: inline-size;
+  transition:
+    background-color var(--duration-fast) var(--ease),
     border-color var(--duration-fast) var(--ease);
-  flex-shrink: 0;
+  flex: 0 1 54px;
 }
 
 .theme-toggle:hover {
@@ -62,7 +66,9 @@ button.theme-toggle(
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
-  transition: color var(--duration-fast) var(--ease);
+  transition:
+    color var(--duration-fast) var(--ease),
+    opacity var(--duration-fast) var(--ease);
 }
 
 .theme-toggle__icon--sun {
@@ -86,10 +92,38 @@ button.theme-toggle(
   border-radius: 50%;
   background: var(--color-background-card);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--duration) var(--ease);
+  transition:
+    left var(--duration) var(--ease),
+    opacity var(--duration-fast) var(--ease);
 }
 
 .theme-toggle--dark .theme-toggle__thumb {
-  transform: translateX(24px);
+  left: calc(100% - 24px);
+}
+
+@container (max-width: 40px) {
+  .theme-toggle__icon {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  .theme-toggle__icon--sun {
+    opacity: 1;
+  }
+
+  .theme-toggle--dark .theme-toggle__icon--sun {
+    opacity: 0;
+  }
+
+  .theme-toggle--dark .theme-toggle__icon--moon {
+    opacity: 1;
+  }
+
+  .theme-toggle__thumb {
+    opacity: 0;
+  }
 }
 </style>
