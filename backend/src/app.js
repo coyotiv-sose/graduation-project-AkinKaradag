@@ -47,6 +47,10 @@ if (process.env.NODE_ENV === 'production') {
 
 const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(origin => origin.trim()) : []
 
+if (process.env.NODE_ENV === 'production' && !allowedOrigins.length) {
+  throw new Error('FRONTEND_URL is required in production')
+}
+
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true)
