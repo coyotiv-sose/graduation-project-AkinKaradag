@@ -62,5 +62,10 @@
             "!src/views/**",
             "!src/public/**"
         ]
+    },
+    "overrides":{
+        "celebrate": {
+            "lodash": "4.18.1"
+        }
     }
 }
