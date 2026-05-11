@@ -102,6 +102,7 @@ class Order <<Mongoose Model>> {
   state : OrderState = "PENDING"
   cargos : Cargo[]
   billingInfo : BillingInfo {required}
+  note : String = ""
   --
   addCargo(cargo) : Order
   getCargos() : Cargo[]
@@ -134,8 +135,8 @@ class Tour <<Mongoose Model>> {
   company : ObjectId → LogisticCompany {required}
   vehicle : ObjectId → Vehicle
   date : Date {required}
-  startLocation : String {required}
-  endLocation : String {required}
+  startLocation : String = ""
+  endLocation : String = ""
   orders : ObjectId[] → Order
   state : TourState = "PLANNED"
   --

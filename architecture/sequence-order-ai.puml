@@ -8,33 +8,39 @@ actor Customer as user
 participant "Vue SPA\n(OrderCreateView)" as frontend
 participant "orderStore\n(Pinia)" as store
 participant "Express\n/customers/:id/orders/ai-generate" as route
-participant "CustomerManager" as custMgr
+participant "AI rate limiter" as limiter
+participant "requireCustomerAccess\nmiddleware" as access
 participant "OrderGenerator\n(OpenAI)" as ai
 participant "OrderManager" as ordMgr
 database "MongoDB" as db
 participant "OpenAI API" as openai
+participant "Socket.IO" as socket
 
 user -> frontend : Enter natural language\norder description
 frontend -> store : generateOrderFromPrompt(\ncustomerId, prompt)
-store -> route : POST /customers/{id}/orders/ai-generate\n{ prompt }
+store -> route : POST /customers/{id}/orders/ai-generate\n{ prompt, billingInfo? }
 
-route -> custMgr : getCustomerById(id)
-custMgr -> db : Customer.findById()
-db --> custMgr : customer doc
-custMgr --> route : customer
+route -> limiter : check hourly quota
+limiter --> route : allowed
+
+route -> access : authorize customerId
+access -> db : Customer.findById()
+db --> access : customer doc
+access --> route : req.authz.customer
 
 route -> ai : generateOrder(prompt)
 ai -> openai : POST /chat/completions\n(GPT-4o-mini, system + user prompt)
 openai --> ai : JSON response\n{ origin, destination,\ndeliveryDate, cargos[] }
 ai --> route : parsed order data
 
-route -> route : resolve default billingInfo\nfrom customer
+route -> route : resolve provided/default billingInfo\nfrom customer
 
-route -> ordMgr : createOrder({ ...orderData,\ncustomer, company, billingInfo })
+route -> ordMgr : createOrder({ ...orderData,\ncustomer._id, customer.company,\nbillingInfo })
 ordMgr -> db : Order.create()
 db --> ordMgr : saved order
 ordMgr --> route : order
 
+route -> socket : emit order:created\nto company/customer rooms
 route --> store : 201 { order }
 store --> frontend : lastGeneratedOrder
 frontend --> user : Display created order

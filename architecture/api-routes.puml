@@ -23,11 +23,11 @@ package "/accounts" as acc <<Routes>> {
 }
 
 package "/companies" as comp <<Routes>> {
-  object "POST /" as comp_create {
-    Create company
+  object "GET /public" as comp_public {
+    List public companies
   }
-  object "GET /" as comp_list {
-    List all companies
+  object "GET /:companyId" as comp_get {
+    Get company detail
   }
   object "POST /:companyId/customers" as comp_cust_create {
     Create customer for company
@@ -35,11 +35,29 @@ package "/companies" as comp <<Routes>> {
   object "GET /:companyId/customers" as comp_cust_list {
     List company customers
   }
+  object "PUT /:companyId/customers/:customerId" as comp_cust_upd {
+    Update company customer
+  }
+  object "DELETE /:companyId/customers/:customerId" as comp_cust_del {
+    Delete company customer
+  }
+  object "POST /:companyId/customers/:customerId/reset-password" as comp_cust_pwd {
+    Reset customer password
+  }
   object "POST /:companyId/employees" as comp_emp_create {
     Create employee for company
   }
   object "GET /:companyId/employees" as comp_emp_list {
     List company employees
+  }
+  object "PUT /:companyId/employees/:employeeId" as comp_emp_upd {
+    Update company employee
+  }
+  object "DELETE /:companyId/employees/:employeeId" as comp_emp_del {
+    Delete company employee
+  }
+  object "POST /:companyId/employees/:employeeId/reset-password" as comp_emp_pwd {
+    Reset employee password
   }
   object "POST /:companyId/orders" as comp_ord_create {
     Create order for company
@@ -73,6 +91,55 @@ package "/companies" as comp <<Routes>> {
   }
   object "PUT /:companyId/tours/:tourId" as comp_tour_upd {
     Update tour state
+  }
+}
+
+package "/admin" as admin <<Routes>> {
+  object "GET /companies" as adm_comp_list {
+    List all companies
+  }
+  object "POST /companies" as adm_comp_create {
+    Create company
+    optionally with owner
+  }
+  object "PUT /companies/:companyId" as adm_comp_upd {
+    Update company
+  }
+  object "DELETE /companies/:companyId" as adm_comp_del {
+    Delete company
+  }
+  object "GET /customers" as adm_cust_list {
+    List all customers
+  }
+  object "PUT /customers/:customerId" as adm_cust_upd {
+    Update customer
+  }
+  object "DELETE /customers/:customerId" as adm_cust_del {
+    Delete customer
+  }
+  object "POST /customers/:customerId/reset-password" as adm_cust_pwd {
+    Reset customer password
+  }
+  object "GET /orders" as adm_ord_list {
+    List all orders
+  }
+  object "PUT /orders/:orderId" as adm_ord_upd {
+    Update order
+  }
+  object "DELETE /orders/:orderId" as adm_ord_del {
+    Delete order
+  }
+  object "GET /employees" as adm_emp_list {
+    List all employees
+  }
+  object "PUT /employees/:employeeId" as adm_emp_upd {
+    Update employee
+  }
+  object "DELETE /employees/:employeeId" as adm_emp_del {
+    Delete employee
+  }
+  object "POST /employees/:employeeId/reset-password" as adm_emp_pwd {
+    Reset employee password
   }
 }
 

@@ -11,12 +11,14 @@ package "Vue 3 Application" as app {
     [HomeView] as v_home
     [LoginView] as v_login
     [LogoutView] as v_logout
+    [AboutView] as v_about
+    [AdminDashboardView] as v_admin
     [CompanyView] as v_company
     [CompanyDetailView] as v_companyDetail
-    [CustomerView] as v_customer
+    [CustomerDashboardView] as v_customerDashboard
     [EmployeeView] as v_employee
     [VehicleView] as v_vehicle
-    [DispatcherView] as v_dispatcher
+    [DispatcherDashboardView] as v_dispatcher
     [OrderCreateView] as v_orderCreate
     [OrderListView] as v_orderList
     [OrderDetailView] as v_orderDetail
@@ -30,20 +32,24 @@ package "Vue 3 Application" as app {
     [DispatcherDashboard.vue] as c_dashboard
     [CreateFormWrapper.vue] as c_formWrapper
     [ThemeToggle.vue] as c_theme
+    [NotificationBell.vue] as c_notifications
+    [AdminDashboard tabs] as c_adminTabs
+    [CompanyDetail sections] as c_companySections
+    [OrderCreate sections] as c_orderCreateSections
   }
 
   package "Pinia Stores" as stores {
     [accountStore] as s_account
+    [adminStore] as s_admin
     [companyStore] as s_company
     [customerStore] as s_customer
     [employeeStore] as s_employee
     [orderStore] as s_order
     [vehicleStore] as s_vehicle
     [tourStore] as s_tour
-  }
-
-  package "Composables" as composables {
-    [useTheme] as comp_theme
+    [socketStore] as s_socket
+    [notificationStore] as s_notification
+    [themeStore] as s_theme
   }
 
   [Vue Router] as router
@@ -51,38 +57,55 @@ package "Vue 3 Application" as app {
 
 ' ── Views use Components ──
 v_company --> c_company
-v_customer --> c_customer
+v_admin --> c_adminTabs
+v_companyDetail --> c_companySections
+v_customerDashboard --> c_customer
 v_employee --> c_employee
 v_vehicle --> c_vehicle
 v_dispatcher --> c_dashboard
 v_orderCreate --> c_formWrapper
+v_orderCreate --> c_orderCreateSections
+c_notifications --> s_notification
 
 ' ── Views / Components use Stores ──
 v_login --> s_account
 v_logout --> s_account
+v_admin --> s_admin
 v_companyDetail --> s_company
-v_customer --> s_customer
+v_companyDetail --> s_customer
+v_companyDetail --> s_employee
+v_companyDetail --> s_order
+v_customerDashboard --> s_customer
 v_employee --> s_employee
 v_orderCreate --> s_order
+v_orderCreate --> s_customer
+v_orderCreate --> s_company
 v_orderList --> s_order
 v_orderDetail --> s_order
+v_orderDetail --> s_socket
 v_vehicle --> s_vehicle
 c_dashboard --> s_order
 c_dashboard --> s_vehicle
 c_dashboard --> s_tour
+s_account --> s_socket
+s_socket --> s_order
+s_socket --> s_notification
 
 ' ── Theme ──
-c_theme --> comp_theme
+c_theme --> s_theme
 
 ' ── Router ──
 router --> views
 
-' ── Stores call Backend REST API ──
+' ── Stores call Backend REST API / Socket.IO ──
 note right of stores
-  All stores use **axios**
-  (baseURL: localhost:3000,
-   withCredentials: true)
-  to call the Express backend.
+  REST stores use axios
+  (baseURL: VITE_BACKEND_URL,
+   withCredentials: true).
+
+  socketStore uses socket.io-client
+  with the same backend URL for
+  order and notification events.
 end note
 
 @enduml
