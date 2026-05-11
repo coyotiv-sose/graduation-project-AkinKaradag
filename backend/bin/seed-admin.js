@@ -9,7 +9,7 @@ require('dotenv').config({
 
 const Account = require('../src/models/account')
 
-const DEFAULT_MONGODB_URI = 'mongodb://localhost:27017/karalog'
+const DEFAULT_MONGODB_URI = 'mongodb://localhost:27017/routewerk'
 
 async function seedAdmin() {
   const email = process.env.SEED_ADMIN_EMAIL

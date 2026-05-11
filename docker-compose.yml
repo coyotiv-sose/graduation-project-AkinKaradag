@@ -1,6 +1,6 @@
 services:
   api:
-    image: karalog-api
+    image: routewerk-api
     build:
       context: backend
       dockerfile: Dockerfile
@@ -13,10 +13,10 @@ services:
     env_file:
       - backend/.env
     environment:
-      - MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/karalog
+      - MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/routewerk
 
   frontend:
-    image: karalog-frontend
+    image: routewerk-frontend
     build:
       context: frontend
       dockerfile: Dockerfile
