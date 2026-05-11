@@ -8,6 +8,11 @@ import PublicTopNav from './components/public-top-nav.vue'
 export default {
   name: 'App',
   components: { AppSidebar, PublicTopNav },
+  data() {
+    return {
+      isSidebarPinned: false,
+    }
+  },
   computed: {
     ...mapState(useAccountStore, ['user']),
     isPublicLayout() {
@@ -17,6 +22,9 @@ export default {
   methods: {
     ...mapActions(useAccountStore, ['fetchUser']),
     ...mapActions(useSocketStore, ['connect']),
+    setSidebarPinned(isPinned) {
+      this.isSidebarPinned = isPinned
+    },
   },
   async mounted() {
     await this.fetchUser()
@@ -24,14 +32,13 @@ export default {
 }
 </script>
 
-
 <template lang="pug">
-  .app-shell(:class="[isPublicLayout ? 'app-shell--public' : 'app-shell--app']")
+  .app-shell(:class="[isPublicLayout ? 'app-shell--public' : 'app-shell--app', { 'app-shell--sidebar-pinned': !isPublicLayout && isSidebarPinned }]")
     template(v-if="isPublicLayout")
       PublicTopNav
       router-view
     template(v-else)
-      AppSidebar
+      AppSidebar(:is-pinned="isSidebarPinned", @pin-change="setSidebarPinned")
       main.app-main
         .app-main__inner
           router-view
@@ -46,6 +53,11 @@ export default {
 
 .app-shell--app {
   padding-left: var(--sidebar-collapsed);
+  transition: padding-left var(--duration) var(--ease);
+}
+
+.app-shell--sidebar-pinned {
+  padding-left: var(--sidebar-expanded);
 }
 
 .app-main {
