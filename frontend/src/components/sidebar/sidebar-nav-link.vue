@@ -44,6 +44,11 @@ export default {
       default: '',
     },
   },
+  methods: {
+    releaseFocus(event) {
+      event.currentTarget?.blur()
+    },
+  },
 }
 </script>
 
@@ -52,6 +57,7 @@ router-link.nav-item(
   :class="{ 'nav-item--sign-in': variant === 'sign-in' }"
   :to="to"
   :title="label"
+  @click="releaseFocus"
 )
   component.nav-icon(:is="icon", :size="20", :stroke-width="1.75")
   span.nav-label {{ label }}
