@@ -115,7 +115,7 @@ cp frontend/.env.example frontend/.env
 Backend variables:
 
 ```env
-MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/karalog
+MONGODB_CONNECTION_STRING=mongodb://mongodb:27017/routewerk
 FRONTEND_URL=http://localhost:5173
 OPENAI_API_KEY=your-openai-key-here
 NODE_ENV=development
@@ -163,7 +163,7 @@ npm install
 Start MongoDB locally or use Docker for MongoDB. If you run the backend directly on your machine, set the backend MongoDB connection string to a local URI, for example:
 
 ```env
-MONGODB_CONNECTION_STRING=mongodb://localhost:27017/karalog
+MONGODB_CONNECTION_STRING=mongodb://localhost:27017/routewerk
 ```
 
 Start the backend:
@@ -189,7 +189,7 @@ Create `secrets/admin.env`:
 ```env
 SEED_ADMIN_EMAIL=admin@example.com
 SEED_ADMIN_PASSWORD=change-this-password
-SEED_MONGODB_URI=mongodb://localhost:27017/karalog
+SEED_MONGODB_URI=mongodb://localhost:27017/routewerk
 ```
 
 Then run:
