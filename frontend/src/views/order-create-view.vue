@@ -122,6 +122,22 @@ export default {
       const chosen = profiles.find(b => b.isDefault) || profiles[0]
       return chosen._id || ''
     },
+    serializeBillingInfo(billingInfo) {
+      if (!billingInfo) return null
+
+      const serialized = {
+        customerName: billingInfo.customerName,
+        address: billingInfo.address,
+        postalCode: billingInfo.postalCode,
+        city: billingInfo.city,
+        VATnr: billingInfo.VATnr || '',
+      }
+
+      if (billingInfo.label) serialized.label = billingInfo.label
+      if (typeof billingInfo.isDefault === 'boolean') serialized.isDefault = billingInfo.isDefault
+
+      return serialized
+    },
     resetForm() {
       this.origin = createEmptyAddress()
       this.destination = createEmptyAddress()
@@ -154,7 +170,7 @@ export default {
           destination: formatAddress(this.destination),
           deliveryDate: this.deliveryDate,
           cargos: this.cargos,
-          billingInfo: this.resolvedBillingInfo,
+          billingInfo: this.serializeBillingInfo(this.resolvedBillingInfo),
           note: this.note,
         })
         this.successMessage = 'Order created successfully!'
