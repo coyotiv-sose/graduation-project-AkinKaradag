@@ -1,6 +1,7 @@
 const { Joi } = require('celebrate')
 
-const { nonEmptyStringSchema } = require('../primitives')
+const { nonEmptyStringSchema, objectIdSchema, ORDER_STATES } = require('./primitives')
+const { createUpdateBodySchema } = require('./builders')
 
 const billingInfoSchema = Joi.object({
   label: nonEmptyStringSchema,
@@ -23,7 +24,26 @@ const cargoSchema = Joi.object({
   quantity: Joi.number().required(),
 }).required()
 
+const orderBaseBodyFields = {
+  origin: nonEmptyStringSchema,
+  destination: nonEmptyStringSchema,
+  deliveryDate: Joi.date(),
+  state: Joi.string().valid(...ORDER_STATES),
+  cargos: Joi.array().items(cargoSchema).min(1),
+  billingInfo: billingInfoSchema,
+  note: Joi.string().allow(''),
+}
+
+const orderUpdateBodySchema = createUpdateBodySchema({
+  ...orderBaseBodyFields,
+  billingInfo: billingInfoSchema.optional(),
+  customer: objectIdSchema,
+  company: objectIdSchema,
+})
+
 module.exports = {
   billingInfoSchema,
   cargoSchema,
+  orderBaseBodyFields,
+  orderUpdateBodySchema,
 }
