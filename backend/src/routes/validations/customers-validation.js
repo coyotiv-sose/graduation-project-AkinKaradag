@@ -1,6 +1,22 @@
-const { cargoSchema } = require('../../lib/validation/schemas/shared')
-const { orderCreateBodySchema, orderGenerateBodySchema } = require('../../lib/validation/schemas/order')
+const { Joi } = require('celebrate')
+
+const { nonEmptyStringSchema } = require('../../lib/validation/primitives')
+const { createBodySchema } = require('../../lib/validation/builders')
+const { billingInfoSchema, cargoSchema, orderBaseBodyFields } = require('../../lib/validation/shared-schemas')
 const { validateParams, validateParamsAndBody } = require('../../lib/validation/celebrate-builders')
+
+const orderCreateBodySchema = createBodySchema(orderBaseBodyFields, [
+  'origin',
+  'destination',
+  'deliveryDate',
+  'cargos',
+  'billingInfo',
+])
+
+const orderGenerateBodySchema = Joi.object({
+  prompt: nonEmptyStringSchema.max(2000).required(),
+  billingInfo: billingInfoSchema.optional(),
+}).required()
 
 const validateCustomerIdParam = validateParams('customerId')
 const validateCustomerOrderParams = validateParams('customerId', 'orderId')

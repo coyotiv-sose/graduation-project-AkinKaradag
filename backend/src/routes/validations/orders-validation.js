@@ -1,4 +1,4 @@
-const { orderUpdateBodySchema } = require('../../lib/validation/schemas/order')
+const { orderUpdateBodySchema } = require('../../lib/validation/shared-schemas')
 const { validateParams, validateParamsAndBody } = require('../../lib/validation/celebrate-builders')
 
 const validateOrderIdParam = validateParams('orderId')
