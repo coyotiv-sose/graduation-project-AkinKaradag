@@ -8,10 +8,6 @@ const ORDER_MUTABLE_FIELDS = ['origin', 'destination', 'deliveryDate', 'state', 
 const orderNotFound = () => new DomainError('Order not found', { status: 404 })
 
 const createOrder = async orderData => {
-  if (!orderData.cargos || orderData.cargos.length === 0) {
-    throw new DomainError('Order must contain at least one cargo', { status: 400 })
-  }
-
   const newOrder = await Order.create(orderData)
   return newOrder
 }
