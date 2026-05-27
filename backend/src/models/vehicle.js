@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { VEHICLE_STATES } = require('../lib/domain-constants')
 
 const vehicleSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'LogisticCompany', required: true },
@@ -9,7 +10,7 @@ const vehicleSchema = new mongoose.Schema({
   payLoad: { type: Number, required: true },
   state: {
     type: String,
-    enum: ['AVAILABLE', 'ON_TOUR', 'IN_GARAGE', 'DAMAGED', 'PARKED', 'SOLD', 'OTHER_REASON'],
+    enum: VEHICLE_STATES,
     default: 'AVAILABLE',
   },
 })
