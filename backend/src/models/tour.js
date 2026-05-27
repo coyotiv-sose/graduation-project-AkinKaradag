@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const autopopulate = require('mongoose-autopopulate')
 const orderSchema = require('./order')
+const { TOUR_STATES } = require('../lib/domain-constants')
 
 const tourSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'LogisticCompany', required: true },
@@ -9,7 +10,7 @@ const tourSchema = new mongoose.Schema({
   startLocation: { type: String, default: '' },
   endLocation: { type: String, default: '' },
   orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order', autopopulate: true }],
-  state: { type: String, enum: ['STARTED', 'PLANNED', 'CANCELLED', 'FINISHED'], default: 'PLANNED' },
+  state: { type: String, enum: TOUR_STATES, default: 'PLANNED' },
 })
 
 tourSchema.methods.addOrder = function (orderId) {
