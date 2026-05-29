@@ -95,7 +95,7 @@ export default {
       return this.isStaffMode && !this.selectedCustomerId
     },
     aiBillingInfo() {
-      return this.billingReady ? this.resolvedBillingInfo : null
+      return this.billingReady ? this.serializeBillingInfo(this.resolvedBillingInfo) : null
     },
   },
   watch: {
