@@ -14,6 +14,7 @@ ADD vitest.config.js /app/vitest.config.js
 
 ADD src /app/src
 ADD public /app/public
+ADD .env.production /app/.env.production
 
 RUN npm run build
 
