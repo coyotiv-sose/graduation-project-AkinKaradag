@@ -22,6 +22,8 @@ coverage/
 .env
 .env.*
 !.env.example
+# Frontend build-time public config (backend URL is inlined into the bundle anyway)
+!frontend/.env.production
 
 #Docker
 data
