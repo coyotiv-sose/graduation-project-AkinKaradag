@@ -15,4 +15,6 @@ ADD vitest.config.js /app/vitest.config.js
 ADD src /app/src
 ADD public /app/public
 
+ENV VITE_DISABLE_HMR=true
+
 CMD [ "npm", "run", "dev" ]
