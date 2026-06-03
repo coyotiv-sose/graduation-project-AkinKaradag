@@ -85,6 +85,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create Placeholer env files
+        run: touch backend/.env frontend/.env
+
       - name: Validate docker compose file
         run: docker compose -f docker-compose.yml config --quiet
 
