@@ -1,6 +1,6 @@
+/* eslint-disable func-names */
 const mongoose = require('mongoose')
 const autopopulate = require('mongoose-autopopulate')
-const orderSchema = require('./order')
 const { TOUR_STATES } = require('../lib/domain-constants')
 
 const tourSchema = new mongoose.Schema({

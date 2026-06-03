@@ -14,10 +14,7 @@ const companyScopedDeleteBodySchema = Joi.object({
   company: objectIdSchema.required(),
 }).required()
 
-const passwordSchema = Joi.string()
-  .min(PASSWORD_MIN_LENGTH)
-  .max(PASSWORD_MAX_LENGTH)
-  .pattern(PASSWORD_ALLOWED_REGEX)
+const passwordSchema = Joi.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH).pattern(PASSWORD_ALLOWED_REGEX)
 
 const companyBodyFields = {
   companyName: nonEmptyStringSchema,

@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable func-names */
 /* eslint-disable import/order */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */

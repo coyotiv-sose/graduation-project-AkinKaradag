@@ -12,15 +12,16 @@ const { createBodySchema, createUpdateBodySchema } = require('../../lib/validati
 const { billingInfoSchema, orderBaseBodyFields } = require('../../lib/validation/shared-schemas')
 const { validateParams, validateParamsAndBody } = require('../../lib/validation/celebrate-builders')
 
-const orderCreateByCompanyBodySchema = createBodySchema(
-  { ...orderBaseBodyFields, customer: objectIdSchema },
-  ['origin', 'destination', 'deliveryDate', 'customer', 'cargos', 'billingInfo']
-)
+const orderCreateByCompanyBodySchema = createBodySchema({ ...orderBaseBodyFields, customer: objectIdSchema }, [
+  'origin',
+  'destination',
+  'deliveryDate',
+  'customer',
+  'cargos',
+  'billingInfo',
+])
 
-const passwordSchema = Joi.string()
-  .min(PASSWORD_MIN_LENGTH)
-  .max(PASSWORD_MAX_LENGTH)
-  .pattern(PASSWORD_ALLOWED_REGEX)
+const passwordSchema = Joi.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH).pattern(PASSWORD_ALLOWED_REGEX)
 
 const customerBodyFields = {
   customerName: nonEmptyStringSchema,
@@ -29,10 +30,11 @@ const customerBodyFields = {
   profile: nonEmptyStringSchema,
 }
 
-const customerCreateBodySchema = createBodySchema(
-  { ...customerBodyFields, password: passwordSchema },
-  ['customerName', 'email', 'password']
-)
+const customerCreateBodySchema = createBodySchema({ ...customerBodyFields, password: passwordSchema }, [
+  'customerName',
+  'email',
+  'password',
+])
 const customerUpdateBodySchema = createUpdateBodySchema(customerBodyFields)
 
 const employeeBodyFields = {
@@ -41,10 +43,11 @@ const employeeBodyFields = {
   profile: nonEmptyStringSchema,
 }
 
-const employeeCreateBodySchema = createBodySchema(
-  { ...employeeBodyFields, password: passwordSchema },
-  ['name', 'email', 'password']
-)
+const employeeCreateBodySchema = createBodySchema({ ...employeeBodyFields, password: passwordSchema }, [
+  'name',
+  'email',
+  'password',
+])
 const employeeUpdateBodySchema = createUpdateBodySchema(employeeBodyFields)
 
 const vehicleBodyFields = {

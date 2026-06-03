@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 const OpenAI = require('openai')
 
 const { DomainError } = require('./domain-error')

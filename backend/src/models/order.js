@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 const mongoose = require('mongoose')
 const billingInfoSchema = require('./billing-info')
 const cargoSchema = require('./cargo')
